@@ -31,25 +31,27 @@ double DSP::Distortion::StateFulDrive::Process (double input, double amount)
 }
 
 //TODO: Fix Excite Soft asymmetrical clipping (low volume and using some samples not found)
-//double DSP::Distortion::Excite::Process (double input, double amount)
-//{
-//    auto threshold = .6;
-//    auto driven = input = threshold + (input - threshold) / (1 + pow (((input - threshold) / (1 - threshold)), 2));
-//
-//    if (input > threshold)
-//    {
-//        return driven;
-//    }
-//
-//    else if (input > 1)
-//    {
-//        return input = 1;
-//    }
-//
-//    auto mix = fabs (previous + driven) * .5 * amount;
-//    previous = driven;
-//    return input * (1.0 - mix) + driven * mix;
-//}
+//TODO: Probably fixed it not sure
+double DSP::Distortion::Excite::Process (double input, double amount)
+{
+    //auto threshold = .6;
+    auto threshold = .9;
+    auto driven = input = threshold + (input - threshold) / (1 + pow (((input - threshold) / (1 - threshold)), 2));
+
+    if (input > threshold)
+    {
+        return driven;
+    }
+
+    else if (input > 1)
+    {
+        return input = 1;
+    }
+
+    auto mix = fabs (previous + driven) * .5 * amount;
+    previous = driven;
+    return input * (1.0 - mix) + driven * mix;
+}
 
 double DSP::Distortion::Fat::Process (double input, double amount)
 {

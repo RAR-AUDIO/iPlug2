@@ -45,14 +45,14 @@ namespace DSP // DSP Namespace for all DSP
 
         //TODO: Add new Saturation/Distortion Algorithm for analog style plugins
 
-        //class Excite // Soft asymmetrical clipping
-        //{
-        //public:
-        //    double Process (double input, double amount);
+        class Excite // Soft asymmetrical clipping
+        {
+        public:
+            double Process (double input, double amount);
 
-        //private:
-        //    double previous = 0.0;
-        //};
+        private:
+            double previous = 0.0;
+        };
 
         class Fat  // inverse Tangent Waveshaper
         {
