@@ -1,0 +1,16 @@
+//==================================================================================
+// Project     : ProjectName
+// Version     : 1.0
+//
+// Category    : Category
+// Filename    : Categor/FileName.cpp
+// Created by  : RAR-AUDIO, MMM/YYYY
+// Author      : Roberto Ramirez
+// Description : placeholder
+//               
+//
+//---------------------------------------------------------------------------------
+// LICENSE
+// (c) YYYY, Company/Personal, All Rights Reserved
+//---------------------------------------------------------------------------------
+//=================================================================================
