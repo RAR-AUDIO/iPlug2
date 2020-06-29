@@ -25,7 +25,18 @@
 #include "ptrlist.h"
 #include "heapbuf.h"
 
-#include "nanosvg.h"
+#ifdef IGRAPHICS_SKIA
+  #pragma warning( push )
+  #pragma warning( disable : 4244 )
+  #pragma warning( disable : 5030 )
+  #include "experimental/svg/model/SkSVGDOM.h"
+  #include "include/core/SkCanvas.h"
+  #include "include/core/SkStream.h"
+  #include "src/xml/SkDOM.h"
+  #pragma warning( pop )
+#else
+  #include "nanosvg.h"
+#endif
 
 #include "IPlugPlatform.h"
 
@@ -44,8 +55,11 @@
 #elif defined IGRAPHICS_NANOVG
   #define BITMAP_DATA_TYPE int;
 #elif defined IGRAPHICS_SKIA
+  #pragma warning( push )
+  #pragma warning( disable : 4244 )
   #include "SkImage.h"
   #include "SkSurface.h"
+  #pragma warning( pop )
   struct SkiaDrawable
   {
     bool mIsSurface;
@@ -443,11 +457,28 @@ protected:
 
 using PlatformFontPtr = std::unique_ptr<PlatformFont>;
 
+#ifdef IGRAPHICS_SKIA
+struct SVGHolder
+{
+  SVGHolder(sk_sp<SkSVGDOM> svgDom)
+  : mSVGDom(svgDom)
+  {
+  }
+  
+  ~SVGHolder()
+  {
+    mSVGDom = nullptr;
+  }
+  
+  SVGHolder(const SVGHolder&) = delete;
+  SVGHolder& operator=(const SVGHolder&) = delete;
+  
+  sk_sp<SkSVGDOM> mSVGDom;
+};
+#else
 /** Used internally to manage SVG data*/
 struct SVGHolder
 {
-  NSVGimage* mImage = nullptr;
-  
   SVGHolder(NSVGimage* pImage)
   : mImage(pImage)
   {
@@ -463,7 +494,10 @@ struct SVGHolder
   
   SVGHolder(const SVGHolder&) = delete;
   SVGHolder& operator=(const SVGHolder&) = delete;
+  
+  NSVGimage* mImage = nullptr;
 };
+#endif
 
 /** Used internally to store data statically, making sure memory is not wasted when there are multiple plug-in instances loaded */
 template <class T>
@@ -594,10 +628,22 @@ private:
       Clear();
   }
     
-  int mCount;
+  int mCount = 0;
   WDL_Mutex mMutex;
   WDL_PtrList<DataKey> mDatas;
 };
+
+/** Encapsulate an xy point in one struct */
+struct IVec2
+{
+  float x, y;
+  IVec2() = default;
+  IVec2(float x, float y) : x(x), y(y) {}
+  
+  IVec2 operator-(const IVec2 b) { return IVec2{x-b.x, y-b.y}; }
+  IVec2 operator+(const IVec2 b) { return IVec2{x+b.x, y+b.y}; }
+};
+
 
 END_IGRAPHICS_NAMESPACE
 END_IPLUG_NAMESPACE

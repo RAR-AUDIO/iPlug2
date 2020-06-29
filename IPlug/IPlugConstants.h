@@ -50,7 +50,7 @@ enum EIPlugPluginType
 
 enum EVST3ParamIDs
 {
-#ifndef IPLUG1_COMPATIBILITY
+#ifdef IPLUG1_COMPATIBILITY
   kBypassParam = 'bpas',
   kPresetParam = 'prst',
   kMIDICCParamStartIdx
@@ -85,6 +85,7 @@ static const int MAX_PRESET_NAME_LEN = 256;
 #define MAX_MACOS_PATH_LEN 1024
 #define MAX_WIN32_PATH_LEN 256
 #define MAX_WIN32_PARAM_LEN 256
+#define IPLUG_WIN_MAX_WIDE_PATH 4096
 
 #define MAX_PLUGIN_NAME_LEN 128
 
@@ -228,6 +229,17 @@ enum EHost
   kHostTwistedWave,
   kHostBitwig,
   kHostWWW,
+  
+  kHostReason,			
+  kHostGoldWave5x,	
+  kHostWaveform,		
+  kHostAudacity,		
+  kHostAcoustica,		
+  kHostPluginDoctor,
+  kHostiZotopeRX,		
+  kHostSAVIHost,		
+  kHostBlueCat,			
+
   // These hosts don't report the host name:
   // EnergyXT2
   // MiniHost

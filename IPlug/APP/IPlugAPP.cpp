@@ -35,20 +35,20 @@ IPlugAPP::IPlugAPP(const InstanceInfo& info, const Config& config)
   CreateTimer();
 }
 
-bool IPlugAPP::EditorResizeFromDelegate(int viewWidth, int viewHeight)
+bool IPlugAPP::EditorResize(int viewWidth, int viewHeight)
 {
   bool parentResized = false;
     
   if (viewWidth != GetEditorWidth() || viewHeight != GetEditorHeight())
   {
     #ifdef OS_MAC
-    #define TITLEBAR_BODGE 22 //TODO: sort this out
+    const int titleBarOffset = 22;
     RECT r;
     GetWindowRect(gHWND, &r);
-    SetWindowPos(gHWND, 0, r.left, r.bottom - viewHeight - TITLEBAR_BODGE, viewWidth, viewHeight + TITLEBAR_BODGE, 0);
+    SetWindowPos(gHWND, 0, r.left, r.bottom - viewHeight - titleBarOffset, viewWidth, viewHeight + titleBarOffset, 0);
     parentResized = true;
     #endif
-    IPlugAPIBase::EditorResizeFromDelegate(viewWidth, viewHeight);
+    SetEditorSize(viewWidth, viewHeight);
   }
   
   return parentResized;
@@ -144,7 +144,7 @@ void IPlugAPP::AppProcess(double** inputs, double** outputs, int nFrames)
 
   //Do not handle Sysex messages here - SendSysexMsgFromUI overridden
 
-  ENTER_PARAMS_MUTEX;
+  ENTER_PARAMS_MUTEX
   ProcessBuffers(0.0, GetBlockSize());
-  LEAVE_PARAMS_MUTEX;
+  LEAVE_PARAMS_MUTEX
 }

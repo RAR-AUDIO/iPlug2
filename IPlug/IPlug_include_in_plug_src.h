@@ -22,7 +22,7 @@
 
 #pragma mark - OS_WIN
 
-#if defined OS_WIN
+#if defined OS_WIN && !defined VST3C_API
   HINSTANCE gHINSTANCE = 0;
   #if defined(VST2_API) || defined(AAX_API)
   #ifdef __MINGW32__
@@ -34,6 +34,27 @@
     return true;
   }
   #endif
+
+  UINT(WINAPI *__GetDpiForWindow)(HWND);
+
+  int GetScaleForHWND(HWND hWnd)
+  {
+    if (!__GetDpiForWindow)
+    {
+      HINSTANCE h = LoadLibraryA("user32.dll");
+      if (h) *(void **)&__GetDpiForWindow = GetProcAddress(h, "GetDpiForWindow");
+
+      if (!__GetDpiForWindow)
+        return 1;
+    }
+
+    int dpi = __GetDpiForWindow(hWnd);
+    if (dpi != USER_DEFAULT_SCREEN_DPI)
+      return static_cast<int>(std::round(static_cast<double>(dpi) / USER_DEFAULT_SCREEN_DPI));
+
+    return 1;
+  }
+
 #endif
 
 #pragma mark - ** Global Functions and Defines **
@@ -73,12 +94,10 @@
   #include "pluginterfaces/vst/ivstcomponent.h"
   #include "pluginterfaces/vst/ivsteditcontroller.h"
 
-  static unsigned int PROC_GUID1 = 0xF2AEE70D;
-  static unsigned int PROC_GUID2 = 0x00DE4F4E;
-  static unsigned int CTRL_GUID1 = 0xF2AEE70E;
-  static unsigned int CTRL_GUID2 = 0x00DE4F4F;
-  static unsigned int VST3_GUID3 = PLUG_MFR_ID;
-  static unsigned int VST3_GUID4 = PLUG_UNIQUE_ID;
+#if !defined VST3_PROCESSOR_UID && !defined VST3_CONTROLLER_UID
+#define VST3_PROCESSOR_UID 0xF2AEE70D, 0x00DE4F4E, PLUG_MFR_ID, PLUG_UNIQUE_ID
+#define VST3_CONTROLLER_UID 0xF2AEE70E, 0x00DE4F4F, PLUG_MFR_ID, PLUG_UNIQUE_ID
+#endif
 
   #ifndef EFFECT_TYPE_VST3
     #if PLUG_TYPE == 1
@@ -113,7 +132,7 @@
 
   BEGIN_FACTORY_DEF(PLUG_MFR, PLUG_URL_STR, PLUG_EMAIL_STR)
 
-  DEF_CLASS2(INLINE_UID(PROC_GUID1, PROC_GUID2, VST3_GUID3, VST3_GUID4),
+  DEF_CLASS2(INLINE_UID_FROM_FUID(FUID(VST3_PROCESSOR_UID)),
               Steinberg::PClassInfo::kManyInstances,          // cardinality
               kVstAudioEffectClass,                           // the component category (don't change this)
               PLUG_NAME,                                      // plug-in name
@@ -138,7 +157,7 @@
 
   BEGIN_FACTORY_DEF(PLUG_MFR, PLUG_URL_STR, PLUG_EMAIL_STR)
 
-  DEF_CLASS2 (INLINE_UID(PROC_GUID1, PROC_GUID2, VST3_GUID3, VST3_GUID4),
+  DEF_CLASS2 (INLINE_UID_FROM_FUID(FUID(VST3_PROCESSOR_UID)),
               PClassInfo::kManyInstances,                     // cardinality
               kVstAudioEffectClass,                           // the component category (do not changed this)
               PLUG_NAME,                                      // here the Plug-in name (to be changed)
@@ -148,7 +167,7 @@
               kVstVersionString,                              // the VST 3 SDK version (don't change - use define)
               createProcessorInstance)                        // function pointer called to be instantiate
 
-  DEF_CLASS2(INLINE_UID(CTRL_GUID1, CTRL_GUID2, VST3_GUID3, VST3_GUID4),
+  DEF_CLASS2(INLINE_UID_FROM_FUID(FUID(VST3_CONTROLLER_UID)),
               PClassInfo::kManyInstances,                     // cardinality
               kVstComponentControllerClass,                   // the Controller category (do not changed this)
               PLUG_NAME " Controller",                        // controller name (could be the same than component name)
@@ -290,7 +309,7 @@ Steinberg::FUnknown* MakeController()
   static WDL_Mutex sMutex;
   WDL_MutexLock lock(&sMutex);
   IPlugVST3Controller::InstanceInfo info;
-  info.mOtherGUID = FUID(PROC_GUID1, PROC_GUID2, VST3_GUID3, VST3_GUID4);
+  info.mOtherGUID = Steinberg::FUID(VST3_PROCESSOR_UID);
   //If you are trying to build a distributed VST3 plug-in and you hit an error here "no matching constructor...",
   //you need to replace all instances of PLUG_CLASS_NAME in your plug-in class, with the macro PLUG_CLASS_NAME
   return static_cast<Steinberg::Vst::IEditController*>(new PLUG_CLASS_NAME(info));
@@ -304,7 +323,7 @@ Steinberg::FUnknown* MakeProcessor()
   static WDL_Mutex sMutex;
   WDL_MutexLock lock(&sMutex);
   IPlugVST3Processor::InstanceInfo info;
-  info.mOtherGUID = FUID(CTRL_GUID1, CTRL_GUID2, VST3_GUID3, VST3_GUID4);
+  info.mOtherGUID = Steinberg::FUID(VST3_CONTROLLER_UID);
   return static_cast<Steinberg::Vst::IAudioProcessor*>(new PLUG_CLASS_NAME(info));
 }
 
@@ -316,7 +335,7 @@ Steinberg::FUnknown* MakeProcessor()
 
 static Config MakeConfig(int nParams, int nPresets)
 {
-  return Config(nParams, nPresets, PLUG_CHANNEL_IO, PUBLIC_NAME, "", PLUG_MFR, PLUG_VERSION_HEX, PLUG_UNIQUE_ID, PLUG_MFR_ID, PLUG_LATENCY, PLUG_DOES_MIDI_IN, PLUG_DOES_MIDI_OUT, PLUG_DOES_MPE, PLUG_DOES_STATE_CHUNKS, PLUG_TYPE, PLUG_HAS_UI, PLUG_WIDTH, PLUG_HEIGHT, BUNDLE_ID);
+  return Config(nParams, nPresets, PLUG_CHANNEL_IO, PUBLIC_NAME, "", PLUG_MFR, PLUG_VERSION_HEX, PLUG_UNIQUE_ID, PLUG_MFR_ID, PLUG_LATENCY, PLUG_DOES_MIDI_IN, PLUG_DOES_MIDI_OUT, PLUG_DOES_MPE, PLUG_DOES_STATE_CHUNKS, PLUG_TYPE, PLUG_HAS_UI, PLUG_WIDTH, PLUG_HEIGHT, PLUG_HOST_RESIZE, PLUG_MIN_WIDTH, PLUG_MAX_WIDTH, PLUG_MIN_HEIGHT, PLUG_MAX_HEIGHT, BUNDLE_ID);
 }
 
 END_IPLUG_NAMESPACE

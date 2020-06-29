@@ -41,9 +41,9 @@ public:
   void BeginInformHostOfParamChange(int idx) override;
   void InformHostOfParamChange(int idx, double normalizedValue) override;
   void EndInformHostOfParamChange(int idx) override;
-  void InformHostOfProgramChange() override;
+  void InformHostOfPresetChange() override;
   void HostSpecificInit() override;
-  bool EditorResizeFromDelegate(int viewWidth, int viewHeight) override;
+  bool EditorResize(int viewWidth, int viewHeight) override;
 
   //IPlugProcessor
   void SetLatency(int samples) override;

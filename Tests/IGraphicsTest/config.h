@@ -23,10 +23,11 @@
 #define PLUG_DOES_MPE 0
 #define PLUG_DOES_STATE_CHUNKS 0
 #define PLUG_HAS_UI 1
-#define PLUG_WIDTH 950
-#define PLUG_HEIGHT 650
+#define PLUG_WIDTH 1024
+#define PLUG_HEIGHT 768
 #define PLUG_FPS 60
 #define PLUG_SHARED_RESOURCES 0
+#define PLUG_HOST_RESIZE 0
 
 #define AUV2_ENTRY IGraphicsTest_Entry
 #define AUV2_ENTRY_STR "IGraphicsTest_Entry"
@@ -47,7 +48,6 @@
 #define APP_N_VECTOR_WAIT 0
 #define APP_MULT 1
 #define APP_COPY_AUV3 0
-#define APP_RESIZABLE 0
 #define APP_SIGNAL_VECTOR_SIZE 64
 
 #define ROBOTO_FN "Roboto-Regular.ttf"
@@ -56,3 +56,5 @@
 #define ORBS_FN "orbs.svg"
 #define SMILEY_FN "smiley.png"
 #define IPLUG_FN "iplug.png"
+#define SRC_FN "src.png"
+#define DST_FN "dst.png"

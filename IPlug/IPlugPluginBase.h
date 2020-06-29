@@ -63,6 +63,10 @@ public:
   /** @return The host if it has been identified, see EHost enum for a list of possible hosts */
    EHost GetHost() const { return mHost; }
   
+  /** Get the host name as a CString
+   * @param str string into which to write the host name */
+  void GetHostStr(WDL_String& str) const { GetHostNameStr(GetHost(), str); }
+  
   /** Get the host version number as an integer
    * @param decimal \c true indicates decimal format = VVVVRRMM, otherwise hexadecimal 0xVVVVRRMM.
    * @return The host version number as an integer. */
@@ -88,6 +92,9 @@ public:
   
   /** @return \c true if the plug-in is meant to have a UI, as defined in config.h */
   bool HasUI() const { return mHasUI; }
+  
+  /** @return \c true if the plug-in allows reszing via the host's window chrome, as defined in config.h */
+  bool GetHostResizeEnabled() const { return mHostResize; }
   
   /*** @return a CString with the bundle identifier (macOS/IOS only) */
   const char* GetBundleID() const { return mBundleID.Get(); }
@@ -125,28 +132,17 @@ public:
    * @return The new chunk position (endPos) */
   int UnserializeParams(const IByteChunk& chunk, int startPos);
     
-  /** Serializes the editor data (such as scale) into a binary chunk.
-   * @param chunk The output chunk to serialize to. Will append data if the chunk has already been started.
-   * @return \c true if the serialization was successful */
-  bool SerializeEditorData(IByteChunk& chunk) const;
-    
-  /** Unserializes editor data (such as scale) into a byte chunk into the plugin.
-   * @param chunk The incoming chunk where editor data stored to unserialize
-   * @param startPos The start position in the chunk where parameter values are stored
-   * @return The new chunk position (endPos) */
-  int UnserializeEditorData(const IByteChunk& chunk, int startPos);
-  
   /** Override this method to serialize custom state data, if your plugin does state chunks.
    * @param chunk The output bytechunk where data can be serialized
    * @return \c true if serialization was successful*/
-  virtual bool SerializeState(IByteChunk& chunk) const { TRACE; return SerializeParams(chunk); }
+  virtual bool SerializeState(IByteChunk& chunk) const { TRACE return SerializeParams(chunk); }
   
   /** Override this method to unserialize custom state data, if your plugin does state chunks.
    * Implementations should call UnserializeParams() after custom data is unserialized
    * @param chunk The incoming chunk containing the state data.
    * @param startPos The position in the chunk where the data starts
    * @return The new chunk position (endPos)*/
-  virtual int UnserializeState(const IByteChunk& chunk, int startPos) { TRACE; return UnserializeParams(chunk, startPos); }
+  virtual int UnserializeState(const IByteChunk& chunk, int startPos) { TRACE return UnserializeParams(chunk, startPos); }
   
   /** VST3 ONLY! - THIS IS ONLY INCLUDED FOR COMPATIBILITY - NOONE ELSE SHOULD NEED IT!
    * @param chunk The output bytechunk where data can be serialized.
@@ -167,7 +163,7 @@ public:
   void SetCurrentPresetIdx(int idx) { assert(idx > -1 && idx < NPresets()); mCurrentPresetIdx = idx; }
   
   /** Implemented by the API class, called by the UI (etc) when the plug-in initiates a program/preset change (not applicable to all APIs) */
-  virtual void InformHostOfProgramChange() {};
+  virtual void InformHostOfPresetChange() {};
 #pragma mark - Preset Manipulation - NO-OPs
   
 #ifdef NO_PRESETS
@@ -203,6 +199,19 @@ public:
    * @param idx The index of the preset whose name to get
    * @return CString preset name */
   const char* GetPresetName(int idx) const;
+  
+  /** Copy source preset to preset at index
+  * @param pPresetSrc source preset
+  * @param dest_idx index of internal dest preset */
+  void CopyPreset(IPreset* pPresetSrc, int dest_idx, bool copyname = false)
+  {
+    IPreset* pPresetTgt = mPresets.Get(dest_idx);
+
+    pPresetTgt->mChunk.Clear();
+    pPresetTgt->mChunk.PutChunk(&pPresetSrc->mChunk);
+    pPresetTgt->mInitialized = true;
+    strncpy(pPresetTgt->mName, pPresetSrc->mName, MAX_PRESET_NAME_LEN - 1);
+  }
   
   /** /todo 
    * @param name /todo
@@ -277,7 +286,7 @@ public:
   /** Save current state as a VST2 format preset
    * @param file /todo
    * @return true /todo */
-  bool SaveProgramAsFXP(const char* file) const;
+  bool SavePresetAsFXP(const char* file) const;
 
   /** Save current bank as a VST2 format bank [VST2 only]
    * @param file /todo
@@ -287,7 +296,7 @@ public:
   /** Load VST2 format preset 
    * @param file /todo
    * @return true /todo */
-  bool LoadProgramFromFXP(const char* file);
+  bool LoadPresetFromFXP(const char* file);
 
   /** Load VST2 format bank [VST2 only]
    * @param file /todo
@@ -310,12 +319,12 @@ public:
   /** /todo 
    * @param file /todo
    * @return true /todo */
-  bool SaveProgramAsVSTPreset(const char* file) const;
+  bool SavePresetAsVSTPreset(const char* file) const;
 
   /** /todo 
    * @param file /todo
    * @return true /todo*/
-  bool LoadProgramFromVSTPreset(const char* file);
+  bool LoadPresetFromVSTPreset(const char* file);
 
   /** /todo 
    * @param path /todo
@@ -326,12 +335,12 @@ public:
    * @param name /todo
    * @param file /todo
    * @return true /todo  */
-  bool SaveProgramAsAUPreset(const char* name, const char* file) const { return false; }
+  bool SavePresetAsAUPreset(const char* name, const char* file) const { return false; }
 
   /** /todo 
    * @param file /todo
    * @return true /todo  */
-  bool LoadProgramFromAUPreset(const char* file) { return false; }
+  bool LoadPresetFromAUPreset(const char* file) { return false; }
 
   /** /todo 
    * @param path /todo
@@ -343,12 +352,12 @@ public:
    * @param file /todo
    * @param pluginID /todo
    * @return true /todo */
-  bool SaveProgramAsProToolsPreset(const char* presetName, const char* file, unsigned long pluginID) const { return false; }
+  bool SavePresetAsProToolsPreset(const char* presetName, const char* file, unsigned long pluginID) const { return false; }
 
   /** /todo 
    * @param file /todo
    * @return true /todo */
-  bool LoadProgramFromProToolsPreset(const char* file) { return false; }
+  bool LoadPresetFromProToolsPreset(const char* file) { return false; }
 
   /** /todo 
    * @param path /todo
@@ -459,16 +468,16 @@ protected:
   EAPI mAPI;
   /** macOS/iOS bundle ID */
   WDL_String mBundleID;
-  /** Saving VST3 format presets requires this see SaveProgramAsVSTPreset */
+  /** Saving VST3 format presets requires this see SavePresetAsVSTPreset */
   WDL_String mVST3ProductCategory;
-  /** Saving VST3 format presets requires this see SaveProgramAsVSTPreset */
+  /** Saving VST3 format presets requires this see SavePresetAsVSTPreset */
   WDL_String mVST3ProcessorUIDStr;
-  /** Saving VST3 format presets requires this see SaveProgramAsVSTPreset */
+  /** Saving VST3 format presets requires this see SavePresetAsVSTPreset */
   WDL_String mVST3ControllerUIDStr;
-  
   /** \c true if the plug-in has a user interface. If false the host will provide a default interface */
   bool mHasUI = false;
-
+  /** \c true if the host window chrome should be able to resize the plug-in UI, only applicable in certain formats/hosts */
+  bool mHostResize = false;
   /** A list of unique cstrings found specified as "parameter groups" when defining IParams. These are used in various APIs to group parameters together in automation dialogues. */
   WDL_PtrList<const char> mParamGroups;
   
@@ -477,6 +486,8 @@ protected:
 #endif
 
 #ifdef PARAMS_MUTEX
+  friend class IPlugVST3ProcessorBase;
+protected:
   /** Lock when accessing mParams (including via GetParam) from the audio thread */
   WDL_Mutex mParams_mutex;
 #endif  
