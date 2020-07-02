@@ -55,35 +55,62 @@ public:
 //      }
 //      )";
 
+    mShaderStr = R"(
+    uniform float u_time;
+    uniform float2 u_resolution;
+//    uniform float2 u_mouse;
+
+    // Plot a line on Y using a value between 0.0-1.0
+    float plot(float2 st, float pct){
+      return  smoothstep( pct-0.02, pct, st.y) -
+              smoothstep( pct, pct+0.02, st.y);
+    }
+
+    void main(float2 p, inout half4 color) {
+      float2 st = p/u_resolution.xy;
+
+        float y = st.x;
+
+        float3 acolor = float3(y);
+
+        // Plot a line
+        float pct = plot(st,y);
+        acolor = (1.0-pct)*acolor+pct*float3(0.0,1.0,0.0);
+
+      color = half4(acolor,1.0);
+    }
+    )";
+    
+    
     // basic
-//    mShaderStr = R"(
-//    uniform float iTime;
-//    uniform float2 iResolution;
-//    void main(float2 fragCoord, inout half4 color) {
-//      float2 st = fragCoord/iResolution.xy;
-//      color = half4(st, 0., 1.);
-//    }
-//    )";
+    //mShaderStr = R"(
+    //uniform float iTime;
+    //uniform float2 iResolution;
+    //void main(float2 fragCoord, inout half4 color) {
+    //  float2 st = fragCoord/iResolution.xy;
+    //  color = half4(st, 0., 1.);
+    //}
+    //)";
     
     // spiral
-//    mShaderStr = R"(
-//    uniform float iTime;
-//    uniform float2 iResolution;
-//
-//    void main(float2 p, inout half4 color) {
-//      float2 in_center = float2(300., 300.);
-//      float4 in_colors0 = float4(1.,1.,1.,1.);
-//      float4 in_colors1 = float4(0.,0.,0.,1.);
-//      float2 pp = p - in_center;
-//      float radius = sqrt(dot(pp, pp));
-//      radius = sqrt(radius);
-//      float angle = atan(pp.y / pp.x);
-//      float t = (angle + 3.1415926/2) / (3.1415926);
-//      t += radius * iTime;
-//      t = fract(t);
-//      color = half4(mix(in_colors0, in_colors1, t));
-//    }
-//    )";
+    mShaderStr = R"(
+    uniform float iTime;
+    uniform float2 iResolution;
+
+    void main(float2 p, inout half4 color) {
+      float2 in_center = float2(300., 300.);
+      float4 in_colors0 = float4(1.,1.,1.,1.);
+      float4 in_colors1 = float4(0.,0.,0.,1.);
+      float2 pp = p - in_center;
+      float radius = sqrt(dot(pp, pp));
+      radius = sqrt(radius);
+      float angle = atan(pp.y / pp.x);
+      float t = (angle + 3.1415926/2) / (3.1415926);
+      t += radius * iTime;
+      t = fract(t);
+      color = half4(mix(in_colors0, in_colors1, t));
+    }
+    )";
     
     // noise
 //    mShaderStr = R"(
@@ -317,11 +344,9 @@ public:
     mRTEffect = effect;
     
     auto inputs = SkData::MakeWithoutCopy(mShaderInputs.get(), mRTEffect->inputSize());
-    auto shader = mRTEffect->makeShader(std::move(inputs), mChildren.data(), mChildren.count(),
-                                      nullptr, false);
+    auto shader = mRTEffect->makeShader(std::move(inputs), mChildren.data(), mChildren.count(), nullptr, false);
     
     mPaint.setShader(std::move(shader));
-    
 
     return true;
   }
