@@ -143,7 +143,7 @@ llvm_dsp_factory *FaustGen::Factory::CreateFactoryFromSourceCode()
   }
 }
 
-::dsp *FaustGen::Factory::CreateDSPInstance(midi_handler& handler, int nVoices)
+::dsp *FaustGen::Factory::CreateDSPInstance(const MidiHandlerPtr& handler, int nVoices)
 {
   ::dsp* pMonoDSP = mLLVMFactory->createDSPInstance();
 
@@ -154,7 +154,7 @@ llvm_dsp_factory *FaustGen::Factory::CreateFactoryFromSourceCode()
   if (nVoices > 0)
   {
     dsp_poly* pDspPoly = new mydsp_poly(pMonoDSP, nVoices, true);
-    handler.addMidiIn(pDspPoly);
+    handler->addMidiIn(pDspPoly);
     return pDspPoly;
   }
   else
@@ -163,7 +163,7 @@ llvm_dsp_factory *FaustGen::Factory::CreateFactoryFromSourceCode()
   }
 }
 
-::dsp *FaustGen::Factory::GetDSP(int maxInputs, int maxOutputs, midi_handler& handler)
+::dsp *FaustGen::Factory::GetDSP(int maxInputs, int maxOutputs, const MidiHandlerPtr& handler)
 {
   ::dsp* pDSP = nullptr;
   FMeta meta;
@@ -382,7 +382,7 @@ bool FaustGen::Factory::LoadFile(const char* file)
     return true;
   }
   
-  assert(0 && "If you hit this assert it means the faust DSP file specificed in FAUST_BLOCK file was not found. This may be due to the app's sandbox.");
+  assert(0 && "If you hit this assert it means the faust DSP file specificed in FAUST_BLOCK file was not found. This may be due to an invalid path or the macOS app sandbox.");
   
   return false;
 }
@@ -472,6 +472,9 @@ void FaustGen::Init()
 {
   mZones.Empty(); // remove existing pointers to zones
     
+  mMidiHandler = std::make_unique<iplug2_midi_handler>();
+  mMidiUI = std::make_unique<MidiUI>(mMidiHandler.get());
+    
   mDSP = std::unique_ptr<::dsp>(mFactory->GetDSP(mMaxNInputs, mMaxNOutputs, mMidiHandler));
   assert(mDSP);
  
@@ -494,6 +497,8 @@ void FaustGen::Init()
   
   if(mOnCompileFunc)
     mOnCompileFunc();
+    
+    mMidiHandler->startMidi();
 }
 
 void FaustGen::GetDrawPath(WDL_String& path)

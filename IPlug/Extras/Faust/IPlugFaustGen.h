@@ -141,7 +141,7 @@ class FaustGen : public IPlugFaust
     
     /** If DSP already exists will return it, otherwise create it
      * @return pointer to the DSP instance */
-    ::dsp* GetDSP(int maxInputs, int maxOutputs, midi_handler& handler);
+    ::dsp* GetDSP(int maxInputs, int maxOutputs, const MidiHandlerPtr& handler);
 
     void FreeDSPFactory();
     void SetDefaultCompileOptions();
@@ -153,7 +153,7 @@ class FaustGen : public IPlugFaust
 
     void UpdateSourceCode(const char* str);
 
-    ::dsp* CreateDSPInstance(midi_handler& handler, int nVoices = 0);
+    ::dsp* CreateDSPInstance(const MidiHandlerPtr& handler, int nVoices = 0);
     void AddInstance(FaustGen* pDSP) { mInstances.insert(pDSP); }
     void RemoveInstance(FaustGen* pDSP);
 
@@ -192,7 +192,6 @@ class FaustGen : public IPlugFaust
     std::set<FaustGen*> mInstances;
 
     llvm_dsp_factory* mLLVMFactory = nullptr;
-    //  midi_handler mMidiHandler;
     WDL_FastString mSourceCodeStr;
     WDL_FastString mBitCodeStr;
     WDL_String mDrawPath;
@@ -213,7 +212,7 @@ class FaustGen : public IPlugFaust
 public:
 
   FaustGen(const char* name, const char* inputDSPFile = 0, int nVoices = 1, int rate = 1,
-           const char* outputCPPFile = 0, const char* drawPath = 0, const char* libraryPath = FAUST_LIBRARY_PATH);
+           const char* outputCPPFile = 0, const char* drawPath = 0, const char* libraryPath = FAUST_SHARE_PATH);
 
   ~FaustGen();
 
