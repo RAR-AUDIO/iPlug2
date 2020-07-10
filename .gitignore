@@ -29,6 +29,7 @@ _*
 Icon?
 .DS_Stor*
 build-*
+Dependencies/Extras/faust/*
 Dependencies/IPlug/VST3_SDK/*
 Dependencies/IPlug/VST2_SDK/*
 Dependencies/IPlug/AAX_SDK/*
