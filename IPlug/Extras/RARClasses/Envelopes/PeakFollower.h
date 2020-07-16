@@ -3,10 +3,10 @@
 // Version     : 1.0
 //
 // Category    : RARClasses
-// Filename    : RARClasses/DSP.h
+// Filename    : RARClasses/Envelopes/PeakFollower.h
 // Created by  : RAR-AUDIO, JUL/2020
 // Author      : Roberto Ramirez
-// Description : DSP includes
+// Description : PeakFollower for meters
 //
 //
 //---------------------------------------------------------------------------------
@@ -15,9 +15,14 @@
 //---------------------------------------------------------------------------------
 //=================================================================================
 
-#ifndef DSP_h
-#define DSP_h
+#ifndef _PEAKFOLLOWER_H_
+#define _PEAKFOLLOWER_H_
 
-#include "Envelopes/EnvelopeFollower.h"
-
-#endif /* DSP_h */
+class PeakFollower {
+public:
+  PeakFollower ();
+  ~PeakFollower ();
+  double Process (double input, double sampleRate);
+  double Process2 (double input, double sampleRate);
+};
+#endif // !_PEAKFOLLOWER_H_

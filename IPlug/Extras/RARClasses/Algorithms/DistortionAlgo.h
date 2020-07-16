@@ -96,10 +96,7 @@ namespace DSP // DSP Namespace for all DSP
     //private:
     //    double previous = 0.0;
     //};
-
   }
-
 }
 
 #endif // !_DSP_DISTORTIONALGO_H_
-

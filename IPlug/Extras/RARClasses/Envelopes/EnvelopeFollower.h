@@ -14,33 +14,25 @@
 
 using std::vector;
 
-
-class envFollower
-{
+class envFollower {
 public:
 
-  enum kMode
-  {
+  enum kMode {
     kPeak,
     kRMS
   };
 
-  envFollower ()
-  {
+  envFollower () {
     init (kPeak, 5, 50, 0, 44100);
   }
 
-  ~envFollower ()
-  {
-  }
+  ~envFollower () {}
 
-  envFollower (double attackMS, double releaseMS, double holdMS, double SampleRate)
-  {
+  envFollower (double attackMS, double releaseMS, double holdMS, double SampleRate) {
     init (kPeak, attackMS, releaseMS, holdMS, SampleRate);
   }
 
-  virtual void init (int detectMode, double attackMS, double releaseMS, double holdMS, double SampleRate)
-  {
+  virtual void init (int detectMode, double attackMS, double releaseMS, double holdMS, double SampleRate) {
     mode = detectMode;
     sr = SampleRate;
     attack = pow (0.01, 1.0 / (attackMS * sr * 0.001));
@@ -53,50 +45,34 @@ public:
     index = 0;
   }
 
-
-
-  void setAttack (double attackMS)
-  {
+  void setAttack (double attackMS) {
     attack = attackMS;
   }
 
-  void setRelease (double releaseMS)
-  {
+  void setRelease (double releaseMS) {
     release = releaseMS;
   }
 
-  void setHold (double holdMS)
-  {
+  void setHold (double holdMS) {
     hold = holdMS;
   }
 
-  void setDetectMode (int detectorMode)
-  {
+  void setDetectMode (int detectorMode) {
     mode = detectorMode;
   }
 
-  virtual double process (double sample)
-  {
+  virtual double process (double sample) {
     double mag;
-    if (mode == kRMS)
-    {
-
-    }
-    else
-    {
+    if (mode == kRMS) {
+    } else {
       mag = fabs (sample);
     }
-    if (mag > env)
-    {
+    if (mag > env) {
       env = attack * (env - mag) + mag;
       timer = 0;
-    }
-    else if (timer < hold)
-    {
+    } else if (timer < hold) {
       timer++;
-    }
-    else
-    {
+    } else {
       env = release * (env - mag) + mag;
     }
 
@@ -109,32 +85,24 @@ protected:
   vector<double> buffer;
 };
 
-
-class compressor : public envFollower
-{
+class compressor : public envFollower {
 public:
-  enum kMode
-  {
+  enum kMode {
     kCompressor,
     kLimiter
   };
 
-  compressor ()
-  {
+  compressor () {
     init (5, 50, 0, 4, 0, 44100);
   }
 
-  compressor (double attackMS, double releaseMS, double holdMS, double ratio, double knee, double SampleRate)
-  {
+  compressor (double attackMS, double releaseMS, double holdMS, double ratio, double knee, double SampleRate) {
     init (attackMS, releaseMS, holdMS, ratio, knee, SampleRate);
   }
 
-  ~compressor ()
-  {
-  };
+  ~compressor () {};
 
-  void init (double attackMS, double releaseMS, double holdMS, double ratio, double knee, double SampleRate)
-  {
+  void init (double attackMS, double releaseMS, double holdMS, double ratio, double knee, double SampleRate) {
     envFollower::init (kPeak, attackMS, releaseMS, holdMS, SampleRate);
     mMode = 0;
     gainReduction = 0;
@@ -145,8 +113,7 @@ public:
     calcSlope ();
   }
 
-  void initRMS (double attackMS, double releaseMS, double holdMS, double ratio, double knee, double SampleRate)
-  {
+  void initRMS (double attackMS, double releaseMS, double holdMS, double ratio, double knee, double SampleRate) {
     envFollower::init (kRMS, attackMS, releaseMS, holdMS, SampleRate);
     mMode = 0;
     gainReduction = 0;
@@ -157,98 +124,76 @@ public:
     calcSlope ();
   }
 
-  void setAttack (double attackMS)
-  {
+  void setAttack (double attackMS) {
     attack = pow (0.01, 1.0 / (attackMS * sr * 0.001));
   }
 
-  void setRelease (double releaseMS)
-  {
+  void setRelease (double releaseMS) {
     release = pow (0.01, 1.0 / (releaseMS * sr * 0.001));
   }
 
-  void setHold (double holdMS)
-  {
+  void setHold (double holdMS) {
     hold = holdMS / 1000. * sr;
   }
 
-  void setKnee (double knee)
-  {
+  void setKnee (double knee) {
     mKnee = knee;
     calcKnee ();
     calcSlope ();
   }
 
-  void setRatio (double ratio)
-  {
+  void setRatio (double ratio) {
     mRatio = ratio;
     calcKnee ();
     calcSlope ();
   }
 
-  void setThreshold (double thresholdDB)
-  {
+  void setThreshold (double thresholdDB) {
     mThreshold = thresholdDB;
     calcKnee ();
     calcSlope ();
   }
 
-  void setMode (int mode)
-  {
+  void setMode (int mode) {
     mMode = mode;
     calcSlope ();
   }
 
-  double getThreshold ()
-  {
+  double getThreshold () {
     return mThreshold;
   }
-  double getAttack ()
-  {
+  double getAttack () {
     return attack;
   }
-  double getRelease ()
-  {
+  double getRelease () {
     return release;
   }
-  double getHold ()
-  {
+  double getHold () {
     return hold;
   }
-  double getKnee ()
-  {
+  double getKnee () {
     return mKnee;
   }
-  double getRatio ()
-  {
+  double getRatio () {
     return mRatio;
   }
-  double getGainReductionDB ()
-  {
+  double getGainReductionDB () {
     return gainReduction;
   }
-  double getKneeBoundL ()
-  {
+  double getKneeBoundL () {
     return kneeBoundL;
   }
-  double getKneeBoundU ()
-  {
+  double getKneeBoundU () {
     return kneeBoundU;
   }
 
-
-
-  double process (double sample)
-  {
+  double process (double sample) {
     double e = AmpToDB (envFollower::process (sample));
 
-    if (kneeWidth > 0. && e > kneeBoundL && e < kneeBoundU)
-    {
+    if (kneeWidth > 0. && e > kneeBoundL && e < kneeBoundU) {
       slope *= ((e - kneeBoundL) / kneeWidth) * 0.5;
       gainReduction = slope * (kneeBoundL - e);
-    }
-    else
-    {
+    } else {
       gainReduction = slope * (mThreshold - e);
       gainReduction = std::min (0., gainReduction);
     }
@@ -257,18 +202,14 @@ public:
   }
 
   //Takes in two samples, processes them, and returns gain reduction in dB
-  double processStereo (double sample1, double sample2)
-  {
+  double processStereo (double sample1, double sample2) {
     double e = AmpToDB (envFollower::process (std::max (sample1, sample2)));
     calcSlope ();
 
-    if (kneeWidth > 0. && e > kneeBoundL && e < kneeBoundU)
-    {
+    if (kneeWidth > 0. && e > kneeBoundL && e < kneeBoundU) {
       slope *= ((e - kneeBoundL) / kneeWidth) * 0.5;
       gainReduction = slope * (kneeBoundL - e);
-    }
-    else
-    {
+    } else {
       gainReduction = slope * (mThreshold - e);
       gainReduction = std::min (0., gainReduction);
     }
@@ -276,27 +217,20 @@ public:
     return gainReduction;
   }
 
-
-
 private:
   double gainReduction, mKnee, mRatio, mThreshold, kneeWidth, kneeBoundL, kneeBoundU, slope;
   int mMode;
 
-  inline void calcKnee ()
-  {
+  inline void calcKnee () {
     kneeWidth = mThreshold * mKnee * -1.;
     kneeBoundL = mThreshold - (kneeWidth / 2.);
     kneeBoundU = mThreshold + (kneeWidth / 2.);
   }
 
-  inline void calcSlope ()
-  {
-    if (mMode == kCompressor)
-    {
+  inline void calcSlope () {
+    if (mMode == kCompressor) {
       slope = 1 - (1 / mRatio);
-    }
-    else
-    {
+    } else {
       slope = 1;
     }
   }

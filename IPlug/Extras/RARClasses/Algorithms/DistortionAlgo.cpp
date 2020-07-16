@@ -67,16 +67,16 @@ double DSP::Distortion::Fat::Process (double input, double amount) {
 //    {
 //        input = input + (1 - input) * .8;
 //    }
-//        
+//
 //    else if (input < -b)
 //    {
 //        input = input + (-1 - input) * .8;
 //    }
-//        
+//
 //    else
 //    {
 //        input = sin (z * input) * s;
-//    }    
+//    }
 //
 //    auto driven = pow (10, -amountdrive / 20.);
 //    auto mix = fabs (previous + driven) * .5 * amount;
