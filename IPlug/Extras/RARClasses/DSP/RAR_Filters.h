@@ -614,6 +614,6 @@ namespace RAR{
     private:
       double a, b, z;
     };
-  }
-}
+  } //end namespace DSP
+} //end namespace RAR
 // end namespace RAR_Filters

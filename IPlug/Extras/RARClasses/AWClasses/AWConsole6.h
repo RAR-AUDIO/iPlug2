@@ -237,8 +237,7 @@ namespace AW{
       , mType(EConsoleType::kConsole6){
       Reset();
     }
-    ~AWConsoleBuss(){
-    }
+    ~AWConsoleBuss(){}
 
     void Reset(double samplerate = 44100.){
       for (int c = 0; c < MAXNUMCHANNELS; c++){

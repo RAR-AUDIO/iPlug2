@@ -224,5 +224,5 @@ namespace RAR{
         in2 *= mGainEnv2.Get();
       }
     }
-  } // namespace RAR_Gain
-} // namespace RAR_
+  } // namespace DSP
+} // namespace RAR

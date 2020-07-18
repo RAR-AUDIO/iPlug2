@@ -36,7 +36,7 @@ namespace RAR_{
         assert(sampleRate > 0.0);
         assert(ms > 0.0);
         mSampleRate = sampleRate;
-        mTimeConstantMs = max(ms, 1./mSampleRate);
+        mTimeConstantMs = max(ms, 1. / mSampleRate);
         setCoef();
       }
 
@@ -72,7 +72,7 @@ namespace RAR_{
       }	  // Envelope detectors coefficient calculation
     };
     // Attack/Release envelope class
-// Holds attack AND release parameters
+    // Holds attack AND release parameters
     class RAR_DynamicsDetector{
     public:
       //-------------------------------------------------------------
@@ -108,11 +108,9 @@ namespace RAR_{
     };
 
     //class RAR_DynamicsGainStage {
-
     //};
 
     //class RAR_DynamicsGainComputer {
-
     //};
 
     // Dynamics base class
@@ -234,7 +232,6 @@ namespace RAR_{
       double mAutoMakeup;
     };
 
-
     //-------------------------------------------------------------
     // COMPRESSOR Class
     //-------------------------------------------------------------
@@ -291,7 +288,7 @@ namespace RAR_{
 
       virtual void SetTopologyFeedback(bool isFeedbackCompressor){ mTopologyFeedback = isFeedbackCompressor; }
 
-      void Process(double& in1, double& in2); // Compressor runtime process for internal sidechain 
+      void Process(double& in1, double& in2); // Compressor runtime process for internal sidechain
       void Process(double& in1, double& in2, double& extSC1, double& extSC2); // Compressor runtime process for external sidechain
       void process(double& in1, double& in2, double sidechain);	// Compressor runtime process with stereo-linked key
 
@@ -302,7 +299,6 @@ namespace RAR_{
       double mSidechainFc;  // Compressors stereo sidechain filters center frequency
       double mMaxGr;  // Maximum gain reduction for gain reduction limiting (no brickwall, just gets damped there)
     };
-
 
     // RMS COMPRESSOR Class
     //-------------------------------------------------------------
@@ -347,13 +343,11 @@ namespace RAR_{
       RAR_DynamicEnvelope mEnvelopeAverager;	// averager
     };
 
-
-
     //-------------------------------------------------------------
     // COMPRESSOR inline Functions
     //-------------------------------------------------------------
 
-    // Compressor runtime process for internal sidechain 
+    // Compressor runtime process for internal sidechain
     inline void RAR_Compressor::Process(double& in1, double& in2){
       double rectifiedInput1 = (!mTopologyFeedback) ? in1 : sidechainSignal1;
       double rectifiedInput2 = (!mTopologyFeedback) ? in2 : sidechainSignal2;
@@ -391,7 +385,7 @@ namespace RAR_{
     // inline RMS Compressor Sidechain
     //-------------------------------------------------------------
 
-    // RMS Compressor runtime process for internal sidechain 
+    // RMS Compressor runtime process for internal sidechain
     inline void RAR_CompressorRMS::Process(double& in1, double& in2){
       double squaredInput1 = (!mTopologyFeedback) ? in1 * in1 : sidechainSignal1 * sidechainSignal1;	// square input
       double squaredInput2 = (!mTopologyFeedback) ? in2 * in2 : sidechainSignal2 * sidechainSignal2;
@@ -403,7 +397,7 @@ namespace RAR_{
       RAR_Compressor::process(in1, in2, sidechainRms);	// rest of process
     }
 
-    // RMS Compressor runtime process for external sidechain 
+    // RMS Compressor runtime process for external sidechain
     inline void RAR_CompressorRMS::Process(double& in1, double& in2, double& extSC1, double& extSC2){
       double squaredInput1 = extSC1 * extSC1;	// square input
       double squaredInput2 = extSC2 * extSC2;
@@ -467,7 +461,6 @@ namespace RAR_{
         fAutoMakeup.Process(in1, in2);
       }
     }
-
 
     //-------------------------------------------------------------
     // LIMITER Class
@@ -555,13 +548,7 @@ namespace RAR_{
       unsigned int mBufferMask;						// buffer mask
       unsigned int mCursor;						// cursor
       std::vector< double > mOutputBuffer[2];	// output buffer
-
     };
-
-
-
-
-
 
     //-------------------------------------------------------------
     // LIMITER inline Functions
@@ -620,11 +607,6 @@ namespace RAR_{
       // See NOTE 3
     }
 
-
-
-
-
-
     //-------------------------------------------------------------
     // GATE Class
     //-------------------------------------------------------------
@@ -640,11 +622,6 @@ namespace RAR_{
       void Process(double& in1, double& in2);	// gate runtime process
       void Process(double& in1, double& in2, double keyLinked);	// with stereo-linked key in
     };
-
-
-
-
-
 
     //-------------------------------------------------------------
     // GATE RMS Class
@@ -673,13 +650,7 @@ namespace RAR_{
     private:
 
       RAR_DynamicEnvelope mEnvelopeAverager;	// averager
-
     };
-
-
-
-
-
 
     //-------------------------------------------------------------
     // GATE inline Functions
@@ -735,8 +706,6 @@ namespace RAR_{
       in2 *= gateGainApply;
     }
 
-
-
     //-------------------------------------------------------------
     // DEESSER Class
     //-------------------------------------------------------------
@@ -773,8 +742,6 @@ namespace RAR_{
         mFilterQ = q;
         fSidechainBandpass.SetQ(q);
         fDynamicEqFilter.SetQ(q);
-
-
       }
       virtual void InitFilter(double freq, double q){
         mFilterFreq = freq;
@@ -783,7 +750,7 @@ namespace RAR_{
         fDynamicEqFilter.SetFilter(RAR::DSP::RAR_FilterIIR<double, 2>::EFilterType::BiquadPeak, mFilterFreq, mFilterQ, 0.0, GetSampleRate());
       }
 
-      void Process(double& in1, double& in2); // compressor runtime process if internal sidechain 
+      void Process(double& in1, double& in2); // compressor runtime process if internal sidechain
       void process(double& in1, double& in2, double sidechain);	// with stereo-linked key in
       RAR::DSP::RAR_FilterIIR<double, 2> fSidechainBandpass, fDynamicEqFilter;
 
@@ -829,13 +796,11 @@ namespace RAR_{
         grRaw = 0.;																			// For no gain reduction below knee range
       }
 
-
       mGrDb = grRaw;
       mGrLin = RAR::Utils::DBToAmp(grRaw);
       fDynamicEqFilter.SetPeakGain(grRaw);
       in1 = fDynamicEqFilter.Process(in1, 0);
       in2 = fDynamicEqFilter.Process(in2, 1);
     }
-
   } //end namespace DSP
 } //end namespace RAR_
