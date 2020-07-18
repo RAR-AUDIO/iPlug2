@@ -63,5 +63,4 @@ namespace tr1 = std::tr1;
 namespace tr1 = std;
 #endif
 
-
 #endif

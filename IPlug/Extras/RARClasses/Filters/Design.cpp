@@ -36,7 +36,5 @@ THE SOFTWARE.
 #include "DspFilters/Common.h"
 #include "DspFilters/Design.h"
 
-namespace Dsp
-{
-
+namespace Dsp{
 }

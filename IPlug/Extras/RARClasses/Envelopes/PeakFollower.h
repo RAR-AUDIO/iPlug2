@@ -15,14 +15,18 @@
 //---------------------------------------------------------------------------------
 //=================================================================================
 
-#ifndef _PEAKFOLLOWER_H_
-#define _PEAKFOLLOWER_H_
+#ifndef _RAR_ENVELOPES_PEAKFOLLOWER_H_
+#define _RAR_ENVELOPES_PEAKFOLLOWER_H_
 
-class PeakFollower {
-public:
-  PeakFollower ();
-  ~PeakFollower ();
-  double Process (double input, double sampleRate);
-  double Process2 (double input, double sampleRate);
-};
-#endif // !_PEAKFOLLOWER_H_
+namespace RAR{
+    namespace Envelopes{
+        class PeakFollower{
+        public:
+            PeakFollower();
+            ~PeakFollower();
+            double Process(double input, double sampleRate);
+            double Process2(double input, double sampleRate);
+        };
+    }
+}
+#endif // !_RAR_ENVELOPES_PEAKFOLLOWER_H_

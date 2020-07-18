@@ -10,11 +10,11 @@
 //==============================================================================
 
 // Calculates the frequency of a given pitch (MIDI) value.
-double pitchToFreq (double pitch);
+double pitchToFreq(double pitch);
 
 //==============================================================================
 // Calculates the pitch (MIDI) of a given frequency value
-double freqToPitch (double freq);
+double freqToPitch(double freq);
 
 //==============================================================================
 
@@ -24,7 +24,7 @@ double freqToPitch (double freq);
  If (in < minValue), then return minValue.
  If (in > maxValue), then return maxValue.
  */
-double clipMinMax (double in, double minValue, double maxValue);
+double clipMinMax(double in, double minValue, double maxValue);
 
 //==============================================================================
 
@@ -33,7 +33,7 @@ double clipMinMax (double in, double minValue, double maxValue);
  Returns the input if (minValue <= in).
  If (in < minValue), then return minValue.
  */
-double clipMin (double in, double minValue);
+double clipMin(double in, double minValue);
 
 //==============================================================================
 
@@ -45,7 +45,7 @@ double clipMin (double in, double minValue);
  - xFadeCtrl = 0.5  (equal mix of in0 and in1)
  - xfadeCtrl = 1    (only in1 comes through)
  */
-double xFadeLin (double xFadeCtrl, double in0, double in1);
+double xFadeLin(double xFadeCtrl, double in0, double in1);
 
 //==============================================================================
 
@@ -58,7 +58,7 @@ double xFadeLin (double xFadeCtrl, double in0, double in1);
  - bend = 0 (don't bend)
  - bend = 1 (max bend towards Y axis)
  */
-double parCtrlShaper (double input, double bend);
+double parCtrlShaper(double input, double bend);
 //==============================================================================
 
 /**
@@ -69,9 +69,9 @@ double parCtrlShaper (double input, double bend);
  - end: the end of the input's range
  Note: (start < end) and (start > end) are both valid.
  */
-double normalizeRange (double input, double start, double end);
+double normalizeRange(double input, double start, double end);
 
-double resonanceToQ (double resonance);
+double resonanceToQ(double resonance);
 
 //==============================================================================
 

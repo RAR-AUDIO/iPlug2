@@ -39,24 +39,19 @@ THE SOFTWARE.
 #include "Common.h"
 #include "Types.h"
 
-namespace Dsp
-{
-
+namespace Dsp{
     //
     // Finds the complex roots of the given polynomial with
     // complex-valued coefficients using a numerical method.
     //
 
-    class RootFinderBase
-    {
+    class RootFinderBase{
     public:
-        struct Array
-        {
-            Array (int max, complex_t* values)
+        struct Array{
+            Array(int max, complex_t* values)
                 // : m_max (max)
                 // , m_values (values)
-            {
-            }
+            {}
 
             //complex_t& operator[] (int index)
             //{
@@ -68,36 +63,34 @@ namespace Dsp
         // The input coefficients are set using coef()[].
         // The solutions are placed in roots.
         //
-        void solve (int degree,
-                    bool polish = true,
-                    bool doSort = true);
+        void solve(int degree,
+            bool polish = true,
+            bool doSort = true);
 
         // Evaluates the polynomial at x
-        complex_t eval (int degree,
-                        const complex_t& x);
+        complex_t eval(int degree,
+            const complex_t& x);
 
         // Direct access to the input coefficient array of size degree+1.
-        complex_t* coef ()
-        {
+        complex_t* coef(){
             return m_a;
         }
 
         // Direct access to the resulting roots array of size degree
-        complex_t* root ()
-        {
+        complex_t* root(){
             return m_root;
         }
 
         // sort the roots by descending imaginary part
-        void sort (int degree);
+        void sort(int degree);
 
     private:
         // Improves x as a root using Laguerre's method.
         // The input coefficient array has degree+1 elements.
-        void laguerre (int degree,
-                       complex_t a[],
-                       complex_t& x,
-                       int& its);
+        void laguerre(int degree,
+            complex_t a[],
+            complex_t& x,
+            int& its);
 
     protected:
         int m_maxdegree;
@@ -109,10 +102,8 @@ namespace Dsp
     //------------------------------------------------------------------------------
 
     template<int maxdegree>
-    struct RootFinder : RootFinderBase
-    {
-        RootFinder ()
-        {
+    struct RootFinder : RootFinderBase{
+        RootFinder(){
             m_maxdegree = maxdegree;
             m_a = m_a0;
             m_ad = m_ad0;
@@ -124,7 +115,6 @@ namespace Dsp
         complex_t m_ad0[maxdegree + 1];
         complex_t m_r[maxdegree];
     };
-
 }
 
 #endif

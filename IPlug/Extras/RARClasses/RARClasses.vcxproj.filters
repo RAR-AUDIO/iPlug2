@@ -1,0 +1,201 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Envelopes">
+      <UniqueIdentifier>{a4d43edd-55fa-4ab8-a705-fae461023938}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Filters">
+      <UniqueIdentifier>{825f9fab-f6e4-43a6-8725-161b45c285dc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Filters\DspFilters">
+      <UniqueIdentifier>{fecf831d-1d36-41e3-8961-06c856252a53}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="VAStateVariableFilter">
+      <UniqueIdentifier>{b4c915c7-81d8-40b4-99c6-dc45d762b5e1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DSP">
+      <UniqueIdentifier>{c3fb8cfd-1b20-43f0-b768-6799bbc6c366}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DSP\Algorithms">
+      <UniqueIdentifier>{8f56a2b7-9839-429d-912d-cc52a97b028d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utils">
+      <UniqueIdentifier>{f071261f-743d-4d25-b005-07ec97301054}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="AWClasses">
+      <UniqueIdentifier>{78ebfad5-9137-41d7-9246-87d6a96f7de7}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Envelopes\CParamSmooth.cpp">
+      <Filter>Envelopes</Filter>
+    </ClCompile>
+    <ClCompile Include="Envelopes\PeakFollower.cpp">
+      <Filter>Envelopes</Filter>
+    </ClCompile>
+    <ClCompile Include="Filters\Bessel.cpp">
+      <Filter>Filters</Filter>
+    </ClCompile>
+    <ClCompile Include="Filters\Biquad.cpp">
+      <Filter>Filters</Filter>
+    </ClCompile>
+    <ClCompile Include="Filters\Butterworth.cpp">
+      <Filter>Filters</Filter>
+    </ClCompile>
+    <ClCompile Include="Filters\Cascade.cpp">
+      <Filter>Filters</Filter>
+    </ClCompile>
+    <ClCompile Include="Filters\ChebyshevI.cpp">
+      <Filter>Filters</Filter>
+    </ClCompile>
+    <ClCompile Include="Filters\ChebyshevII.cpp">
+      <Filter>Filters</Filter>
+    </ClCompile>
+    <ClCompile Include="Filters\Custom.cpp">
+      <Filter>Filters</Filter>
+    </ClCompile>
+    <ClCompile Include="Filters\Design.cpp">
+      <Filter>Filters</Filter>
+    </ClCompile>
+    <ClCompile Include="Filters\Elliptic.cpp">
+      <Filter>Filters</Filter>
+    </ClCompile>
+    <ClCompile Include="Filters\Filter.cpp">
+      <Filter>Filters</Filter>
+    </ClCompile>
+    <ClCompile Include="Filters\Legendre.cpp">
+      <Filter>Filters</Filter>
+    </ClCompile>
+    <ClCompile Include="Filters\Param.cpp">
+      <Filter>Filters</Filter>
+    </ClCompile>
+    <ClCompile Include="Filters\PoleFilter.cpp">
+      <Filter>Filters</Filter>
+    </ClCompile>
+    <ClCompile Include="Filters\RBJ.cpp">
+      <Filter>Filters</Filter>
+    </ClCompile>
+    <ClCompile Include="Filters\RootFinder.cpp">
+      <Filter>Filters</Filter>
+    </ClCompile>
+    <ClCompile Include="Filters\State.cpp">
+      <Filter>Filters</Filter>
+    </ClCompile>
+    <ClCompile Include="VAStateVariableFilter\DSPUtilities.cpp">
+      <Filter>VAStateVariableFilter</Filter>
+    </ClCompile>
+    <ClCompile Include="VAStateVariableFilter\VAStateVariableFilter.cpp">
+      <Filter>VAStateVariableFilter</Filter>
+    </ClCompile>
+    <ClCompile Include="DSP\Algorithms\DistortionAlgo.cpp">
+      <Filter>DSP\Algorithms</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Envelopes\CParamSmooth.h">
+      <Filter>Envelopes</Filter>
+    </ClInclude>
+    <ClInclude Include="Envelopes\EnvelopeFollower.h">
+      <Filter>Envelopes</Filter>
+    </ClInclude>
+    <ClInclude Include="Envelopes\PeakFollower.h">
+      <Filter>Envelopes</Filter>
+    </ClInclude>
+    <ClInclude Include="Filters\DspFilters\Bessel.h">
+      <Filter>Filters\DspFilters</Filter>
+    </ClInclude>
+    <ClInclude Include="Filters\DspFilters\Biquad.h">
+      <Filter>Filters\DspFilters</Filter>
+    </ClInclude>
+    <ClInclude Include="Filters\DspFilters\Butterworth.h">
+      <Filter>Filters\DspFilters</Filter>
+    </ClInclude>
+    <ClInclude Include="Filters\DspFilters\Cascade.h">
+      <Filter>Filters\DspFilters</Filter>
+    </ClInclude>
+    <ClInclude Include="Filters\DspFilters\ChebyshevI.h">
+      <Filter>Filters\DspFilters</Filter>
+    </ClInclude>
+    <ClInclude Include="Filters\DspFilters\ChebyshevII.h">
+      <Filter>Filters\DspFilters</Filter>
+    </ClInclude>
+    <ClInclude Include="Filters\DspFilters\Common.h">
+      <Filter>Filters\DspFilters</Filter>
+    </ClInclude>
+    <ClInclude Include="Filters\DspFilters\Custom.h">
+      <Filter>Filters\DspFilters</Filter>
+    </ClInclude>
+    <ClInclude Include="Filters\DspFilters\Design.h">
+      <Filter>Filters\DspFilters</Filter>
+    </ClInclude>
+    <ClInclude Include="Filters\DspFilters\Dsp.h">
+      <Filter>Filters\DspFilters</Filter>
+    </ClInclude>
+    <ClInclude Include="Filters\DspFilters\Elliptic.h">
+      <Filter>Filters\DspFilters</Filter>
+    </ClInclude>
+    <ClInclude Include="Filters\DspFilters\Filter.h">
+      <Filter>Filters\DspFilters</Filter>
+    </ClInclude>
+    <ClInclude Include="Filters\DspFilters\Layout.h">
+      <Filter>Filters\DspFilters</Filter>
+    </ClInclude>
+    <ClInclude Include="Filters\DspFilters\Legendre.h">
+      <Filter>Filters\DspFilters</Filter>
+    </ClInclude>
+    <ClInclude Include="Filters\DspFilters\MathSupplement.h">
+      <Filter>Filters\DspFilters</Filter>
+    </ClInclude>
+    <ClInclude Include="Filters\DspFilters\Params.h">
+      <Filter>Filters\DspFilters</Filter>
+    </ClInclude>
+    <ClInclude Include="Filters\DspFilters\PoleFilter.h">
+      <Filter>Filters\DspFilters</Filter>
+    </ClInclude>
+    <ClInclude Include="Filters\DspFilters\RBJ.h">
+      <Filter>Filters\DspFilters</Filter>
+    </ClInclude>
+    <ClInclude Include="Filters\DspFilters\RootFinder.h">
+      <Filter>Filters\DspFilters</Filter>
+    </ClInclude>
+    <ClInclude Include="Filters\DspFilters\SmoothedFilter.h">
+      <Filter>Filters\DspFilters</Filter>
+    </ClInclude>
+    <ClInclude Include="Filters\DspFilters\State.h">
+      <Filter>Filters\DspFilters</Filter>
+    </ClInclude>
+    <ClInclude Include="Filters\DspFilters\Types.h">
+      <Filter>Filters\DspFilters</Filter>
+    </ClInclude>
+    <ClInclude Include="Filters\DspFilters\Utilities.h">
+      <Filter>Filters\DspFilters</Filter>
+    </ClInclude>
+    <ClInclude Include="VAStateVariableFilter\DSPUtilities.h">
+      <Filter>VAStateVariableFilter</Filter>
+    </ClInclude>
+    <ClInclude Include="VAStateVariableFilter\VAStateVariableFilter.h">
+      <Filter>VAStateVariableFilter</Filter>
+    </ClInclude>
+    <ClInclude Include="DSP\Algorithms\DistortionAlgo.h">
+      <Filter>DSP\Algorithms</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\RAR_Helpers.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\RAR_Param.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="AWClasses\AWConsole6.h">
+      <Filter>AWClasses</Filter>
+    </ClInclude>
+    <ClInclude Include="DSP\RAR_Filters.h">
+      <Filter>DSP</Filter>
+    </ClInclude>
+    <ClInclude Include="DSP\RAR_Gain.h">
+      <Filter>DSP</Filter>
+    </ClInclude>
+    <ClInclude Include="DSP\RAR_Dynamics.h">
+      <Filter>DSP</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

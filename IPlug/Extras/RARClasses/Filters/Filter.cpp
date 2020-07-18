@@ -36,33 +36,25 @@ THE SOFTWARE.
 #include "DspFilters/Common.h"
 #include "DspFilters/Filter.h"
 
-namespace Dsp
-{
-
-    Params Filter::getDefaultParams () const
-    {
+namespace Dsp{
+    Params Filter::getDefaultParams() const{
         Params params;
 
-        params.clear ();
+        params.clear();
 
-        for (int i = 0; i < getNumParams (); ++i)
-            params[i] = getParamInfo (i).getDefaultValue ();
+        for (int i = 0; i < getNumParams(); ++i)
+            params[i] = getParamInfo(i).getDefaultValue();
 
         return params;
     }
 
-    Filter::~Filter ()
-    {
-    }
+    Filter::~Filter(){}
 
-    int Filter::findParamId (int paramId)
-    {
+    int Filter::findParamId(int paramId){
         int index = -1;
 
-        for (int i = getNumParams (); --i >= 0;)
-        {
-            if (getParamInfo (i).getId () == paramId)
-            {
+        for (int i = getNumParams(); --i >= 0;){
+            if (getParamInfo(i).getId() == paramId){
                 index = i;
                 break;
             }
@@ -71,48 +63,39 @@ namespace Dsp
         return index;
     }
 
-    void Filter::setParamById (int paramId, double nativeValue)
-    {
-        for (int i = getNumParams (); --i >= 0;)
-        {
-            if (getParamInfo (i).getId () == paramId)
-            {
-                setParam (i, nativeValue);
+    void Filter::setParamById(int paramId, double nativeValue){
+        for (int i = getNumParams(); --i >= 0;){
+            if (getParamInfo(i).getId() == paramId){
+                setParam(i, nativeValue);
                 return;
             }
         }
 
-        assert (0);
+        assert(0);
     }
 
-    void Filter::copyParamsFrom (Dsp::Filter const* other)
-    {
+    void Filter::copyParamsFrom(Dsp::Filter const* other){
         // first, set reasonable defaults
-        m_params = getDefaultParams ();
+        m_params = getDefaultParams();
 
-        if (other)
-        {
+        if (other){
             // now loop
-            for (int i = 0; i < getNumParams (); ++i)
-            {
-                const ParamInfo& paramInfo = getParamInfo (i);
+            for (int i = 0; i < getNumParams(); ++i){
+                const ParamInfo& paramInfo = getParamInfo(i);
 
                 // find a match
-                for (int j = 0; j < other->getNumParams (); ++j)
-                {
-                    const ParamInfo& otherParamInfo = other->getParamInfo (j);
+                for (int j = 0; j < other->getNumParams(); ++j){
+                    const ParamInfo& otherParamInfo = other->getParamInfo(j);
 
-                    if (paramInfo.getId () == otherParamInfo.getId ())
-                    {
+                    if (paramInfo.getId() == otherParamInfo.getId()){
                         // match!
-                        m_params[i] = paramInfo.clamp (other->getParam (j));
+                        m_params[i] = paramInfo.clamp(other->getParam(j));
                         break;
                     }
                 }
             }
         }
 
-        doSetParams (m_params);
+        doSetParams(m_params);
     }
-
 }
