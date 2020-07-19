@@ -2,7 +2,7 @@
 // Project     : IPlug
 // Version     : 1.0
 //
-// Category    : DSO
+// Category    : DSP
 // Filename    : DSP/RAR_Filters.h
 // Created by  : RAR-AUDIO, JUL/2020
 // Author      : Roberto Ramirez

@@ -44,9 +44,11 @@
   <ItemGroup>
     <ClInclude Include="AWClasses\AWConsole6.h" />
     <ClInclude Include="DSP\Algorithms\DistortionAlgo.h" />
+    <ClInclude Include="DSP\RAR_Buffer.h" />
     <ClInclude Include="DSP\RAR_Dynamics.h" />
     <ClInclude Include="DSP\RAR_Filters.h" />
     <ClInclude Include="DSP\RAR_Gain.h" />
+    <ClInclude Include="DSP\RAR_Saturation.h" />
     <ClInclude Include="Envelopes\CParamSmooth.h" />
     <ClInclude Include="Envelopes\EnvelopeFollower.h" />
     <ClInclude Include="Envelopes\PeakFollower.h" />

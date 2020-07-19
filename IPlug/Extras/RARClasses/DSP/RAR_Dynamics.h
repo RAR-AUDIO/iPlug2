@@ -3,14 +3,14 @@
 // Version     : 1.0
 //
 // Category    : DSP
-// Filename    : DSP/RAR__Dynamics.h
-// Created by  : RAR_-AUDIO, JUL/2020
+// Filename    : DSP/RAR_Dynamics.h
+// Created by  : RAR-AUDIO, JUL/2020
 // Author      : Roberto Ramirez
 // Description : Dynamics Section (Compressor/Limiter, etc)
 //
 //---------------------------------------------------------------------------------
 // LICENSE
-// (c) 2020, RAR_-AUDIO LLC, All Rights Reserved
+// (c) 2020, RAR-AUDIO LLC, All Rights Reserved
 //---------------------------------------------------------------------------------
 //=================================================================================
 

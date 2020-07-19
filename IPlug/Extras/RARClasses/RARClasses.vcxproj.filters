@@ -197,5 +197,11 @@
     <ClInclude Include="DSP\RAR_Dynamics.h">
       <Filter>DSP</Filter>
     </ClInclude>
+    <ClInclude Include="DSP\RAR_Buffer.h">
+      <Filter>DSP</Filter>
+    </ClInclude>
+    <ClInclude Include="DSP\RAR_Saturation.h">
+      <Filter>DSP</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -19,14 +19,14 @@
 #define _RAR_ENVELOPES_PEAKFOLLOWER_H_
 
 namespace RAR{
-  namespace Envelopes{
-    class PeakFollower{
-    public:
-      PeakFollower();
-      ~PeakFollower();
-      double Process(double input, double sampleRate);
-      double Process2(double input, double sampleRate);
-    };
-  } //end namespace Envelopes
+    namespace Envelopes{
+        class PeakFollower{
+        public:
+            PeakFollower();
+            ~PeakFollower();
+            double Process(double input, double sampleRate);
+            double Process2(double input, double sampleRate);
+        };
+    } //end namespace Envelopes
 } //end namespace RAR
 #endif // !_RAR_ENVELOPES_PEAKFOLLOWER_H_

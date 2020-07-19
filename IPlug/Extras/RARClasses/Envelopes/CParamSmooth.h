@@ -10,18 +10,18 @@
 
 class CParamSmooth{
 public:
-  CParamSmooth(double smoothingTimeInMs, double samplingRate);
+    CParamSmooth(double smoothingTimeInMs, double samplingRate);
 
-  CParamSmooth();
+    CParamSmooth();
 
-  ~CParamSmooth(){};
+    ~CParamSmooth(){};
 
-  void init(double smoothingTimeInMs, double samplingRate);
+    void init(double smoothingTimeInMs, double samplingRate);
 
-  double process(double in);
+    double process(double in);
 
 private:
-  double a, b, z;
+    double a, b, z;
 };
 
 #endif /* CParamSmooth_hpp */
