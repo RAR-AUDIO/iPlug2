@@ -55,6 +55,20 @@ static inline double AmpToDB(double amp) {
 
 static const int DEFAULT_BLOCK_SIZE = 1024;
 
+// double to char conversion
+// DOESNT WORK
+inline char* setCharFromDouble(double doubleValue) {
+  std::string stringValue = std::to_string(doubleValue);
+  char* charValue = new char[stringValue.length() + 1];
+  return strcpy(charValue, stringValue.c_str());
+}
+
+inline double SetShapeCentered(double cMinValue, double cMaxValue,
+                               double cCenteredValue, double cControlPosition) {
+  return log((cCenteredValue - cMinValue) / (cMaxValue - cMinValue)) /
+         log(cControlPosition);
+}
+
 // DSP
 // tanh
 inline double fast_tanh(double x) {
