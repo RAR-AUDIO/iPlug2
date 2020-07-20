@@ -41,21 +41,21 @@ THE SOFTWARE.
 //
 
 #ifdef _MSC_VER
-#  pragma warning (disable: 4100)
+#pragma warning(disable : 4100)
 #endif
 
 //#include <assert.h>
 #include <stdlib.h>
 
+#include <algorithm>
 #include <cassert>
 #include <cfloat>
 #include <cmath>
 #include <complex>
 #include <cstring>
-#include <string>
 #include <limits>
+#include <string>
 #include <vector>
-#include <algorithm>
 
 #ifdef _MSC_VER
 namespace tr1 = std::tr1;

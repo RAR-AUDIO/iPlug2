@@ -40,23 +40,21 @@ THE SOFTWARE.
 // Include this file in your application to get everything
 //
 
-#include "Common.h"
-
+#include "Bessel.h"
 #include "Biquad.h"
+#include "Butterworth.h"
 #include "Cascade.h"
+#include "ChebyshevI.h"
+#include "ChebyshevII.h"
+#include "Common.h"
+#include "Custom.h"
+#include "Elliptic.h"
 #include "Filter.h"
+#include "Legendre.h"
 #include "PoleFilter.h"
+#include "RBJ.h"
 #include "SmoothedFilter.h"
 #include "State.h"
 #include "Utilities.h"
-
-#include "Bessel.h"
-#include "Butterworth.h"
-#include "ChebyshevI.h"
-#include "ChebyshevII.h"
-#include "Custom.h"
-#include "Elliptic.h"
-#include "Legendre.h"
-#include "RBJ.h"
 
 #endif

@@ -24,80 +24,80 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
-namespace RAR{
-    namespace DSP // DSP Namespace for all DSP
-    {
-        namespace Distortion  // Distortion Algorithms for DSP
-        {
-            class Helpers{
-            public:
-                static double fastAtan(double x);
-            };
+namespace RAR {
+namespace DSP  // DSP Namespace for all DSP
+{
+namespace Distortion  // Distortion Algorithms for DSP
+{
+class Helpers {
+ public:
+  static double fastAtan(double x);
+};
 
-            class StateFulDrive{
-            public:
-                double Process(double input, double amount);
+class StateFulDrive {
+ public:
+  double Process(double input, double amount);
 
-            private:
-                double previous = 0.0;
-            };
+ private:
+  double previous = 0.0;
+};
 
-            //TODO: Add new Saturation/Distortion Algorithm for analog style plugins
+// TODO: Add new Saturation/Distortion Algorithm for analog style plugins
 
-            class Excite // Soft asymmetrical clipping
-            {
-            public:
-                double Process(double input, double amount);
+class Excite  // Soft asymmetrical clipping
+{
+ public:
+  double Process(double input, double amount);
 
-            private:
-                double previous = 0.0;
-            };
+ private:
+  double previous = 0.0;
+};
 
-            class Fat  // inverse Tangent Waveshaper
-            {
-            public:
-                double Process(double input, double amount);
+class Fat  // inverse Tangent Waveshaper
+{
+ public:
+  double Process(double input, double amount);
 
-            private:
-                double previous = 0.0;
-            };
+ private:
+  double previous = 0.0;
+};
 
-            //class SineShaper  // based on Jon Watte's Waveshaper algorith
-            //{
-            //public:
-            //    double Process (double input, double amount);
+// class SineShaper  // based on Jon Watte's Waveshaper algorith
+//{
+// public:
+//    double Process (double input, double amount);
 
-            //private:
-            //    double previous = 0.0;
-            //};
+// private:
+//    double previous = 0.0;
+//};
 
-            class FoldBack  //  FoldBack Distortion by hellfire@upb.de from musicdsp.org
-            {
-            public:
-                double Process(double input, double amount);
+class FoldBack  //  FoldBack Distortion by hellfire@upb.de from musicdsp.org
+{
+ public:
+  double Process(double input, double amount);
 
-            private:
-                double previous = 0.0;
-            };
+ private:
+  double previous = 0.0;
+};
 
-            class Tanh  // Hyperbolic Tangent Waveshaper
-            {
-            public:
-                double Process(double input, double amout);
+class Tanh  // Hyperbolic Tangent Waveshaper
+{
+ public:
+  double Process(double input, double amout);
 
-            private:
-                double previous = 0.0;
-            };
+ private:
+  double previous = 0.0;
+};
 
-            //class Soft // Soft Saturation
-            //{
-            //public:
-            //    double Process (double input, double amount);
+// class Soft // Soft Saturation
+//{
+// public:
+//    double Process (double input, double amount);
 
-            //private:
-            //    double previous = 0.0;
-            //};
-        }
-    }
-}
-#endif // !_RAR_DSP_DISTORTIONALGO_H_
+// private:
+//    double previous = 0.0;
+//};
+}  // namespace Distortion
+}  // namespace DSP
+}  // namespace RAR
+#endif  // !_RAR_DSP_DISTORTIONALGO_H_
