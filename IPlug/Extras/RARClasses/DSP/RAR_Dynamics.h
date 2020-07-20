@@ -25,7 +25,7 @@
 #include "../Utils/RAR_Helpers.h"
 #include "RAR_Gain.h"
 
-namespace RAR_{
+namespace RAR{
   namespace DSP{
     static const double DC_OFFSET = 1.0e-25;
 

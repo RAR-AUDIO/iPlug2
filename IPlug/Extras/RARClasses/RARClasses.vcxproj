@@ -43,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AWClasses\AWConsole6.h" />
+    <ClInclude Include="config.h" />
     <ClInclude Include="DSP\Algorithms\DistortionAlgo.h" />
     <ClInclude Include="DSP\RAR_Buffer.h" />
     <ClInclude Include="DSP\RAR_Dynamics.h" />
@@ -75,6 +76,8 @@
     <ClInclude Include="Filters\DspFilters\State.h" />
     <ClInclude Include="Filters\DspFilters\Types.h" />
     <ClInclude Include="Filters\DspFilters\Utilities.h" />
+    <ClInclude Include="Utils\RAR_Constants.h" />
+    <ClInclude Include="Utils\RAR_Graphics.h" />
     <ClInclude Include="Utils\RAR_Helpers.h" />
     <ClInclude Include="Utils\RAR_Param.h" />
     <ClInclude Include="VAStateVariableFilter\DSPUtilities.h" />

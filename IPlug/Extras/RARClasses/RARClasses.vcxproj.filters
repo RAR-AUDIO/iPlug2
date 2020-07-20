@@ -203,5 +203,12 @@
     <ClInclude Include="DSP\RAR_Saturation.h">
       <Filter>DSP</Filter>
     </ClInclude>
+    <ClInclude Include="Utils\RAR_Constants.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\RAR_Graphics.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="config.h" />
   </ItemGroup>
 </Project>
