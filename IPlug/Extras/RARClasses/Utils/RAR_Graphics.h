@@ -17,14 +17,17 @@
 #pragma once
 
 //#include "IPlug/IPlug_include_in_plug_hdr.h"
-#include "../../../../IGraphics/IControl.h"
-#include "../../../IPlugPluginBase.h"
-#include "../Utils/RAR_Helpers.h"
+
+#include "IControl.h"
+#include "IPlugPluginBase.h"
+#include "RAR_Helpers.h"
 // For meter, see IVMeterControl.h
-#include "../../../../IGraphics/Controls/IVMeterControl.h"
-#include "../../../IPlugQueue.h"
-#include "../../../IPlugStructs.h"
+#include <minmax.h>
+
 #include "../config.h"
+#include "IControls.h"
+#include "IPlugQueue.h"
+#include "IPlugStructs.h"
 
 using namespace iplug;
 using namespace igraphics;
@@ -223,12 +226,13 @@ class RAR_Layout : public RAR_CustomColors,
   ~RAR_Layout(){};
 
   // IColor GetCustomColor(RAR_CustomColors::ECustomColors color =
-  // RAR_CustomColors::ECustomColors::kDefault) { return mColors.GetColor(color);
-  // } IColor GetColorSpecColor(EVColor type) { return
-  // mColors.GetColorSpec().GetColor(type); } IVColorSpec GetColorSpec() { return
-  // mColors.GetColorSpec(); } IText GetCustomText(RAR_CustomTexts::ECustomTexts
-  // text = RAR_CustomTexts::ECustomTexts::kDefault) { return
-  // mTexts.GetText(text); } IVStyle GetStyle() { return mStyles; }
+  // RAR_CustomColors::ECustomColors::kDefault) { return
+  // mColors.GetColor(color); } IColor GetColorSpecColor(EVColor type) { return
+  // mColors.GetColorSpec().GetColor(type); } IVColorSpec GetColorSpec() {
+  // return mColors.GetColorSpec(); } IText
+  // GetCustomText(RAR_CustomTexts::ECustomTexts text =
+  // RAR_CustomTexts::ECustomTexts::kDefault) { return mTexts.GetText(text); }
+  // IVStyle GetStyle() { return mStyles; }
 
  private:
 };

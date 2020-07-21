@@ -23,9 +23,9 @@
 #include <cassert>
 #include <vector>
 
-#include "../../../../WDL/heapbuf.h"
-#include "../../../../WDL/ptrlist.h"
-#include "../Utils/RAR_Helpers.h"
+#include "../RARClasses/Utils/RAR_Helpers.h"
+#include "heapbuf.h"
+#include "ptrlist.h"
 
 #if BUFFERIMPL == 1    // vec
 #elif BUFFERIMPL == 2  // ptr

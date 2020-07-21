@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "../../../IPlugAPIBase.h"
+#include "IPlugAPIBase.h"
 
 using namespace iplug;
 using namespace igraphics;

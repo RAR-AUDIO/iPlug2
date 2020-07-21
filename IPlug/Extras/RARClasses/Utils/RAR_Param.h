@@ -19,9 +19,9 @@
 #define _RAR_DSP_RAR_Param_H
 #include <variant>
 //#include "IPlug/IPlug_include_in_plug_hdr.h"
-#include "../../../IPlugLogger.h"
+#include "IPlugLogger.h"
 //#include "../DSP/RAR_Filters.h"
-#include "../../../../WDL/ptrlist.h"
+#include "ptrlist.h"
 
 namespace RAR {
 namespace DSP {
