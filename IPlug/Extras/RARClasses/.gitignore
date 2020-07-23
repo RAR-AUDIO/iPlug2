@@ -179,3 +179,7 @@ Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/CMakeFiles/Export/share/
 Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/CMakeFiles/rtmidi.dir/exports.def.objs
 Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/CMakeFiles/ShowIncludes/foo.h
 Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/CMakeFiles/ShowIncludes/main.c
+.leu
+x64/Release/RARClasses.vcxproj.FileListAbsolute.txt
+x64/Release/RARClasses.tlog/RARClasses.lastbuildstate
+x64/Release/RARClasses.tlog/unsuccessfulbuild

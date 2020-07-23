@@ -209,6 +209,11 @@
     <ClInclude Include="Utils\RAR_Graphics.h">
       <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="config.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="CHANGELOG.md" />
+    <None Include="LICENSE.md" />
+    <None Include="README.md" />
+    <None Include="todo.md" />
   </ItemGroup>
 </Project>

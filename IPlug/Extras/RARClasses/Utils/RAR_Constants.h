@@ -54,7 +54,7 @@ struct ShapeFromMiddle : public IParam::Shape {
 };
 
 // Struct object containing possible parameters properties
-struct SRParamProperties {
+struct RARParamProperties {
   const int paramIdx = -1;
   const int ctrlTag = -1;
   const char* name = "";   // Name of parameter displayed in host

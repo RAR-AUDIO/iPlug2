@@ -624,4 +624,4 @@ class RAR_FilterParamSmooth {
 };
 }  // end namespace DSP
 }  // end namespace RAR
-// end namespace RAR_Filters
+   // end namespace RAR_Filters
