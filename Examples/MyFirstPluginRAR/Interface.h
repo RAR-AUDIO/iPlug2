@@ -7,7 +7,7 @@
 // Created by  : RAR-AUDIO, JUL/2020
 // Author      : Roberto Ramirez
 // Description : GUI
-//               
+//
 //
 //---------------------------------------------------------------------------------
 // LICENSE
@@ -15,34 +15,35 @@
 //---------------------------------------------------------------------------------
 //=================================================================================
 
-
 #pragma once
 
-#include "config.h"
+#include "IControl.h"
+#include "IControls.h"
 #include "IGraphicsStructs.h"
 #include "Params.h"
-#include "IControls.h"
-#include "IControl.h"
+#include "config.h"
 
 class PLUG_CLASS_NAME;
 
 namespace iplug {
-  class IEditorDelegate;
+class IEditorDelegate;
 }
 
 using namespace iplug;
 using namespace igraphics;
 
 class Interface {
-public:
-  Interface (PLUG_CLASS_NAME* inPlug);
-  ~Interface ();
+ public:
+  Interface(PLUG_CLASS_NAME* inPlug);
+  ~Interface();
 
-  void CreateControls (IGraphics* pGraphics);
+  void CreateControls(IGraphics* pGraphics);
 
-private:
-  //IControl* AttachEnum (IGraphics* pGraphics, IRECT rect, const int paramIdx, const char* label = nullptr);
-  //IControl* AttachTextBox (IGraphics* pGraphics, IRECT rect, const int paramIdx, const float scrollSpeed, const char* maxValue, const char* label = nullptr);
+ private:
+  // IControl* AttachEnum (IGraphics* pGraphics, IRECT rect, const int paramIdx,
+  // const char* label = nullptr); IControl* AttachTextBox (IGraphics*
+  // pGraphics, IRECT rect, const int paramIdx, const float scrollSpeed, const
+  // char* maxValue, const char* label = nullptr);
 
   PLUG_CLASS_NAME* mPlug;
 

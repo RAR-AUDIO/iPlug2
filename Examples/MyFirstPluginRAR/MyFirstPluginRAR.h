@@ -7,7 +7,7 @@
 // Created by  : RAR-AUDIO, JUL/2020
 // Author      : Roberto Ramirez
 // Description : Plugin Paramaters
-//               
+//
 //
 //---------------------------------------------------------------------------------
 // LICENSE
@@ -27,15 +27,15 @@ using namespace iplug;
 using namespace igraphics;
 
 class MyFirstPluginRAR final : public Plugin {
-public:
-  MyFirstPluginRAR (const InstanceInfo& info);
+ public:
+  MyFirstPluginRAR(const InstanceInfo& info);
 
-  void ProcessBlock (sample** inputs, sample** outputs, int nFrames) override;
-  //void OnReset () override;
-  //void OnParamChange (int paramIdx, EParamSource, int sampleOffset) override;
+  void ProcessBlock(sample** inputs, sample** outputs, int nFrames) override;
+  // void OnReset () override;
+  // void OnParamChange (int paramIdx, EParamSource, int sampleOffset) override;
 
-private:
+ private:
   char* versionString = "0.0.1";
   Interface mInterface;
-  //CParamSmooth* mWidthSmoother; //OLD Smoother
+  // CParamSmooth* mWidthSmoother; //OLD Smoother
 };

@@ -7,7 +7,7 @@
 // Created by  : RAR-AUDIO, JUL/2020
 // Author      : Roberto Ramirez
 // Description : Plugin Paramaters
-//               
+//
 //
 //---------------------------------------------------------------------------------
 // LICENSE
@@ -16,28 +16,28 @@
 //=================================================================================
 
 #include "MyFirstPluginRAR.h"
-#include "IPlug_include_in_plug_src.h"
+
 #include "IControls.h"
+#include "IPlug_include_in_plug_src.h"
 
-
-MyFirstPluginRAR::MyFirstPluginRAR (const InstanceInfo& info)
-  : Plugin (info, MakeConfig (kNumParams, kNumPresets)), mInterface (this) {
-
-  GetParam (kGain)->InitDouble ("Gain", 0., 0., 100.0, 0.01, "%");
+MyFirstPluginRAR::MyFirstPluginRAR(const InstanceInfo& info)
+    : Plugin(info, MakeConfig(kNumParams, kNumPresets)), mInterface(this) {
+  GetParam(kGain)->InitDouble("Gain", 0., 0., 100.0, 0.01, "%");
 
   mMakeGraphicsFunc = [&]() {
-    return MakeGraphics (*this, PLUG_WIDTH, PLUG_HEIGHT, PLUG_FPS, GetScaleForScreen (PLUG_HEIGHT));
+    return MakeGraphics(*this, PLUG_WIDTH, PLUG_HEIGHT, PLUG_FPS,
+                        GetScaleForScreen(PLUG_HEIGHT));
   };
 
   mLayoutFunc = [&](IGraphics* pGraphics) {
-    mInterface.CreateControls (pGraphics);
+    mInterface.CreateControls(pGraphics);
   };
-
 }
 
-void MyFirstPluginRAR::ProcessBlock (sample** inputs, sample** outputs, int nFrames) {
-  const double gain = GetParam (kGain)->Value () / 100.;
-  const int nChans = NOutChansConnected ();
+void MyFirstPluginRAR::ProcessBlock(sample** inputs, sample** outputs,
+                                    int nFrames) {
+  const double gain = GetParam(kGain)->Value() / 100.;
+  const int nChans = NOutChansConnected();
 
   for (int s = 0; s < nFrames; s++) {
     for (int c = 0; c < nChans; c++) {
@@ -46,6 +46,7 @@ void MyFirstPluginRAR::ProcessBlock (sample** inputs, sample** outputs, int nFra
   }
 }
 
-//void MyFirstPluginRAR::OnReset () {}
+// void MyFirstPluginRAR::OnReset () {}
 
-//void MyFirstPluginRAR::OnParamChange (int paramIdx, EParamSource, int sampleOffset) {}
+// void MyFirstPluginRAR::OnParamChange (int paramIdx, EParamSource, int
+// sampleOffset) {}
