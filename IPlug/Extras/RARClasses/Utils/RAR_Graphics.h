@@ -24,7 +24,6 @@
 // For meter, see IVMeterControl.h
 #include <minmax.h>
 
-#include "../config.h"
 #include "IControls.h"
 #include "IPlugQueue.h"
 #include "IPlugStructs.h"
@@ -587,7 +586,7 @@ class RAR_RoomInfo {
   float mLightZ;
 };
 
-const RAR_RoomInfo RAR_DEFAULT_ROOMINFO = RAR_RoomInfo();
+// const RAR_RoomInfo RAR_DEFAULT_ROOMINFO = RAR_RoomInfo();
 
 /** A base interface to be combined with IControl for vectorial controls
  * "IVControls", in order for them to share a common style If you need more
@@ -596,7 +595,7 @@ class RAR_VectorBase : public IVectorBase, public RAR_RoomInfo {
  public:
   RAR_VectorBase(const IVStyle& style = DEFAULT_STYLE,
                  bool labelInWidget = false, bool valueInWidget = false,
-                 RAR_RoomInfo roomInfo = RAR_DEFAULT_ROOMINFO)
+                 RAR_RoomInfo roomInfo = RAR_RoomInfo())
       : IVectorBase(style, labelInWidget, valueInWidget),
         RAR_RoomInfo(roomInfo) {
     SetStyle(style);
@@ -970,7 +969,7 @@ class RAR_VectorKnob : public IKnobControlBase,
  public:
   RAR_VectorKnob(const IRECT& bounds, int paramIdx, const char* label = "",
                  const IVStyle& style = DEFAULT_STYLE,
-                 Base::RAR_RoomInfo& lightInfo = Base::RAR_RoomInfo(),
+                 RAR_RoomInfo lightInfo = RAR_RoomInfo(),
                  const IColor& uniqueColor = DEFAULT_FGCOLOR,
                  bool valueIsEditable = false, bool valueInWidget = false,
                  float aMin = -135.f, float aMax = 135.f,
@@ -980,7 +979,7 @@ class RAR_VectorKnob : public IKnobControlBase,
 
   RAR_VectorKnob(const IRECT& bounds, IActionFunction actionFunction,
                  const char* label = "", const IVStyle& style = DEFAULT_STYLE,
-                 Base::RAR_RoomInfo& lightInfo = Base::RAR_RoomInfo(),
+                 RAR_RoomInfo lightInfo = RAR_RoomInfo(),
                  const IColor& uniqueColor = DEFAULT_FGCOLOR,
                  bool valueIsEditable = false, bool valueInWidget = false,
                  float aMin = -135.f, float aMax = 135.f,
@@ -1021,7 +1020,7 @@ class RAR_VectorKnob : public IKnobControlBase,
 
 RAR_VectorKnob::RAR_VectorKnob(const IRECT& bounds, int paramIdx,
                                const char* label, const IVStyle& style,
-                               Base::RAR_RoomInfo& lightInfo,
+                               RAR_RoomInfo lightInfo,
                                const IColor& uniqueColor, bool valueIsEditable,
                                bool valueInWidget, float aMin, float aMax,
                                float aAnchor, EDirection direction,
@@ -1039,7 +1038,7 @@ RAR_VectorKnob::RAR_VectorKnob(const IRECT& bounds, int paramIdx,
 
 RAR_VectorKnob::RAR_VectorKnob(const IRECT& bounds, IActionFunction actionFunc,
                                const char* label, const IVStyle& style,
-                               Base::RAR_RoomInfo& lightInfo,
+                               RAR_RoomInfo lightInfo,
                                const IColor& uniqueColor, bool valueIsEditable,
                                bool valueInWidget, float aMin, float aMax,
                                float aAnchor, EDirection direction,
@@ -1194,16 +1193,16 @@ void RAR_VectorKnob::SetDirty(bool push, int valIdx) {
 
   const IParam* pParam = GetParam();
 
-  if (pParam) pParam->GetDisplayForHostWithLabel(mValueStr);
+  if (pParam) pParam->GetDisplay(mValueStr);
 }
 
 void RAR_VectorKnob::OnInit() {
   const IParam* pParam = GetParam();
 
   if (pParam) {
-    pParam->GetDisplayForHostWithLabel(mValueStr);
+    pParam->GetDisplay(mValueStr);
 
-    if (!mLabelStr.GetLength()) mLabelStr.Set(pParam->GetNameForHost());
+    if (!mLabelStr.GetLength()) mLabelStr.Set(pParam->GetName());
   }
 }
 
@@ -1212,14 +1211,14 @@ class RAR_VectorSwitch : public ISwitchControlBase,
  public:
   RAR_VectorSwitch(const IRECT& bounds, int paramIdx = kNoParameter,
                    const char* label = "", const IVStyle& style = DEFAULT_STYLE,
-                   Base::RAR_RoomInfo& roomInfo = Base::RAR_RoomInfo(),
+                   RAR_RoomInfo roomInfo = RAR_RoomInfo(),
                    bool valueInButton = true);
 
   RAR_VectorSwitch(const IRECT& bounds,
                    IActionFunction actionFunc = SplashClickActionFunc,
                    const char* label = "", const IVStyle& style = DEFAULT_STYLE,
-                   Base::RAR_RoomInfo& roomInfo = Base::RAR_RoomInfo(),
-                   int numStates = 2, bool valueInButton = true);
+                   RAR_RoomInfo roomInfo = RAR_RoomInfo(), int numStates = 2,
+                   bool valueInButton = true);
 
   void Draw(IGraphics& g) override;
   virtual void DrawWidget(IGraphics& g) override;
@@ -1231,8 +1230,7 @@ class RAR_VectorSwitch : public ISwitchControlBase,
 
 RAR_VectorSwitch::RAR_VectorSwitch(const IRECT& bounds, int paramIdx,
                                    const char* label, const IVStyle& style,
-                                   Base::RAR_RoomInfo& roomInfo,
-                                   bool valueInButton)
+                                   RAR_RoomInfo roomInfo, bool valueInButton)
     : ISwitchControlBase(bounds, paramIdx, DefaultClickActionFunc),
       RAR_VectorBase(style, false, valueInButton, roomInfo) {
   AttachIControl(this, label);
@@ -1246,7 +1244,7 @@ RAR_VectorSwitch::RAR_VectorSwitch(const IRECT& bounds, int paramIdx,
 RAR_VectorSwitch::RAR_VectorSwitch(const IRECT& bounds,
                                    IActionFunction actionFunc,
                                    const char* label, const IVStyle& style,
-                                   Base::RAR_RoomInfo& roomInfo, int numStates,
+                                   RAR_RoomInfo roomInfo, int numStates,
                                    bool valueInButton)
     : ISwitchControlBase(bounds, kNoParameter, actionFunc, numStates),
       RAR_VectorBase(style, false, valueInButton, roomInfo) {
@@ -1274,7 +1272,7 @@ void RAR_VectorSwitch::SetDirty(bool push, int valIdx) {
 
   const IParam* pParam = GetParam();
 
-  if (pParam) pParam->GetDisplayForHost(mValueStr);
+  if (pParam) pParam->GetDisplay(mValueStr);
 }
 
 void RAR_VectorSwitch::OnResize() {
@@ -1292,9 +1290,9 @@ void RAR_VectorSwitch::OnInit() {
   const IParam* pParam = GetParam();
 
   if (pParam) {
-    pParam->GetDisplayForHostWithLabel(mValueStr);
+    pParam->GetDisplay(mValueStr);
 
-    if (!mLabelStr.GetLength()) mLabelStr.Set(pParam->GetNameForHost());
+    if (!mLabelStr.GetLength()) mLabelStr.Set(pParam->GetName());
   }
 }
 
@@ -1303,13 +1301,13 @@ class RAR_VectorToggle : public RAR_VectorSwitch {
  public:
   RAR_VectorToggle(const IRECT& bounds, int paramIdx = kNoParameter,
                    const char* label = "", const IVStyle& style = DEFAULT_STYLE,
-                   Base::RAR_RoomInfo& roomInfo = Base::RAR_RoomInfo(),
+                   RAR_RoomInfo roomInfo = RAR_RoomInfo(),
                    const char* offText = "OFF", const char* onText = "ON");
 
   RAR_VectorToggle(const IRECT& bounds,
                    IActionFunction actionFunc = SplashClickActionFunc,
                    const char* label = "", const IVStyle& style = DEFAULT_STYLE,
-                   Base::RAR_RoomInfo& roomInfo = Base::RAR_RoomInfo(),
+                   RAR_RoomInfo roomInfo = RAR_RoomInfo(),
                    const char* offText = "OFF", const char* onText = "ON",
                    bool initialState = false);
 
@@ -1323,8 +1321,8 @@ class RAR_VectorToggle : public RAR_VectorSwitch {
 
 RAR_VectorToggle::RAR_VectorToggle(const IRECT& bounds, int paramIdx,
                                    const char* label, const IVStyle& style,
-                                   Base::RAR_RoomInfo& roomInfo,
-                                   const char* offText, const char* onText)
+                                   RAR_RoomInfo roomInfo, const char* offText,
+                                   const char* onText)
     : RAR_VectorSwitch(bounds, paramIdx, label, style, roomInfo, true),
       mOnText(onText),
       mOffText(offText) {
@@ -1334,9 +1332,8 @@ RAR_VectorToggle::RAR_VectorToggle(const IRECT& bounds, int paramIdx,
 RAR_VectorToggle::RAR_VectorToggle(const IRECT& bounds,
                                    IActionFunction actionFunc,
                                    const char* label, const IVStyle& style,
-                                   Base::RAR_RoomInfo& roomInfo,
-                                   const char* offText, const char* onText,
-                                   bool initialState)
+                                   RAR_RoomInfo roomInfo, const char* offText,
+                                   const char* onText, bool initialState)
     : RAR_VectorSwitch(bounds, actionFunc, label, style, roomInfo, 2, true),
       mOnText(onText),
       mOffText(offText) {
@@ -1868,7 +1865,7 @@ class RAR_PresetMenu : public IControl {
 
     if (itemChosen > -1 && itemChosen < numPresets) {
       pPluginBase->RestorePreset(itemChosen);
-      pPluginBase->InformHostOfProgramChange();
+      pPluginBase->InformHostOfParameterDetailsChange();
       pPluginBase->DirtyParametersFromUI();
     } else {
       // const int numParams = mPlug->NParams();
@@ -1878,7 +1875,8 @@ class RAR_PresetMenu : public IControl {
       //}
       WDL_String filename, path;
       GetUI()->PromptForFile(filename, path, EFileAction::Save, "txt");
-      pPluginBase->DumpPresetSrcCode(filename.Get(), mNamedParams);
+      pPluginBase->DumpMakePresetFromNamedParamsSrc(filename.Get(),
+                                                    mNamedParams);
     }
   }
   void TextFromTextEntry(const char* txt) {
@@ -1887,7 +1885,7 @@ class RAR_PresetMenu : public IControl {
     safeName.Set(txt, MAX_PRESET_NAME_LEN);
 
     pPluginBase->ModifyCurrentPreset(safeName.Get());
-    pPluginBase->InformHostOfProgramChange();
+    pPluginBase->InformHostOfParameterDetailsChange();
     pPluginBase->DirtyParametersFromUI();
     SetDirty(false);
   }
@@ -2029,4 +2027,3 @@ class RAR_FrequencyResponseMeter : public IControl, public IVectorBase {
 }  // namespace Controls
 }  // namespace Graphics
 }  // namespace RAR
-}  // end namespace RAR
