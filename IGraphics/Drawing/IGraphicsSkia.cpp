@@ -586,6 +586,7 @@ void IGraphicsSkia::PrepareAndMeasureText(const IText& text, const char* str, IR
 float IGraphicsSkia::DoMeasureText(const IText& text, const char* str, IRECT& bounds) const
 {
   SkFont font;
+  font.setEdging(SkFont::Edging::kSubpixelAntiAlias);
 
   IRECT r = bounds;
   double x, y;
@@ -599,8 +600,10 @@ void IGraphicsSkia::DoDrawText(const IText& text, const char* str, const IRECT& 
   IRECT measured = bounds;
   
   SkFont font;
+  font.setEdging(SkFont::Edging::kSubpixelAntiAlias);
+
   double x, y;
-  
+
   PrepareAndMeasureText(text, str, measured, x, y, font);
   PathTransformSave();
   DoTextRotation(text, bounds, measured);
@@ -796,13 +799,20 @@ void IGraphicsSkia::SetClipRegion(const IRECT& r)
   mCanvas->clipRect(SkiaRect(r));
 }
 
-APIBitmap* IGraphicsSkia::CreateAPIBitmap(int width, int height, int scale, double drawScale)
+APIBitmap* IGraphicsSkia::CreateAPIBitmap(int width, int height, int scale, double drawScale, bool cacheable)
 {
   sk_sp<SkSurface> surface;
   
   #ifndef IGRAPHICS_CPU
   SkImageInfo info = SkImageInfo::MakeN32Premul(width, height);
-  surface = SkSurface::MakeRenderTarget(mGrContext.get(), SkBudgeted::kYes, info);
+  if (cacheable)
+  {
+    surface = SkSurface::MakeRasterN32Premul(width, height);
+  }
+  else
+  {
+    surface = SkSurface::MakeRenderTarget(mGrContext.get(), SkBudgeted::kYes, info);
+  }
   #else
   surface = SkSurface::MakeRasterN32Premul(width, height);
   #endif
