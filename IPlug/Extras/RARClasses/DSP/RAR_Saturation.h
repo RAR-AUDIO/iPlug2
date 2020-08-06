@@ -144,8 +144,7 @@ class RAR_Saturation {
 
   double prev;
   double dry;
-};
-// end of class
+};  // end of class
 
 // INLINE PROCESSING FUNCTIONS
 // ----------------------------------------------------------------------------
