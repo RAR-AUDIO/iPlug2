@@ -209,6 +209,9 @@
     <ClInclude Include="Utils\RAR_Graphics.h">
       <Filter>Utils</Filter>
     </ClInclude>
+    <ClInclude Include="DSP\RAR_Effects.h">
+      <Filter>DSP</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="CHANGELOG.md" />
