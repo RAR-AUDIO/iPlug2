@@ -17,4 +17,4 @@
 
 #pragma once
 
-enum EParams { kGain = 0, kNumParams };
+enum class Parameters { kGain = 0, kNumParams };
