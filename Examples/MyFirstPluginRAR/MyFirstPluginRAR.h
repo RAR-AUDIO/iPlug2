@@ -32,15 +32,16 @@ class MyFirstPluginRAR final : public Plugin {
 
   IParam* GetParam(Parameters parameter);
   void ProcessBlock(sample** inputs, sample** outputs, int nFrames) override;
-  // void OnReset () override;
-  // void OnParamChange (int paramIdx, EParamSource, int sampleOffset) override;
+  void OnReset() override;
+  void OnParamChange(int paramIdx) override;
 
  private:
   void InitParameters();
   void InitGraphics();
-  void SetParameterDisplayText();
+  void cookVars();
 
   char* versionString = "0.0.1";
+  double gain;
   Interface mInterface;
   // CParamSmooth* mWidthSmoother; //OLD Smoother
 };

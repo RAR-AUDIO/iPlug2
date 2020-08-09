@@ -28,18 +28,8 @@ void MyFirstPluginRAR::InitParameters() {
   GetParam(Parameters::kGain)->InitDouble("Gain", 0., 0., 100.0, 0.01, "%");
 }
 
-void MyFirstPluginRAR::SetParameterDisplayText() {
-  GetParam(Parameters::kGain)->SetDisplayText(0, "0 %");
-  GetParam(Parameters::kGain)->SetDisplayText(10, "10 %");
-  GetParam(Parameters::kGain)->SetDisplayText(20, "20 %");
-  GetParam(Parameters::kGain)->SetDisplayText(30, "30 %");
-  GetParam(Parameters::kGain)->SetDisplayText(40, "40 %");
-  GetParam(Parameters::kGain)->SetDisplayText(50, "50 %");
-  GetParam(Parameters::kGain)->SetDisplayText(60, "60 %");
-  GetParam(Parameters::kGain)->SetDisplayText(70, "70 %");
-  GetParam(Parameters::kGain)->SetDisplayText(80, "80 %");
-  GetParam(Parameters::kGain)->SetDisplayText(90, "90 %");
-  GetParam(Parameters::kGain)->SetDisplayText(100, "100 %");
+void MyFirstPluginRAR::cookVars() {
+  gain = GetParam(Parameters::kGain)->Value() / 100.;
 }
 
 void MyFirstPluginRAR::InitGraphics() {
@@ -55,14 +45,15 @@ void MyFirstPluginRAR::InitGraphics() {
 
 MyFirstPluginRAR::MyFirstPluginRAR(const InstanceInfo& info)
     : Plugin(info, MakeConfig((int)Parameters::kNumParams, kNumPresets)),
-      mInterface(this) {
+      mInterface(this),
+      gain(0) {
   InitParameters();
   InitGraphics();
+  cookVars();
 }
 
 void MyFirstPluginRAR::ProcessBlock(sample** inputs, sample** outputs,
                                     int nFrames) {
-  const double gain = GetParam(Parameters::kGain)->Value() / 100.;
   const int nChans = NOutChansConnected();
 
   for (int s = 0; s < nFrames; s++) {
@@ -72,7 +63,6 @@ void MyFirstPluginRAR::ProcessBlock(sample** inputs, sample** outputs,
   }
 }
 
-// void MyFirstPluginRAR::OnReset () {}
+void MyFirstPluginRAR::OnReset() { cookVars(); }
 
-// void MyFirstPluginRAR::OnParamChange (int paramIdx, EParamSource, int
-// sampleOffset) {}
+void MyFirstPluginRAR::OnParamChange(int paramIdx) { cookVars(); }
