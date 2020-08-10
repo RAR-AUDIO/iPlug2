@@ -1,4 +1,4 @@
-//==================================================================================
+//=============================================================================
 // Project     : Plugin
 // Version     : 0.0.1
 //
@@ -9,11 +9,11 @@
 // Description : GUI
 //
 //
-//---------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // LICENSE
 // (c) 2020, RAR-AUDIO, All Rights Reserved
-//---------------------------------------------------------------------------------
-//=================================================================================
+//-----------------------------------------------------------------------------
+//=============================================================================
 
 #pragma once
 
@@ -40,12 +40,6 @@ class Interface {
   void CreateControls(IGraphics* pGraphics);
 
  private:
-  // IControl* AttachEnum (IGraphics* pGraphics, IRECT rect, const int paramIdx,
-  // const char* label = nullptr); IControl* AttachTextBox (IGraphics*
-  // pGraphics, IRECT rect, const int paramIdx, const float scrollSpeed, const
-  // char* maxValue, const char* label = nullptr);
-
   PLUG_CLASS_NAME* mPlug;
-
   IControl* mPresetControl;
 };
