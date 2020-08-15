@@ -6,7 +6,7 @@
 // Filename    : Main/MyFirstPluginRAR.h
 // Created by  : RAR-AUDIO, JUL/2020
 // Author      : Roberto Ramirez
-// Description : Plugin Paramaters
+// Description : Plugin Parameters
 //
 //
 //-----------------------------------------------------------------------------
@@ -27,21 +27,20 @@ using namespace iplug;
 using namespace igraphics;
 
 class MyFirstPluginRAR final : public Plugin {
- public:
-  MyFirstPluginRAR(const InstanceInfo& info);
+  public:
+    MyFirstPluginRAR(const InstanceInfo& info);
 
-  IParam* GetParam(Parameters parameter);
-  void ProcessBlock(sample** inputs, sample** outputs, int nFrames) override;
-  void OnReset() override;
-  void OnParamChange(int paramIdx) override;
+    IParam* GetParam(Parameters parameter);
+    void ProcessBlock(sample** inputs, sample** outputs, int nFrames) override;
+    void OnReset() override;
+    void OnParamChange(int paramIdx) override;
 
- private:
-  void InitParameters();
-  void InitGraphics();
-  void cookVars();
+  private:
+    void InitParameters();
+    void InitGraphics();
+    void cookVars();
 
-  char* versionString = "0.0.1";
-  double gain;
-  Interface mInterface;
-  // CParamSmooth* mWidthSmoother; //OLD Smoother
+    char* version_string_ = "0.0.1";
+    double gain_;
+    Interface m_interface_;
 };

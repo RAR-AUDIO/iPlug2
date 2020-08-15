@@ -6,7 +6,7 @@
 // Filename    : Main/MyFirstPluginRAR.cpp
 // Created by  : RAR-AUDIO, JUL/2020
 // Author      : Roberto Ramirez
-// Description : Plugin Paramaters
+// Description : Plugin Parameters
 //
 //
 //-----------------------------------------------------------------------------
@@ -21,15 +21,17 @@
 #include "IPlug_include_in_plug_src.h"
 
 IParam* MyFirstPluginRAR::GetParam(Parameters parameter) {
-  return IEditorDelegate::GetParam((int)parameter);
+  return IEditorDelegate::GetParam(static_cast<int>(parameter));
 }
 
 void MyFirstPluginRAR::InitParameters() {
-  GetParam(Parameters::kGain)->InitDouble("Gain", 0., 0., 100.0, 0.01, "%");
+  GetParam(Parameters::kGain)
+      ->InitDouble("Gain", 0., 0.,
+                   100.0, 0.01, "%");
 }
 
 void MyFirstPluginRAR::cookVars() {
-  gain = GetParam(Parameters::kGain)->Value() / 100.;
+  gain_ = GetParam(Parameters::kGain)->Value() / 100.;
 }
 
 void MyFirstPluginRAR::InitGraphics() {
@@ -39,27 +41,27 @@ void MyFirstPluginRAR::InitGraphics() {
   };
 
   mLayoutFunc = [&](IGraphics* pGraphics) {
-    mInterface.CreateControls(pGraphics);
+    m_interface_.CreateControls(pGraphics);
   };
 }
 
 MyFirstPluginRAR::MyFirstPluginRAR(const InstanceInfo& info)
-    : Plugin(info, MakeConfig((int)Parameters::kNumParams, kNumPresets)),
-      mInterface(this),
-      gain(0) {
+  : Plugin(info,
+           MakeConfig(static_cast<int>(Parameters::kNumParams),
+                      kNumPresets)),
+    gain_(0),
+    m_interface_(this) {
   InitParameters();
   InitGraphics();
   cookVars();
 }
 
 void MyFirstPluginRAR::ProcessBlock(sample** inputs, sample** outputs,
-                                    int nFrames) {
+                                    const int nFrames) {
   const int nChans = NOutChansConnected();
 
-  for (int s = 0; s < nFrames; s++) {
-    for (int c = 0; c < nChans; c++) {
-      outputs[c][s] = inputs[c][s] * gain;
-    }
+  for (auto s = 0; s < nFrames; s++) {
+    for (auto c = 0; c < nChans; c++) { outputs[c][s] = inputs[c][s] * gain_; }
   }
 }
 

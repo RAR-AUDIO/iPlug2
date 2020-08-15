@@ -18,9 +18,7 @@
 #pragma once
 
 #include "IControl.h"
-#include "IControls.h"
 #include "IGraphicsStructs.h"
-#include "Params.h"
 #include "config.h"
 
 class PLUG_CLASS_NAME;
@@ -40,6 +38,6 @@ class Interface {
   void CreateControls(IGraphics* pGraphics);
 
  private:
-  PLUG_CLASS_NAME* mPlug;
-  IControl* mPresetControl;
+  PLUG_CLASS_NAME* m_plug_;
+  IControl* m_preset_control_ = nullptr;
 };
