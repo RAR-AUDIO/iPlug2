@@ -17,8 +17,8 @@
 
 #pragma once
 
-#include "IPlug_include_in_plug_hdr.h"
 #include "Interface.h"
+#include "IPlug_include_in_plug_hdr.h"
 #include "Params.h"
 
 const int kNumPresets = 1;
@@ -27,20 +27,20 @@ using namespace iplug;
 using namespace igraphics;
 
 class MyFirstPluginRAR final : public Plugin {
-  public:
-    MyFirstPluginRAR(const InstanceInfo& info);
+public:
+ explicit MyFirstPluginRAR(const InstanceInfo& info);
 
-    IParam* GetParam(Parameters parameter);
-    void ProcessBlock(sample** inputs, sample** outputs, int nFrames) override;
-    void OnReset() override;
-    void OnParamChange(int paramIdx) override;
+ IParam* GetParam(Parameters parameter);
+ void ProcessBlock(sample** inputs, sample** outputs, int nFrames) override;
+ void OnReset() override;
+ void OnParamChange(int paramIdx) override;
 
-  private:
-    void InitParameters();
-    void InitGraphics();
-    void cookVars();
+private:
+ void InitParameters();
+ void InitGraphics();
+ void cookVars();
 
-    char* version_string_ = "0.0.1";
-    double gain_;
-    Interface m_interface_;
+ char* version_string_ = "0.0.1";
+ double gain_;
+ Interface m_interface_;
 };

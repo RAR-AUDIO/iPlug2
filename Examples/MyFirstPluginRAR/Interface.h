@@ -17,27 +17,27 @@
 
 #pragma once
 
+#include "config.h"
 #include "IControl.h"
 #include "IGraphicsStructs.h"
-#include "config.h"
 
 class PLUG_CLASS_NAME;
 
 namespace iplug {
 class IEditorDelegate;
-}
+} // namespace iplug
 
 using namespace iplug;
 using namespace igraphics;
 
 class Interface {
- public:
-  Interface(PLUG_CLASS_NAME* inPlug);
-  ~Interface();
+public:
+ explicit Interface(PLUG_CLASS_NAME* inPlug);
+ ~Interface();
 
-  void CreateControls(IGraphics* pGraphics);
+ static void CreateControls(IGraphics* pGraphics);
 
- private:
-  PLUG_CLASS_NAME* m_plug_;
-  IControl* m_preset_control_ = nullptr;
+private:
+ PLUG_CLASS_NAME* m_plug_;
+ IControl* m_preset_control_ = nullptr;
 };
