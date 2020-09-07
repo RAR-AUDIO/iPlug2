@@ -23,21 +23,23 @@
 
 class PLUG_CLASS_NAME;
 
-namespace iplug {
-class IEditorDelegate;
+namespace iplug
+{
+    class IEditorDelegate;
 } // namespace iplug
 
 using namespace iplug;
 using namespace igraphics;
 
-class Interface {
+class Interface
+{
 public:
- explicit Interface(PLUG_CLASS_NAME* inPlug);
- ~Interface();
+    explicit Interface (PLUG_CLASS_NAME* inPlug);
+    ~Interface ();
 
- static void CreateControls(IGraphics* pGraphics);
+    static void createControls (IGraphics* pGraphics);
 
 private:
- PLUG_CLASS_NAME* m_plug_;
- IControl* m_preset_control_ = nullptr;
+    PLUG_CLASS_NAME* mPlug;
+    IControl* mPresetControl = nullptr;
 };
