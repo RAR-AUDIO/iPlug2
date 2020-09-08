@@ -23,7 +23,7 @@
 Interface::Interface (PLUG_CLASS_NAME* inPlug)
     : mPlug (inPlug) {}
 
-Interface::~Interface () { mPresetControl = nullptr; }
+Interface::~Interface() { mPresetControl = nullptr; }
 
 void Interface::createControls (IGraphics* pGraphics)
 {

@@ -33,13 +33,13 @@ public:
 
     auto getParam (Parameters parameter) -> IParam*;
     void ProcessBlock (sample** inputs, sample** outputs, int nFrames) override;
-    void OnReset () override;
+    void OnReset() override;
     void OnParamChange (int paramIdx) override;
 
 private:
-    void initParameters ();
-    void initGraphics ();
-    void cookVars ();
+    void initParameters();
+    void initGraphics();
+    void cookVars();
 
     char* versionString = "0.0.1";
     double gain;

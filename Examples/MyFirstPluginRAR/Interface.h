@@ -35,7 +35,7 @@ class Interface
 {
 public:
     explicit Interface (PLUG_CLASS_NAME* inPlug);
-    ~Interface ();
+    ~Interface();
 
     static void createControls (IGraphics* pGraphics);
 
