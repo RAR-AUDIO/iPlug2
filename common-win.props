@@ -7,10 +7,11 @@
     <LICE_PATH>$(WDL_PATH)\lice</LICE_PATH>
     <IPLUG_PATH>$(IPLUG2_ROOT)\IPlug</IPLUG_PATH>
     <EXTRAS_PATH>$(IPLUG_PATH)\Extras</EXTRAS_PATH>
+    <RARCLASSES_PATH>$(IPLUG_PATH)\Extras\RARClasses</RARCLASSES_PATH>
     <IGRAPHICS_PATH>$(IPLUG2_ROOT)\IGraphics</IGRAPHICS_PATH>
     <DEPS_PATH>$(IPLUG2_ROOT)\Dependencies</DEPS_PATH>
     <JSON_PATH>$(DEPS_PATH)\Extras\nlohmann</JSON_PATH>
-    <IPLUG_INC_PATHS>$(WDL_PATH);$(IPLUG_PATH);$(EXTRAS_PATH);$(EXTRAS_PATH)\OSC;$(EXTRAS_PATH)\Synth;$(EXTRAS_PATH)\Faust;$(EXTRAS_PATH)\WebView;$(JSON_PATH);$(SolutionDir)\resources</IPLUG_INC_PATHS>
+    <IPLUG_INC_PATHS>$(WDL_PATH);$(IPLUG_PATH);$(EXTRAS_PATH);$(RARCLASSES_PATH);$(EXTRAS_PATH)\OSC;$(EXTRAS_PATH)\Synth;$(EXTRAS_PATH)\Faust;$(EXTRAS_PATH)\WebView;$(JSON_PATH);$(SolutionDir)\resources</IPLUG_INC_PATHS>
     <IPLUG_DEPS_PATH>$(DEPS_PATH)\IPlug</IPLUG_DEPS_PATH>
     <IGRAPHICS_DEPS_PATH>$(DEPS_PATH)\IGraphics</IGRAPHICS_DEPS_PATH>
     <NANOVG_PATH>$(IGRAPHICS_DEPS_PATH)\NanoVG\src</NANOVG_PATH>
@@ -112,6 +113,9 @@
     </BuildMacro>
     <BuildMacro Include="EXTRAS_PATH">
       <Value>$(EXTRAS_PATH)</Value>
+    </BuildMacro>
+    <BuildMacro Include="RARCLASSES_PATH">
+      <Value>$(RARCLASSES_PATH)</Value>
     </BuildMacro>
     <BuildMacro Include="IGRAPHICS_PATH">
       <Value>$(IGRAPHICS_PATH)</Value>
