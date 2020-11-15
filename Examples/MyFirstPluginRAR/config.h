@@ -1,7 +1,7 @@
 #define PLUG_NAME "MyFirstPluginRAR"
 #define PLUG_MFR "RAR-AUDIO"
-#define PLUG_VERSION_HEX 0x00000010
-#define PLUG_VERSION_STR "0.0.1"
+#define PLUG_VERSION_HEX 0x00000100
+#define PLUG_VERSION_STR "0.1.0"
 #define PLUG_UNIQUE_ID 'R47R'
 #define PLUG_MFR_ID 'RARA'
 #define PLUG_URL_STR "https://iplug2.github.io"

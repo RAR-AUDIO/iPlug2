@@ -1,6 +1,6 @@
 //=============================================================================
 // Project     : Plugin
-// Version     : 0.0.1
+// Version     : 0.1.0
 //
 // Category    : Main
 // Filename    : Main/MyFirstPluginRAR.h
@@ -17,8 +17,8 @@
 
 #pragma once
 
-#include "Interface.h"
 #include "IPlug_include_in_plug_hdr.h"
+#include "Interface.h"
 #include "Params.h"
 
 const int K_NUM_PRESETS = 1;
@@ -41,7 +41,6 @@ private:
     void initGraphics();
     void cookVars();
 
-    char* versionString = "0.0.1";
     double gain;
     Interface mInterface;
 };

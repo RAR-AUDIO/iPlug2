@@ -1,10 +1,10 @@
 //=============================================================================
-// Project     : Plugi
-// Version     : 0.0.1
+// Project     : Plugin
+// Version     : 0.1.0
 //
 // Category    : Main
 // Filename    : Main/MyFirstPluginRAR.cpp
-// Created by  : RAR-AUDIO, JUL/2020
+// Created by  : RAR-AUDIO, NOV/2020
 // Author      : Roberto Ramirez
 // Description : Plugin Parameters
 //
@@ -20,7 +20,10 @@
 #include "IControls.h"
 #include "IPlug_include_in_plug_src.h"
 
-auto MyFirstPluginRAR::getParam (Parameters parameter) -> IParam* { return GetParam (static_cast<int> (parameter)); }
+auto MyFirstPluginRAR::getParam (Parameters parameter) -> IParam*
+{
+    return GetParam (static_cast<int> (parameter));
+}
 
 void MyFirstPluginRAR::initParameters()
 {
@@ -33,7 +36,10 @@ void MyFirstPluginRAR::initParameters()
                       "%");
 }
 
-void MyFirstPluginRAR::cookVars() { gain = getParam (Parameters::KGain)->Value() / 100.; }
+void MyFirstPluginRAR::cookVars()
+{
+    gain = getParam (Parameters::KGain)->Value() / 100.;
+}
 
 void MyFirstPluginRAR::initGraphics()
 {
@@ -42,9 +48,11 @@ void MyFirstPluginRAR::initGraphics()
                              PLUG_WIDTH,
                              PLUG_HEIGHT,
                              PLUG_FPS,
-                             GetScaleForScreen (PLUG_HEIGHT));
+                             GetScaleForScreen (PLUG_HEIGHT, PLUG_HEIGHT));
     };
-    mLayoutFunc = [&] (IGraphics* pGraphics) { mInterface.createControls (pGraphics); };
+    mLayoutFunc = [&] (IGraphics* pGraphics) {
+        mInterface.createControls (pGraphics);
+    };
 }
 
 MyFirstPluginRAR::MyFirstPluginRAR (const InstanceInfo& info)
@@ -73,6 +81,12 @@ void MyFirstPluginRAR::ProcessBlock (sample** inputs,
     }
 }
 
-void MyFirstPluginRAR::OnReset() { cookVars(); }
+void MyFirstPluginRAR::OnReset()
+{
+    cookVars();
+}
 
-void MyFirstPluginRAR::OnParamChange (int paramIdx) { cookVars(); }
+void MyFirstPluginRAR::OnParamChange (int paramIdx)
+{
+    cookVars();
+}

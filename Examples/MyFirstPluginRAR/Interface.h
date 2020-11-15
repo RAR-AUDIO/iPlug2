@@ -1,6 +1,6 @@
 //=============================================================================
 // Project     : Plugin
-// Version     : 0.0.1
+// Version     : 0.1.0
 //
 // Category    : Interface
 // Filename    : Interface/Interface.h
@@ -17,9 +17,9 @@
 
 #pragma once
 
-#include "config.h"
 #include "IControl.h"
 #include "IGraphicsStructs.h"
+#include "config.h"
 
 class PLUG_CLASS_NAME;
 
