@@ -1,19 +1,19 @@
-//=============================================================================
-// Project     : Plugin
-// Version     : 0.1.0
-//
-// Category    : Interface
-// Filename    : Interface/Interface.h
-// Created by  : RAR-AUDIO, JUL/2020
-// Author      : Roberto Ramirez
-// Description : GUI
-//
-//
-//-----------------------------------------------------------------------------
-// LICENSE
-// (c) 2020, RAR-AUDIO, All Rights Reserved
-//-----------------------------------------------------------------------------
-//=============================================================================
+// =============================================================================
+//  Project     : MyFirstPluginRAR-vst3
+//  Version     : 0.1.0
+// 
+//  Category    : Main
+//  Filename    : Main/Interface.h
+//  Created by  : RAR-AUDIO, 11/2020
+//  Author      : Roberto A. Ramirez Gonzalez
+//  Description : Plugin Parameters
+// 
+// 
+// -----------------------------------------------------------------------------
+//  LICENSE
+//  (c) 2020, RAR-AUDIO, All Rights Reserved
+// -----------------------------------------------------------------------------
+// =============================================================================
 
 #pragma once
 
@@ -35,11 +35,10 @@ class Interface
 {
 public:
     explicit Interface (PLUG_CLASS_NAME* inPlug);
-    ~Interface();
+    ~Interface ();
 
     static void createControls (IGraphics* pGraphics);
 
 private:
     PLUG_CLASS_NAME* mPlug;
-    IControl* mPresetControl = nullptr;
 };

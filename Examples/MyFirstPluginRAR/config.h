@@ -2,16 +2,16 @@
 #define PLUG_MFR "RAR-AUDIO"
 #define PLUG_VERSION_HEX 0x00000100
 #define PLUG_VERSION_STR "0.1.0"
-#define PLUG_UNIQUE_ID 'R47R'
-#define PLUG_MFR_ID 'RARA'
-#define PLUG_URL_STR "https://iplug2.github.io"
+#define PLUG_UNIQUE_ID 'NaTD'
+#define PLUG_MFR_ID 'Acme'
+#define PLUG_URL_STR "https://raraudio.net"
 #define PLUG_EMAIL_STR "spam@me.com"
-#define PLUG_COPYRIGHT_STR "Copyright 2020 RAR-AUDIO LLC"
+#define PLUG_COPYRIGHT_STR "Copyright 2020 RAR-AUDIO"
 #define PLUG_CLASS_NAME MyFirstPluginRAR
 
 #define BUNDLE_NAME "MyFirstPluginRAR"
 #define BUNDLE_MFR "RAR-AUDIO"
-#define BUNDLE_DOMAIN "com"
+#define BUNDLE_DOMAIN "net"
 
 #define SHARED_RESOURCES_SUBPATH "MyFirstPluginRAR"
 

@@ -20,7 +20,7 @@
 #include "IControls.h"
 #include "IPlug_include_in_plug_src.h"
 
-auto MyFirstPluginRAR::getParam (Parameters parameter) -> IParam*
+IParam* MyFirstPluginRAR::getParam (Parameters parameter)
 {
     return GetParam (static_cast<int> (parameter));
 }
@@ -72,6 +72,7 @@ void MyFirstPluginRAR::ProcessBlock (sample** inputs,
                                      const int nFrames)
 {
     const int nChans = NOutChansConnected();
+
     for (auto s = 0; s < nFrames; s++)
     {
         for (auto c = 0; c < nChans; c++)
