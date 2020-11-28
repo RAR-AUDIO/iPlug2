@@ -1,12 +1,12 @@
 // =============================================================================
-//  Project     : MyFirstPluginRAR-vst3
+//  Project     : MyFirstPluginRAR
 //  Version     : 0.1.0
 //
-//  Category    : Main
-//  Filename    : Main/Interface.cpp
+//  Category    : MyFirstPluginRAR-vst3
+//  Filename    : MyFirstPluginRAR-vst3/Interface.cpp
 //  Created by  : RAR-AUDIO, 11/2020
 //  Author      : Roberto A. Ramirez Gonzalez
-//  Description : Plugin Parameters
+//  Description : Interface Graphics
 //
 //
 // -----------------------------------------------------------------------------

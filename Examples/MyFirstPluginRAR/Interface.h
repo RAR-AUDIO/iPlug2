@@ -1,14 +1,14 @@
 // =============================================================================
-//  Project     : MyFirstPluginRAR-vst3
+//  Project     : MyFirstPluginRAR
 //  Version     : 0.1.0
-// 
-//  Category    : Main
-//  Filename    : Main/Interface.h
+//
+//  Category    : MyFirstPluginRAR-vst3
+//  Filename    : MyFirstPluginRAR-vst3/Interface.h
 //  Created by  : RAR-AUDIO, 11/2020
 //  Author      : Roberto A. Ramirez Gonzalez
-//  Description : Plugin Parameters
-// 
-// 
+//  Description : Interface Graphics
+//
+//
 // -----------------------------------------------------------------------------
 //  LICENSE
 //  (c) 2020, RAR-AUDIO, All Rights Reserved
@@ -35,7 +35,7 @@ class Interface
 {
 public:
     explicit Interface (PLUG_CLASS_NAME* inPlug);
-    ~Interface ();
+    ~Interface();
 
     static void createControls (IGraphics* pGraphics);
 

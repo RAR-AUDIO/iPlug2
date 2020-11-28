@@ -1,12 +1,12 @@
 // =============================================================================
-//  Project     : MyFirstPluginRAR-vst3
+//  Project     : MyFirstPluginRAR
 //  Version     : 0.1.0
 //
-//  Category    : Main
-//  Filename    : Main/Params.h
+//  Category    : MyFirstPluginRAR-vst3
+//  Filename    : MyFirstPluginRAR-vst3/Params.h
 //  Created by  : RAR-AUDIO, 11/2020
 //  Author      : Roberto A. Ramirez Gonzalez
-//  Description : Plugin Parameters
+//  Description : Parameters definitions
 //
 //
 // -----------------------------------------------------------------------------

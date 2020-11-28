@@ -1,19 +1,19 @@
-//=============================================================================
-// Project     : Plugin
-// Version     : 0.1.0
+// =============================================================================
+//  Project     : MyFirstPluginRAR
+//  Version     : 0.1.0
 //
-// Category    : Main
-// Filename    : Main/MyFirstPluginRAR.cpp
-// Created by  : RAR-AUDIO, NOV/2020
-// Author      : Roberto Ramirez
-// Description : Plugin Parameters
+//  Category    : MyFirstPluginRAR-vst3
+//  Filename    : MyFirstPluginRAR-vst3/MyFirstPluginRAR.cpp
+//  Created by  : RAR-AUDIO, 11/2020
+//  Author      : Roberto A. Ramirez Gonzalez
+//  Description : Processor functions
 //
 //
-//-----------------------------------------------------------------------------
-// LICENSE
-// (c) 2020, RAR-AUDIO, All Rights Reserved
-//-----------------------------------------------------------------------------
-//=============================================================================
+// -----------------------------------------------------------------------------
+//  LICENSE
+//  (c) 2020, RAR-AUDIO, All Rights Reserved
+// -----------------------------------------------------------------------------
+// =============================================================================
 
 #include "MyFirstPluginRAR.h"
 
