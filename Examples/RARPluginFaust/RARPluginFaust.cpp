@@ -11,15 +11,15 @@ RARPluginFaust::RARPluginFaust (const InstanceInfo& info)
     GetParam (KSaturation)->InitDouble ("Saturation", 0.0, 0.0, 1.0, 0.1);
     GetParam (KCurve)->InitDouble ("Curve", 1.0, 0.1, 4.0, 0.1);
     GetParam (KFeedback)->InitGain ("Feedback", -60, -60, -24);
-    GetParam (KLevel)->InitGain ("Level", -12, -24, -24);
+    GetParam (KLevel)->InitGain ("Level", -12, -24, 24);
 
     //InitParamRange (0, K_NUM_PARAMS - 1, 1, "Param %i", 0., 0., 1., 0.1, "", IParam::kFlagsNone); // initialize kNumParams generic iplug params
 
     mFaustProcessor.SetMaxChannelCount (MaxNChannels (kInput), MaxNChannels (kOutput));
     mFaustProcessor.Init();
+    mFaustProcessor.CreateIPlugParameters (this); // in order to create iplug params, based on faust .dsp params, uncomment this
     mFaustProcessor.CompileCPP();
     mFaustProcessor.SetAutoRecompile (true);
-    mFaustProcessor.CreateIPlugParameters (this, 0, mFaustProcessor.NParams()); // in order to create iplug params, based on faust .dsp params, uncomment this
 
 #ifndef FAUST_COMPILED
     mFaustProcessor.SetCompileFunc ([&]() {

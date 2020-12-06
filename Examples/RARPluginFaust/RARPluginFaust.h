@@ -12,17 +12,7 @@
 #define DSP_FILE ""
 #endif
 
-enum Parameter
-{
-    KCutoff,
-    KResonance,
-    KDrive,
-    KSaturation,
-    KCurve,
-    KFeedback,
-    KLevel,
-    KNumParameters
-};
+
 
 using namespace iplug;
 using namespace igraphics;

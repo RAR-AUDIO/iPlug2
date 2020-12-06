@@ -23,8 +23,8 @@ void Interface::createControls (IGraphics* pGraphics)
     pGraphics->AttachCornerResizer (EUIResizerMode::Scale);
     pGraphics->LoadFont ("Roboto-Regular", ROBOTO_FN);
 
-    for (int i = 0; i < K_NUM_PARAMS; i++)
+    for (int i = 0; i < KNumParameters; i++)
     {
-        pGraphics->AttachControl (new IVKnobControl (knobs.GetGridCell (i, 1, K_NUM_PARAMS).GetPadded (-5.f), i));
+        pGraphics->AttachControl (new RAR::Graphics::Controls::RarVectorKnob (knobs.GetGridCell (i, 1, KNumParameters).GetPadded (-5.f), i));
     }
 };

@@ -23,7 +23,17 @@
 #include "RARClasses/Utils/RAR_Graphics.h"
 #include "config.h"
 
-const int K_NUM_PARAMS = 7;
+enum Parameter
+{
+    KCutoff,
+    KResonance,
+    KDrive,
+    KSaturation,
+    KCurve,
+    KFeedback,
+    KLevel,
+    KNumParameters
+};
 const int K_NUM_PRESETS = 1;
 
 class PLUG_CLASS_NAME;
