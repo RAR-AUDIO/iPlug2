@@ -29,7 +29,7 @@ public:
     Interface mInterface;
 
 private:
-    FAUST_BLOCK (Faust1, mFaustProcessor, DSP_FILE, 1, 1);
+    FAUST_BLOCK (Faust, mFaustProcessor, DSP_FILE, 1, 1);
 
     void initGraphics();
 };

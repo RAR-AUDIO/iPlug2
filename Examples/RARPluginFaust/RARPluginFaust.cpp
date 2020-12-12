@@ -17,7 +17,7 @@ RARPluginFaust::RARPluginFaust (const InstanceInfo& info)
 
     mFaustProcessor.SetMaxChannelCount (MaxNChannels (kInput), MaxNChannels (kOutput));
     mFaustProcessor.Init();
-    mFaustProcessor.CreateIPlugParameters (this); // in order to create iplug params, based on faust .dsp params, uncomment this
+    mFaustProcessor.CreateIPlugParameters (this, 0, 7, true); // in order to create iplug params, based on faust .dsp params, uncomment this
     mFaustProcessor.CompileCPP();
     mFaustProcessor.SetAutoRecompile (true);
 
