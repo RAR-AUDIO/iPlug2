@@ -12,8 +12,6 @@
 #define DSP_FILE ""
 #endif
 
-
-
 using namespace iplug;
 using namespace igraphics;
 
@@ -32,4 +30,5 @@ private:
     FAUST_BLOCK (Faust, mFaustProcessor, DSP_FILE, 1, 1);
 
     void initGraphics();
+    void makePresets();
 };

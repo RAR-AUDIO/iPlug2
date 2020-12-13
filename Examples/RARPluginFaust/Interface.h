@@ -34,7 +34,7 @@ enum Parameter
     KLevel,
     KNumParameters
 };
-const int K_NUM_PRESETS = 1;
+const int K_NUM_PRESETS = 2;
 
 class PLUG_CLASS_NAME;
 

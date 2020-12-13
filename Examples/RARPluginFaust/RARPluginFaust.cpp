@@ -28,6 +28,7 @@ RARPluginFaust::RARPluginFaust (const InstanceInfo& info)
 #endif
 
     initGraphics();
+    makePresets();
 }
 
 void RARPluginFaust::initGraphics()
@@ -43,6 +44,13 @@ void RARPluginFaust::initGraphics()
         mInterface.createControls (pGraphics);
     };
 }
+
+void RARPluginFaust::makePresets ()
+{
+    MakeDefaultPreset ("Default", 1);
+    MakePresetFromNamedParams ("Full send", 3, 4.0);
+}
+
 
 void RARPluginFaust::ProcessBlock (sample** inputs, sample** outputs, int nFrames)
 {
