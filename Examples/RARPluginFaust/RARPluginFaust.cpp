@@ -5,11 +5,11 @@ RARPluginFaust::RARPluginFaust (const InstanceInfo& info)
     : Plugin (info, MakeConfig (KNumParameters, K_NUM_PRESETS)),
       mInterface { this }
 {
-    GetParam (KCutoff)->InitFrequency ("Cutoff", 20000, 100, 20000, 1.0);
-    GetParam (KResonance)->InitDouble ("Resonance", 1.0, 1.0, 8.0, 0.1);
-    GetParam (KDrive)->InitDouble ("Drive", 3.0, -10.0, 10.0, 0.1);
-    GetParam (KSaturation)->InitDouble ("Saturation", 0.0, 0.0, 1.0, 0.1);
-    GetParam (KCurve)->InitDouble ("Curve", 1.0, 0.1, 4.0, 0.1);
+    GetParam (KCutoff)->InitFrequency ("Cutoff", 20000, 100, 20000);
+    GetParam (KResonance)->InitPercentage ("Resonance", 1.0, 1.0, 8.0);
+    GetParam (KDrive)->InitGain ("Drive", 3.0, -10.0, 10.0);
+    GetParam (KSaturation)->InitPercentage ("Saturation", 0.0, 0.0, 1.0);
+    GetParam (KCurve)->InitPercentage ("Curve", 1.0, 0.1, 4.0);
     GetParam (KFeedback)->InitGain ("Feedback", -60, -60, -24);
     GetParam (KLevel)->InitGain ("Level", -12, -24, 24);
 
@@ -48,7 +48,7 @@ void RARPluginFaust::initGraphics()
 void RARPluginFaust::makePresets ()
 {
     MakeDefaultPreset ("Default", 1);
-    MakePresetFromNamedParams ("Full send", 3, 4.0);
+    //MakePresetFromNamedParams ("Full send", 3, 4.0);
 }
 
 
