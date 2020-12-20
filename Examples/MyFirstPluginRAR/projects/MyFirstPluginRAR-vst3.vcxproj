@@ -328,7 +328,6 @@
     <ClInclude Include="..\..\..\IPlug\VST3\IPlugVST3_View.h" />
     <ClInclude Include="..\Interface.h" />
     <ClInclude Include="..\MyFirstPluginRAR.h" />
-    <ClInclude Include="..\Params.h" />
     <ClInclude Include="..\resources\resource.h" />
   </ItemGroup>
   <ItemGroup>

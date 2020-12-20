@@ -358,7 +358,6 @@
     <ClInclude Include="..\..\..\IGraphics\ISender.h">
       <Filter>IGraphics</Filter>
     </ClInclude>
-    <ClInclude Include="..\Params.h" />
     <ClInclude Include="..\Interface.h" />
   </ItemGroup>
   <ItemGroup>

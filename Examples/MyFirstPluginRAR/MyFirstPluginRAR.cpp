@@ -20,25 +20,14 @@
 #include "IControls.h"
 #include "IPlug_include_in_plug_src.h"
 
-IParam* MyFirstPluginRAR::getParam (Parameters parameter)
-{
-    return GetParam (static_cast<int> (parameter));
-}
-
 void MyFirstPluginRAR::initParameters()
 {
-    getParam (Parameters::KGain)
-        ->InitDouble ("Gain",
-                      0.,
-                      0.,
-                      100.0,
-                      0.01,
-                      "%");
-}
-
-void MyFirstPluginRAR::cookVars()
-{
-    gain = getParam (Parameters::KGain)->Value() / 100.;
+    GetParam (KGain)->InitDouble ("Gain",
+                                  0.,
+                                  0.,
+                                  100.0,
+                                  0.01,
+                                  "%");
 }
 
 void MyFirstPluginRAR::initGraphics()
@@ -56,15 +45,12 @@ void MyFirstPluginRAR::initGraphics()
 }
 
 MyFirstPluginRAR::MyFirstPluginRAR (const InstanceInfo& info)
-    : Plugin (info,
-              MakeConfig (static_cast<int> (Parameters::KNumParams),
-                          K_NUM_PRESETS)),
+    : Plugin (info, MakeConfig (KNumParams, K_NUM_PRESETS)),
       gain (0),
       mInterface (this)
 {
     initParameters();
     initGraphics();
-    cookVars();
 }
 
 void MyFirstPluginRAR::ProcessBlock (sample** inputs,
@@ -84,10 +70,16 @@ void MyFirstPluginRAR::ProcessBlock (sample** inputs,
 
 void MyFirstPluginRAR::OnReset()
 {
-    cookVars();
 }
 
 void MyFirstPluginRAR::OnParamChange (int paramIdx)
 {
-    cookVars();
+    switch (paramIdx)
+    {
+        case KGain:
+            gain = GetParam (KGain)->Value() / 100.;
+            break;
+        default:
+            break;
+    }
 }
