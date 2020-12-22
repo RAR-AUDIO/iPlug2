@@ -20,8 +20,10 @@ void Interface::createControls (IGraphics* pGraphics)
 
     IRECT Preset = b.GetFromTop (50.f);
 
-    pGraphics->AttachPanelBackground (COLOR_GRAY);
+    pGraphics->AttachPanelBackground (RAR::Graphics::Layout::RAR_DEFAULT_BACKGROUNDCOLOR);
+
     pGraphics->AttachCornerResizer (EUIResizerMode::Scale);
+
     pGraphics->LoadFont ("Roboto-Regular", ROBOTO_FN);
 
     for (int i = 0; i < KNumParameters; i++)

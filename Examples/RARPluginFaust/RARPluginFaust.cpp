@@ -6,10 +6,10 @@ RARPluginFaust::RARPluginFaust (const InstanceInfo& info)
       mInterface { this }
 {
     GetParam (KCutoff)->InitFrequency ("Cutoff", 20000, 100, 20000);
-    GetParam (KResonance)->InitPercentage ("Resonance", 1.0, 1.0, 8.0);
+    GetParam (KResonance)->InitDouble ("Resonance", 1.0, 1.0, 8.0, 0.1, "%", IParam::kFlagsNone, "", IParam::ShapeLinear(), IParam::kUnitPercentage);
     GetParam (KDrive)->InitGain ("Drive", 3.0, -10.0, 10.0);
-    GetParam (KSaturation)->InitPercentage ("Saturation", 0.0, 0.0, 1.0);
-    GetParam (KCurve)->InitPercentage ("Curve", 1.0, 0.1, 4.0);
+    GetParam (KSaturation)->InitDouble ("Saturation", 0.0, 0.0, 1.0, 0.1, "%", IParam::kFlagsNone, "", IParam::ShapeLinear(), IParam::kUnitPercentage);
+    GetParam (KCurve)->InitDouble ("Curve", 1.0, 0.1, 4.0, 0.1, "%", IParam::kFlagsNone, "", IParam::ShapeLinear(), IParam::kUnitPercentage);
     GetParam (KFeedback)->InitGain ("Feedback", -60, -60, -24);
     GetParam (KLevel)->InitGain ("Level", -12, -24, 24);
 
@@ -17,7 +17,7 @@ RARPluginFaust::RARPluginFaust (const InstanceInfo& info)
 
     mFaustProcessor.SetMaxChannelCount (MaxNChannels (kInput), MaxNChannels (kOutput));
     mFaustProcessor.Init();
-    mFaustProcessor.CreateIPlugParameters (this, 0, 7, true); // in order to create iplug params, based on faust .dsp params, uncomment this
+    //mFaustProcessor.CreateIPlugParameters (this, 0, 7, true); // in order to create iplug params, based on faust .dsp params, uncomment this
     mFaustProcessor.CompileCPP();
     mFaustProcessor.SetAutoRecompile (true);
 
@@ -45,12 +45,11 @@ void RARPluginFaust::initGraphics()
     };
 }
 
-void RARPluginFaust::makePresets ()
+void RARPluginFaust::makePresets()
 {
     MakeDefaultPreset ("Default", 1);
     //MakePresetFromNamedParams ("Full send", 3, 4.0);
 }
-
 
 void RARPluginFaust::ProcessBlock (sample** inputs, sample** outputs, int nFrames)
 {
@@ -61,9 +60,39 @@ void RARPluginFaust::OnReset()
 {
     mFaustProcessor.SetSampleRate (GetSampleRate());
     mFaustProcessor.SetOverSamplingRate (16);
+
 }
 
 void RARPluginFaust::OnParamChange (int paramIdx)
 {
-    mFaustProcessor.SetParameterValueNormalised (paramIdx, GetParam (paramIdx)->GetNormalized());
+    switch (paramIdx)
+    {
+        case KCutoff:
+            mFaustProcessor.SetParameterValue ("Cutoff", GetParam (KCutoff)->Value());
+            break;
+        case KResonance:
+            mFaustProcessor.SetParameterValue ("Resonance", GetParam (KResonance)->Value());
+            break;
+        case KDrive:
+            mFaustProcessor.SetParameterValue ("Drive", GetParam (KDrive)->Value());
+            break;
+        case KSaturation:
+            mFaustProcessor.SetParameterValue ("Saturation", GetParam (KSaturation)->Value());
+            break;
+        case KCurve:
+            mFaustProcessor.SetParameterValue ("Curve", GetParam (KCurve)->Value());
+            break;
+        case KFeedback:
+            mFaustProcessor.SetParameterValue ("Feedback", GetParam (KFeedback)->Value());
+            break;
+        case KLevel:
+            mFaustProcessor.SetParameterValue ("Level", GetParam (KLevel)->Value());
+            break;
+        default:
+            break;
+    }
+
+    //if (paramIdx == 0)
+    //   mFaustProcessor.SetParameterValue ("Gain", GetParam (paramIdx)->GetValue());
+    //mFaustProcessor.SetParameterValueNormalised (paramIdx, GetParam (paramIdx)->GetNormalized());
 }
