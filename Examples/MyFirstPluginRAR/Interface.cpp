@@ -18,7 +18,6 @@
 #include "Interface.h"
 
 #include "IControls.h"
-#include "Params.h"
 
 Interface::Interface (PLUG_CLASS_NAME* inPlug)
     : mPlug (inPlug)
@@ -47,5 +46,5 @@ void Interface::createControls (IGraphics* pGraphics)
     pGraphics->AttachControl (
         new IVKnobControl (
             b.GetCentredInside (100).GetVShifted (-100),
-            static_cast<int> (Parameters::KGain)));
+            static_cast<int> (KGain)));
 };

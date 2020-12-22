@@ -21,6 +21,14 @@
 #include "IGraphicsStructs.h"
 #include "config.h"
 
+enum Parameter
+{
+    KGain,
+    KNumParameters
+};
+
+const int K_NUM_PRESETS = 1;
+
 class PLUG_CLASS_NAME;
 
 namespace iplug

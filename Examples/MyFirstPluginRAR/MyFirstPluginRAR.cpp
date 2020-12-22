@@ -45,7 +45,7 @@ void MyFirstPluginRAR::initGraphics()
 }
 
 MyFirstPluginRAR::MyFirstPluginRAR (const InstanceInfo& info)
-    : Plugin (info, MakeConfig (KNumParams, K_NUM_PRESETS)),
+    : Plugin (info, MakeConfig (KNumParameters, K_NUM_PRESETS)),
       gain (0),
       mInterface (this)
 {
