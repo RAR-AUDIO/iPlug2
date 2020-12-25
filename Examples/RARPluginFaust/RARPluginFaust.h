@@ -21,7 +21,7 @@ public:
     RARPluginFaust (const InstanceInfo& info);
 
     void ProcessBlock (sample** inputs, sample** outputs, int nFrames) override;
-    void OnReset() override;
+    void OnReset () override;
     void OnParamChange (int paramIdx) override;
 
     Interface mInterface;
@@ -29,6 +29,6 @@ public:
 private:
     FAUST_BLOCK (Faust, mFaustProcessor, DSP_FILE, 1, 1);
 
-    void initGraphics();
-    void makePresets();
+    void initGraphics ();
+    void makePresets ();
 };

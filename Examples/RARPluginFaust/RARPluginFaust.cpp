@@ -31,21 +31,23 @@ RARPluginFaust::RARPluginFaust (const InstanceInfo& info)
     makePresets();
 }
 
-void RARPluginFaust::initGraphics()
+void RARPluginFaust::initGraphics ()
 {
-    mMakeGraphicsFunc = [&]() {
+    mMakeGraphicsFunc = [&] ()
+    {
         return MakeGraphics (*this,
                              PLUG_WIDTH,
                              PLUG_HEIGHT,
                              PLUG_FPS,
                              GetScaleForScreen (PLUG_HEIGHT, PLUG_HEIGHT));
     };
-    mLayoutFunc = [&] (IGraphics* pGraphics) {
+    mLayoutFunc = [&] (IGraphics* pGraphics)
+    {
         mInterface.createControls (pGraphics);
     };
 }
 
-void RARPluginFaust::makePresets()
+void RARPluginFaust::makePresets ()
 {
     MakeDefaultPreset ("Default", 1);
     //MakePresetFromNamedParams ("Full send", 3, 4.0);
@@ -56,11 +58,10 @@ void RARPluginFaust::ProcessBlock (sample** inputs, sample** outputs, int nFrame
     mFaustProcessor.ProcessBlock (inputs, outputs, nFrames);
 }
 
-void RARPluginFaust::OnReset()
+void RARPluginFaust::OnReset ()
 {
     mFaustProcessor.SetSampleRate (GetSampleRate());
     mFaustProcessor.SetOverSamplingRate (16);
-
 }
 
 void RARPluginFaust::OnParamChange (int paramIdx)
@@ -87,8 +88,6 @@ void RARPluginFaust::OnParamChange (int paramIdx)
             break;
         case KLevel:
             mFaustProcessor.SetParameterValue ("Level", GetParam (KLevel)->Value());
-            break;
-        default:
             break;
     }
 

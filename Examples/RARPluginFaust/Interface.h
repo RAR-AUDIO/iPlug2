@@ -17,11 +17,11 @@
 
 #pragma once
 
+#include "config.h"
 #include "IControl.h"
 #include "IControls.h"
 #include "IGraphicsStructs.h"
 #include "RARClasses/Utils/RAR_Graphics.h"
-#include "config.h"
 
 enum Parameter
 {
@@ -34,6 +34,7 @@ enum Parameter
     KLevel,
     KNumParameters
 };
+
 const int K_NUM_PRESETS = 2;
 
 class PLUG_CLASS_NAME;
@@ -50,7 +51,7 @@ class Interface
 {
 public:
     explicit Interface (PLUG_CLASS_NAME* inPlug);
-    ~Interface();
+    ~Interface ();
 
     static void createControls (IGraphics* pGraphics);
 

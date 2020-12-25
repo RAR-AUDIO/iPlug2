@@ -1,4 +1,3 @@
-
 #include "Interface.h"
 
 #include "IControls.h"
@@ -8,17 +7,17 @@ Interface::Interface (PLUG_CLASS_NAME* inPlug)
 {
 }
 
-Interface::~Interface()
+Interface::~Interface ()
 {
 }
 
 void Interface::createControls (IGraphics* pGraphics)
 {
-    IRECT b = pGraphics->GetBounds().GetPadded (-20);
+    const IRECT b = pGraphics->GetBounds().GetPadded (-20);
 
-    IRECT knobs = b.GetFromTop (100.);
+    const IRECT knobs = b.GetFromTop (100.);
 
-    IRECT Preset = b.GetFromTop (50.f);
+    const IRECT Preset = b.GetFromTop (50.f);
 
     pGraphics->AttachPanelBackground (RAR::Graphics::Layout::RAR_DEFAULT_BACKGROUNDCOLOR);
 
@@ -26,15 +25,13 @@ void Interface::createControls (IGraphics* pGraphics)
 
     pGraphics->LoadFont ("Roboto-Regular", ROBOTO_FN);
 
+    const RAR::Graphics::Layout::RarStyle knob = RAR::Graphics::Layout::RAR_DEFAULT_STYLE.withShowValue (true);
+
     for (int i = 0; i < KNumParameters; i++)
     {
-        pGraphics->AttachControl (new RAR::Graphics::Controls::RarVectorKnob (knobs.GetGridCell (i, 1, KNumParameters).GetPadded (-5.f), i));
+        //pGraphics->AttachControl (new HISSTools_Dial (i, 10, 10, 0));
+        pGraphics->AttachControl (new RAR::Graphics::Controls::RarVectorKnob (knobs.GetGridCell (i, 1, KNumParameters).GetPadded (-5.f), i, "", knob, false, true));
     }
 
-    WDL_String presetpath;
-    WDL_String fileExtension;
-
-    
-    //pGraphics->AttachControl (new RAR::Graphics::Controls::RarPresetControl(Preset.GetVShifted (300.f), RAR::Graphics::Layout::RAR_DEFAULT_STYLE));
-    //pGraphics->AttachControl (new RAR::Graphics::Controls::RarDiskPresetManagerControl (Preset.GetVShifted (300.f), "%appdata%/Local/RAR-AUDIO/PLUG_NAME", ".rarap", RAR::Graphics::Controls::PresetControlStyle));
+    //pGraphics->AttachControl (new RAR::Graphics::Controls::RarPresetControl (Preset.GetVShifted (300.f)));
 };
