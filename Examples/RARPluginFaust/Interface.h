@@ -21,7 +21,7 @@
 #include "IControl.h"
 #include "IControls.h"
 #include "IGraphicsStructs.h"
-#include "RARClasses/Utils/RAR_Graphics.h"
+#include "RARClasses/Utils/RAR_Graphics.hpp"
 
 enum Parameter
 {
