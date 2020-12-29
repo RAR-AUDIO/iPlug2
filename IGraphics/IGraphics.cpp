@@ -441,15 +441,15 @@ void IGraphics::ShowFPSDisplay(bool enable)
 
 IControl* IGraphics::GetControlWithTag(int ctrlTag) const
 {
-  IControl* pControl = mCtrlTags.at(ctrlTag);
-  
-  if(pControl != nullptr)
+  const auto it = mCtrlTags.find(ctrlTag);
+
+  if (it != mCtrlTags.end())
   {
-    return pControl;
+    return it->second;
   }
   else
   {
-    assert(pControl && "There is no control attached with this tag");
+    assert("There is no control attached with this tag");
     return nullptr;
   }
 }
@@ -1468,7 +1468,6 @@ void IGraphics::PopupHostContextMenuForParam(int controlIdx, int paramIdx, float
 void IGraphics::OnGUIIdle()
 {
   TRACE
-
   ForAllControls(&IControl::OnGUIIdle);
 }
 
@@ -2381,10 +2380,8 @@ void IGraphics::AttachImGui(std::function<void(IGraphics*)> drawFunc, std::funct
 }
 #endif
 
-  void IGraphics::DrawRotatedBitmap(const IBitmap& bitmap, float destCtrX, float destCtrY, double angle, int yOffsetZeroDeg, const IBlend* pBlend)
+  void IGraphics::DrawRotatedBitmap(const IBitmap& bitmap, float destCtrX, float destCtrY, double angle, const IBlend* pBlend)
   {
-    //TODO: offset support
-    
     float width = bitmap.W() / bitmap.GetDrawScale();
     float height = bitmap.H() / bitmap.GetDrawScale();
     
