@@ -1,43 +1,30 @@
-// =============================================================================
-//  Project     : MyFirstPluginRAR
-//  Version     : 0.1.0
-//
-//  Category    : MyFirstPluginRAR-vst3
-//  Filename    : MyFirstPluginRAR-vst3/MyFirstPluginRAR.h
-//  Created by  : RAR-AUDIO, 11/2020
-//  Author      : Roberto A. Ramirez Gonzalez
-//  Description :
-//
-//
-// -----------------------------------------------------------------------------
-//  LICENSE
-//  (c) 2020, RAR-AUDIO, All Rights Reserved
-// -----------------------------------------------------------------------------
-// =============================================================================
-
 #pragma once
 
 #include "IPlug_include_in_plug_hdr.h"
-#include "Interface.h"
+
+const int K_NUM_PRESETS = 1;
+
+enum EParams
+{
+    KGain = 0,
+    KNumParams
+};
 
 using namespace iplug;
 using namespace igraphics;
 
-class MyFirstPluginRAR final : public Plugin
+class PLUG_CLASS_NAME final : public Plugin
 {
 public:
-    MyFirstPluginRAR (const InstanceInfo& info);
+    PLUG_CLASS_NAME (const InstanceInfo& info);
 
-    void ProcessBlock (sample** inputs, sample** outputs, int nFrames) override;
-
-    void OnReset() override;
-    void OnParamChange (int paramIdx) override;
-
-    Interface mInterface;
+#if IPLUG_DSP // http://bit.ly/2S64BDd
+    virtual void ProcessBlock (sample** inputs, sample** outputs, int nFrames) override;
+    virtual void OnReset () override;
+    virtual void OnParamChange (int paramIdx) override;
+    virtual void OnIdle () override;
+#endif
 
 private:
-    void initParameters();
-    void initGraphics();
-
     double gain;
 };

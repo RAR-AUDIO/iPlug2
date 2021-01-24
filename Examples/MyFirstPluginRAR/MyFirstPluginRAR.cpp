@@ -1,63 +1,35 @@
-// =============================================================================
-//  Project     : MyFirstPluginRAR
-//  Version     : 0.1.0
-//
-//  Category    : MyFirstPluginRAR-vst3
-//  Filename    : MyFirstPluginRAR-vst3/MyFirstPluginRAR.cpp
-//  Created by  : RAR-AUDIO, 11/2020
-//  Author      : Roberto A. Ramirez Gonzalez
-//  Description : Processor functions
-//
-//
-// -----------------------------------------------------------------------------
-//  LICENSE
-//  (c) 2020, RAR-AUDIO, All Rights Reserved
-// -----------------------------------------------------------------------------
-// =============================================================================
-
 #include "MyFirstPluginRAR.h"
-
-#include "IControls.h"
 #include "IPlug_include_in_plug_src.h"
 
-void MyFirstPluginRAR::initParameters()
-{
-    GetParam (KGain)->InitDouble ("Gain",
-                                  0.,
-                                  0.,
-                                  100.0,
-                                  0.01,
-                                  "%");
-}
+#include "Utils/RAR_Graphics.hpp"
 
-void MyFirstPluginRAR::initGraphics()
+PLUG_CLASS_NAME::PLUG_CLASS_NAME (const InstanceInfo& info)
+    : Plugin (info, MakeConfig (KNumParams, K_NUM_PRESETS))
 {
-    mMakeGraphicsFunc = [&]() {
-        return MakeGraphics (*this,
-                             PLUG_WIDTH,
-                             PLUG_HEIGHT,
-                             PLUG_FPS,
-                             GetScaleForScreen (PLUG_HEIGHT, PLUG_HEIGHT));
+    GetParam (KGain)->InitDouble ("Gain", 0., 0., 100.0, 0.01, "%");
+
+#if IPLUG_EDITOR // http://bit.ly/2S64BDd
+    mMakeGraphicsFunc = [&] ()
+    {
+        return MakeGraphics (*this, PLUG_WIDTH, PLUG_HEIGHT, PLUG_FPS, GetScaleForScreen (PLUG_WIDTH, PLUG_HEIGHT));
     };
-    mLayoutFunc = [&] (IGraphics* pGraphics) {
-        mInterface.createControls (pGraphics);
-    };
+
+    mLayoutFunc = [&] (IGraphics* pGraphics)
+    {
+        pGraphics->AttachCornerResizer (EUIResizerMode::Scale, false);
+        pGraphics->AttachPanelBackground (COLOR_GRAY);
+        pGraphics->LoadFont ("Roboto-Regular", ROBOTO_FN);
+        const auto b = pGraphics->GetBounds ();
+        pGraphics->AttachControl (new ITextControl (b.GetMidVPadded (50), "Hello iPlug 2!", IText (50)));
+        pGraphics->AttachControl (new IVKnobControl (b.GetCentredInside (100).GetVShifted (-100), KGain));
+    }; // layout
+#endif
 }
 
-MyFirstPluginRAR::MyFirstPluginRAR (const InstanceInfo& info)
-    : Plugin (info, MakeConfig (KNumParameters, K_NUM_PRESETS)),
-      gain (0),
-      mInterface (this)
+#if IPLUG_DSP
+void PLUG_CLASS_NAME::ProcessBlock (sample** inputs, sample** outputs, int nFrames)
 {
-    initParameters();
-    initGraphics();
-}
-
-void MyFirstPluginRAR::ProcessBlock (sample** inputs,
-                                     sample** outputs,
-                                     const int nFrames)
-{
-    const int nChans = NOutChansConnected();
+    const auto nChans = NOutChansConnected ();
 
     for (auto s = 0; s < nFrames; s++)
     {
@@ -68,18 +40,30 @@ void MyFirstPluginRAR::ProcessBlock (sample** inputs,
     }
 }
 
-void MyFirstPluginRAR::OnReset()
+void PLUG_CLASS_NAME::OnIdle ()
 {
+    /* NO-OP */
+    // get "idle" call on main thread
+    // meters and such
 }
 
-void MyFirstPluginRAR::OnParamChange (int paramIdx)
+void PLUG_CLASS_NAME::OnReset ()
+{
+    /* NO-OP */
+    // do something prior to playback
+    // clear buffers, update internal DSP with latest sampleRate
+}
+
+void PLUG_CLASS_NAME::OnParamChange (int paramIdx)
 {
     switch (paramIdx)
     {
         case KGain:
-            gain = GetParam (KGain)->Value() / 100.;
+            gain = GetParam (paramIdx)->Value () / 100;
             break;
         default:
             break;
     }
 }
+
+#endif
