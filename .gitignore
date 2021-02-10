@@ -29,7 +29,6 @@ _*
 Icon?
 .DS_Stor*
 build-*
-Dependencies/Extras/faust/*
 Dependencies/IPlug/VST3_SDK/*
 Dependencies/IPlug/VST2_SDK/*
 Dependencies/IPlug/AAX_SDK/*
@@ -41,140 +40,9 @@ Dependencies/Build/*
 Documentation/html
 Documentation/doxygen_warnings.txt
 Examples/build_errors.log
+Projects*
 Examples/IPlugSwift/Pods
 PodFile.lock
 */*/.vscode/ipch
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/build.ninja
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/cmake_install.cmake
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/CMakeCache.txt
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/CTestTestfile.cmake
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/DartConfiguration.tcl
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/rtaudio.pc
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/RtAudioConfig.cmake
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/RtAudioConfigUninstall.cmake
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/RtAudioTargets.cmake
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/rules.ninja
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/VSInheritEnvironments.txt
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/.cmake/api/v1/query/client-MicrosoftVS/query.json
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/.cmake/api/v1/reply/cache-v2-c667e931623ca8eb8f4d.json
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/.cmake/api/v1/reply/cmakeFiles-v1-b1b3fa61ba401a78adc1.json
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/.cmake/api/v1/reply/codemodel-v2-a3eb91fd1ecdba932cde.json
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/.cmake/api/v1/reply/index-2020-07-13T19-44-28-0707.json
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-apinames-Debug-6801995b678384182b7b.json
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-audioprobe-Debug-98bfb609203b5a2022c6.json
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-ContinuousBuild-Debug-1e696cc504e5d76950b3.json
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-ContinuousConfigure-Debug-e7f91a96ab28e7664baa.json
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-ContinuousCoverage-Debug-16adddcc6030430bbb9c.json
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-Continuous-Debug-240fc98c31362df1b5c3.json
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-ContinuousMemCheck-Debug-494c6918a4446dd9a5f3.json
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-ContinuousStart-Debug-f7c4607f7d7d2af3f98c.json
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-ContinuousSubmit-Debug-1c0f8c0d742fa2c9ffd1.json
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-ContinuousTest-Debug-7d6c8efe796b188b0d36.json
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-ContinuousUpdate-Debug-3eff4295768ed96460f0.json
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-duplex-Debug-bd5dc4ea1f31e768b0c1.json
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-ExperimentalBuild-Debug-677589bda502f8d36a74.json
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-ExperimentalConfigure-Debug-360c61efb083515a1c6d.json
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-ExperimentalCoverage-Debug-de56902bf76817cbd16c.json
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-Experimental-Debug-98b0b889ce4ded66bbaa.json
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-ExperimentalMemCheck-Debug-4b56e184d2bcf966813b.json
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-ExperimentalStart-Debug-813d6a27c0491c94b1fe.json
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-ExperimentalSubmit-Debug-7515b589b32434be0322.json
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-ExperimentalTest-Debug-29ba4b3fa55808b9fa8e.json
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-ExperimentalUpdate-Debug-9a789f31e0b660938eb5.json
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-NightlyBuild-Debug-8faa30b4943a11c74df4.json
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-NightlyConfigure-Debug-987750b1b29efa587504.json
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-NightlyCoverage-Debug-8ca83a47aa666b3114c4.json
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-Nightly-Debug-a558ebba4eeb693c3eac.json
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-NightlyMemCheck-Debug-a38cc7debd3635189cc4.json
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-NightlyMemoryCheck-Debug-0c595f631894faf0d215.json
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-NightlyStart-Debug-66b202665379be4747c1.json
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-NightlySubmit-Debug-22a1a0ed7c957847953e.json
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-NightlyTest-Debug-1a5b5741e81e95fb7e77.json
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-NightlyUpdate-Debug-42e5dd8f0a068dd2a161.json
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-playraw-Debug-d7fc5b8fb4df92e89afa.json
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-playsaw-Debug-e493993b1c39d8592e27.json
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-record-Debug-fe6d87d44c32317e754b.json
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-rtaudio-Debug-41aa9e7968cc392eb4ad.json
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-testall-Debug-6ba8beaf1fcefcbc04d9.json
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-teststops-Debug-d86914d68534f735155d.json
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-uninstall-Debug-0b0a922d0634b251cdec.json
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/CMakeFiles/cmake.check_cache
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/CMakeFiles/TargetDirectories.txt
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/CMakeFiles/3.17.20032601-MSVC_2/CMakeCXXCompiler.cmake
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/CMakeFiles/3.17.20032601-MSVC_2/CMakeDetermineCompilerABI_CXX.bin
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/CMakeFiles/3.17.20032601-MSVC_2/CMakeRCCompiler.cmake
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/CMakeFiles/3.17.20032601-MSVC_2/CMakeSystem.cmake
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/CMakeFiles/3.17.20032601-MSVC_2/CompilerIdCXX/CMakeCXXCompilerId.cpp
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/CMakeFiles/CheckFunctionExists/CheckFunctionExists.cxx
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/CMakeFiles/Export/share/rtaudio/RtAudioTargets.cmake
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/CMakeFiles/Export/share/rtaudio/RtAudioTargets-debug.cmake
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/CMakeFiles/ShowIncludes/foo.h
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/CMakeFiles/ShowIncludes/main.c
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/tests/cmake_install.cmake
-Dependencies/IPlug/RTAudio/out/build/x64-Debug (default)/tests/CTestTestfile.cmake
-Dependencies/IPlug/RTMidi/CMakeSettings.json
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/build.ninja
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/cmake_install.cmake
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/CMakeCache.txt
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/CTestTestfile.cmake
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/DartConfiguration.tcl
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/rtmidi.pc
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/RtMidiConfig.cmake
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/RtMidiConfigUninstall.cmake
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/RtMidiTargets.cmake
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/rules.ninja
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/VSInheritEnvironments.txt
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/.cmake/api/v1/query/client-MicrosoftVS/query.json
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/.cmake/api/v1/reply/cache-v2-7a8f6ef758d3afcb20f1.json
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/.cmake/api/v1/reply/cmakeFiles-v1-6066b5e8f019aee6e512.json
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/.cmake/api/v1/reply/codemodel-v2-5325314952a01ffdae7b.json
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/.cmake/api/v1/reply/index-2020-07-13T19-44-19-0951.json
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-apinames-Debug-afb5f2ef9823022cfa37.json
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-cmidiin-Debug-46291a41fd99d5f33e16.json
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-ContinuousBuild-Debug-7e95e013ab4b44dd1b1c.json
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-ContinuousConfigure-Debug-0dd2385ea18857209a56.json
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-ContinuousCoverage-Debug-0f402b02f5850bbb284f.json
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-Continuous-Debug-10383ac53fabb0ebba13.json
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-ContinuousMemCheck-Debug-f39934b9057cd0b58808.json
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-ContinuousStart-Debug-386f3f68f3ab40e074ae.json
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-ContinuousSubmit-Debug-edfc0347464abb954ff9.json
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-ContinuousTest-Debug-e1fef01b810a60715bbe.json
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-ContinuousUpdate-Debug-8583961bb3d15388ecec.json
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-ExperimentalBuild-Debug-3f39369887ae40fbafde.json
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-ExperimentalConfigure-Debug-7effb7cfeba5c4ec3448.json
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-ExperimentalCoverage-Debug-2e488abb2ef1f08244fd.json
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-Experimental-Debug-fe5d1e8583909395a6b2.json
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-ExperimentalMemCheck-Debug-c077c225087901518a30.json
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-ExperimentalStart-Debug-23b393d90f683469da42.json
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-ExperimentalSubmit-Debug-c910f392462a1186d49e.json
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-ExperimentalTest-Debug-d3a671b79580a9a2b3bc.json
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-ExperimentalUpdate-Debug-8b730a9c4e6b6929ad9b.json
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-midiclock-Debug-0bc28bb01f40f620323f.json
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-midiout-Debug-8d6f0269c7a644305e65.json
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-midiprobe-Debug-db7775a64a6a75c2f98d.json
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-NightlyBuild-Debug-e26cdb91bf3535b2e4ea.json
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-NightlyConfigure-Debug-2276e993a2f746a439ba.json
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-NightlyCoverage-Debug-bc78665d54481db52a33.json
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-Nightly-Debug-4ad1b9fbc8f89627f2d4.json
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-NightlyMemCheck-Debug-526eff0d8409ce88aa9f.json
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-NightlyMemoryCheck-Debug-607e59f16fa749532c85.json
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-NightlyStart-Debug-100520638f2f13b32478.json
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-NightlySubmit-Debug-85db03dbd210a42d6087.json
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-NightlyTest-Debug-6598c0cf9b6383bd9f18.json
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-NightlyUpdate-Debug-40449c8f06cebb95c548.json
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-qmidiin-Debug-0fc33d81ac85fca834fe.json
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-rtmidi-Debug-3c374dcc836045fbefcb.json
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-sysextest-Debug-de0c13a2412db53c1e86.json
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/.cmake/api/v1/reply/target-uninstall-Debug-6205a07f134e91465e53.json
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/CMakeFiles/cmake.check_cache
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/CMakeFiles/TargetDirectories.txt
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/CMakeFiles/3.17.20032601-MSVC_2/CMakeCXXCompiler.cmake
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/CMakeFiles/3.17.20032601-MSVC_2/CMakeDetermineCompilerABI_CXX.bin
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/CMakeFiles/3.17.20032601-MSVC_2/CMakeRCCompiler.cmake
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/CMakeFiles/3.17.20032601-MSVC_2/CMakeSystem.cmake
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/CMakeFiles/3.17.20032601-MSVC_2/CompilerIdCXX/CMakeCXXCompilerId.cpp
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/CMakeFiles/Export/share/rtmidi/RtMidiTargets.cmake
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/CMakeFiles/Export/share/rtmidi/RtMidiTargets-debug.cmake
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/CMakeFiles/rtmidi.dir/exports.def.objs
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/CMakeFiles/ShowIncludes/foo.h
-Dependencies/IPlug/RTMidi/out/build/x64-Debug (default)/CMakeFiles/ShowIncludes/main.c
+Examples/*/EBWebView
+Examples/*/packages
