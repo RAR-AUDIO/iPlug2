@@ -10,16 +10,13 @@ enum EParams
     KNumParams
 };
 
-using namespace iplug;
-using namespace igraphics;
-
-class PLUG_CLASS_NAME final : public Plugin
+class PLUG_CLASS_NAME final : public iplug::Plugin
 {
 public:
-    PLUG_CLASS_NAME (const InstanceInfo& info);
+    PLUG_CLASS_NAME (const iplug::InstanceInfo& info);
 
 #if IPLUG_DSP // http://bit.ly/2S64BDd
-    virtual void ProcessBlock (sample** inputs, sample** outputs, int nFrames) override;
+    virtual void ProcessBlock (iplug::sample** inputs, iplug::sample** outputs, int nFrames) override;
     virtual void OnReset () override;
     virtual void OnParamChange (int paramIdx) override;
     virtual void OnIdle () override;
