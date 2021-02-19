@@ -4,7 +4,7 @@
 #include "Utils/RAR_Graphics.hpp"
 
 PLUG_CLASS_NAME::PLUG_CLASS_NAME (const InstanceInfo& info)
-    : iplug::Plugin (info, MakeConfig (KNumParams, K_NUM_PRESETS))
+    : Plugin (info, MakeConfig (KNumParams, K_NUM_PRESETS))
 {
     GetParam (KGain)->InitDouble ("Gain", 0., 0., 100.0, 0.01, "%");
 
