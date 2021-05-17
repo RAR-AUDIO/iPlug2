@@ -52,3 +52,16 @@
 #define APP_SIGNAL_VECTOR_SIZE 64
 
 #define ROBOTO_FN "Roboto-Regular.ttf"
+
+#define GOTHAM_FN "GothamRounded-Book.ttf"
+#define DSEG17_FN "DSEG14Classic-Regular.ttf"
+
+//==================================================================================
+// Add Background and switches
+
+#define OnSwitch_FN "Switches/SW_Toggle_2.svg" // ON switch
+#define OffSwitch_FN "Switches/SW_Toggle_0.svg" // OFF switch
+
+#define BlackScrew_FN "Misc/ScrewBlack.svg" // Black Screw
+#define LedBezel_FN "Misc/LEDBezel.svg" // LED Bezel
+#define Logo_FN "Misc/logowobackground.svg" // Logo

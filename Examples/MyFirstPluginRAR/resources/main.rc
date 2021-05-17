@@ -149,7 +149,14 @@ END
 3 TEXTINCLUDE
 BEGIN
     "#include ""..\\config.h""\r\n"
-    "ROBOTO_FN TTF ROBOTO_FN\0"
+    "ROBOTO_FN TTF ROBOTO_FN\r\n"
+    "GOTHAM_FN TTF GOTHAM_FN\r\n"
+    "DSEG17_FN TTF DSEG17_FN\r\n"
+    "OnSwitch_FN SVG OnSwitch_FN\r\n"
+    "OffSwitch_FN SVG OffSwitch_FN\r\n"
+    "BlackScrew_FN SVG BlackScrew_FN\r\n"
+    "LedBezel_FN SVG LedBezel_FN\r\n"
+    "Logo_FN SVG Logo_FN\r\n"
 END
 
 #endif    // APSTUDIO_INVOKED
