@@ -150,8 +150,11 @@ END
 BEGIN
     "#include ""..\\config.h""\r\n"
     "ROBOTO_FN TTF ROBOTO_FN\r\n"
-    "GOTHAM_FN TTF GOTHAM_FN\r\n"
+    "IBM_PLEX_SANS_THIN_FN TTF IBM_PLEX_SANS_THIN_FN\r\n"
+    "IBM_PLEX_SANS_FN TTF IBM_PLEX_SANS_FN\r\n"
     "DSEG17_FN TTF DSEG17_FN\r\n"
+    "FONTAUDIO_FN TTF FONTAUDIO\r\n"
+    "FORK_AWESOME_FN TTF FORK_AWESOME_FN\r\n"
     "OnSwitch_FN SVG OnSwitch_FN\r\n"
     "OffSwitch_FN SVG OffSwitch_FN\r\n"
     "BlackScrew_FN SVG BlackScrew_FN\r\n"
@@ -237,6 +240,18 @@ END
 //
 #include "..\config.h"
 ROBOTO_FN TTF ROBOTO_FN
+IBM_PLEX_SANS_THIN_FN TTF IBM_PLEX_SANS_THIN_FN
+IBM_PLEX_SANS_FN TTF IBM_PLEX_SANS_FN
+DSEG17_FN TTF DSEG17_FN
+FONTAUDIO_FN TTF FONTAUDIO_FN
+FORK_AWESOME_FN TTF FORK_AWESOME_FN
+OnSwitch_FN SVG OnSwitch_FN
+OffSwitch_FN SVG OffSwitch_FN
+BlackScrew_FN SVG BlackScrew_FN
+LedBezel_FN SVG LedBezel_FN
+Logo_FN SVG Logo_FN
+
+
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
 

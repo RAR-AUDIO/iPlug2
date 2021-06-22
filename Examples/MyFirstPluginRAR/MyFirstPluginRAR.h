@@ -1,14 +1,14 @@
 // =============================================================================
 //  Project     : MyFirstPluginRAR
 //  Version     : 0.1.0
-// 
+//
 //  Category    : MyFirstPluginRAR-vst3
 //  Filename    : MyFirstPluginRAR-vst3/MyFirstPluginRAR.h
 //  Created by  : RAR-AUDIO, 02/2021
 //  Author      : Roberto A. Ramirez Gonzalez
-//  Description : 
-// 
-// 
+//  Description :
+//
+//
 // -----------------------------------------------------------------------------
 //  LICENSE
 //  (c) 2021, RAR-AUDIO, All Rights Reserved
@@ -42,12 +42,10 @@ public:
 #if IPLUG_DSP // http://bit.ly/2S64BDd
     virtual void ProcessBlock (sample** inputs, sample** outputs, int nFrames) override;
     virtual void OnReset() override;
-    virtual void OnParamChange (int paramIdx) override;
     virtual void OnIdle() override;
 #endif
 
 private:
-    double gain;
 };
 
 #endif // MYFIRSTPLUGINRAR_H

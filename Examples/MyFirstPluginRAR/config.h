@@ -53,8 +53,12 @@
 
 #define ROBOTO_FN "Roboto-Regular.ttf"
 
-#define GOTHAM_FN "GothamRounded-Book.ttf"
+#define IBM_PLEX_SANS_THIN_FN "IBMPlexSans-Thin.ttf"
+#define IBM_PLEX_SANS_FN "IBMPlexSans.ttf"
 #define DSEG17_FN "DSEG14Classic-Regular.ttf"
+
+#define FONTAUDIO_FN "fontaudio.ttf"
+#define FORK_AWESOME_FN "forkawesome-webfont.ttf"
 
 //==================================================================================
 // Add Background and switches
