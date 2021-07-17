@@ -40,9 +40,9 @@ public:
     PLUG_CLASS_NAME (const InstanceInfo& info);
 
 #if IPLUG_DSP // http://bit.ly/2S64BDd
-    virtual void ProcessBlock (sample** inputs, sample** outputs, int nFrames) override;
-    virtual void OnReset() override;
-    virtual void OnIdle() override;
+    void ProcessBlock (sample** inputs, sample** outputs, int nFrames) override;
+    void OnReset() override;
+    void OnIdle() override;
 #endif
 
 private:

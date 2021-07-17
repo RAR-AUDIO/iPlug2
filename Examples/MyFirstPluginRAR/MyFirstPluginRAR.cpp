@@ -42,9 +42,7 @@ void PLUG_CLASS_NAME::ProcessBlock (sample** inputs, sample** outputs, int nFram
     for (auto s = 0; s < nFrames; s++)
     {
         for (auto c = 0; c < nChans; c++)
-        {
             outputs[c][s] = inputs[c][s] * gain;
-        }
     }
 }
 
