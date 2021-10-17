@@ -54,3 +54,5 @@ Examples/DoverBasicClipper
 Examples/FMSU
 Examples/SK100
 Examples/MyFirstPluginRAR/x64
+Dependencies/IPlug/RTAudio
+Dependencies/IPlug/RTMidi
