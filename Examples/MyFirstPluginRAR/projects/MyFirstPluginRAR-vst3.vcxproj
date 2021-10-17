@@ -406,11 +406,6 @@
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\IPlug\Extras\RARClasses\RARClasses.vcxproj">
-      <Project>{9f021226-eeb6-4ae5-a581-4169d8a1dc69}</Project>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

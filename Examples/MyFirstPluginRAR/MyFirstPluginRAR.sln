@@ -11,10 +11,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MyFirstPluginRAR-vst3", "pr
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MyFirstPluginRAR-aax", "projects\MyFirstPluginRAR-aax.vcxproj", "{DC4B5920-933D-4C82-B842-F34431D55A93}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RARClasses", "..\..\IPlug\Extras\RARClasses\RARClasses.vcxproj", "{9F021226-EEB6-4AE5-A581-4169D8A1DC69}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "iir", "..\..\IPlug\Extras\RARClasses\External\iir1\Build\iir.vcxproj", "{99E8B61C-2F37-39FC-8761-4B21D131ABF1}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -97,42 +93,6 @@ Global
 		{DC4B5920-933D-4C82-B842-F34431D55A93}.Tracer|Win32.Build.0 = Tracer|Win32
 		{DC4B5920-933D-4C82-B842-F34431D55A93}.Tracer|x64.ActiveCfg = Tracer|x64
 		{DC4B5920-933D-4C82-B842-F34431D55A93}.Tracer|x64.Build.0 = Tracer|x64
-		{9F021226-EEB6-4AE5-A581-4169D8A1DC69}.Debug|Win32.ActiveCfg = Debug|Win32
-		{9F021226-EEB6-4AE5-A581-4169D8A1DC69}.Debug|Win32.Build.0 = Debug|Win32
-		{9F021226-EEB6-4AE5-A581-4169D8A1DC69}.Debug|x64.ActiveCfg = Debug|x64
-		{9F021226-EEB6-4AE5-A581-4169D8A1DC69}.Debug|x64.Build.0 = Debug|x64
-		{9F021226-EEB6-4AE5-A581-4169D8A1DC69}.MinSizeRel|Win32.ActiveCfg = Debug|Win32
-		{9F021226-EEB6-4AE5-A581-4169D8A1DC69}.MinSizeRel|Win32.Build.0 = Debug|Win32
-		{9F021226-EEB6-4AE5-A581-4169D8A1DC69}.MinSizeRel|x64.ActiveCfg = Debug|x64
-		{9F021226-EEB6-4AE5-A581-4169D8A1DC69}.MinSizeRel|x64.Build.0 = Debug|x64
-		{9F021226-EEB6-4AE5-A581-4169D8A1DC69}.Release|Win32.ActiveCfg = Release|Win32
-		{9F021226-EEB6-4AE5-A581-4169D8A1DC69}.Release|Win32.Build.0 = Release|Win32
-		{9F021226-EEB6-4AE5-A581-4169D8A1DC69}.Release|x64.ActiveCfg = Release|x64
-		{9F021226-EEB6-4AE5-A581-4169D8A1DC69}.Release|x64.Build.0 = Release|x64
-		{9F021226-EEB6-4AE5-A581-4169D8A1DC69}.RelWithDebInfo|Win32.ActiveCfg = Release|Win32
-		{9F021226-EEB6-4AE5-A581-4169D8A1DC69}.RelWithDebInfo|Win32.Build.0 = Release|Win32
-		{9F021226-EEB6-4AE5-A581-4169D8A1DC69}.RelWithDebInfo|x64.ActiveCfg = Release|x64
-		{9F021226-EEB6-4AE5-A581-4169D8A1DC69}.RelWithDebInfo|x64.Build.0 = Release|x64
-		{9F021226-EEB6-4AE5-A581-4169D8A1DC69}.Tracer|Win32.ActiveCfg = Debug|Win32
-		{9F021226-EEB6-4AE5-A581-4169D8A1DC69}.Tracer|Win32.Build.0 = Debug|Win32
-		{9F021226-EEB6-4AE5-A581-4169D8A1DC69}.Tracer|x64.ActiveCfg = Debug|x64
-		{9F021226-EEB6-4AE5-A581-4169D8A1DC69}.Tracer|x64.Build.0 = Debug|x64
-		{99E8B61C-2F37-39FC-8761-4B21D131ABF1}.Debug|Win32.ActiveCfg = Debug|x64
-		{99E8B61C-2F37-39FC-8761-4B21D131ABF1}.Debug|x64.ActiveCfg = Debug|x64
-		{99E8B61C-2F37-39FC-8761-4B21D131ABF1}.Debug|x64.Build.0 = Debug|x64
-		{99E8B61C-2F37-39FC-8761-4B21D131ABF1}.MinSizeRel|Win32.ActiveCfg = MinSizeRel|x64
-		{99E8B61C-2F37-39FC-8761-4B21D131ABF1}.MinSizeRel|x64.ActiveCfg = MinSizeRel|x64
-		{99E8B61C-2F37-39FC-8761-4B21D131ABF1}.MinSizeRel|x64.Build.0 = MinSizeRel|x64
-		{99E8B61C-2F37-39FC-8761-4B21D131ABF1}.Release|Win32.ActiveCfg = Release|x64
-		{99E8B61C-2F37-39FC-8761-4B21D131ABF1}.Release|x64.ActiveCfg = Release|x64
-		{99E8B61C-2F37-39FC-8761-4B21D131ABF1}.Release|x64.Build.0 = Release|x64
-		{99E8B61C-2F37-39FC-8761-4B21D131ABF1}.RelWithDebInfo|Win32.ActiveCfg = RelWithDebInfo|x64
-		{99E8B61C-2F37-39FC-8761-4B21D131ABF1}.RelWithDebInfo|x64.ActiveCfg = RelWithDebInfo|x64
-		{99E8B61C-2F37-39FC-8761-4B21D131ABF1}.RelWithDebInfo|x64.Build.0 = RelWithDebInfo|x64
-		{99E8B61C-2F37-39FC-8761-4B21D131ABF1}.Tracer|Win32.ActiveCfg = RelWithDebInfo|x64
-		{99E8B61C-2F37-39FC-8761-4B21D131ABF1}.Tracer|Win32.Build.0 = RelWithDebInfo|x64
-		{99E8B61C-2F37-39FC-8761-4B21D131ABF1}.Tracer|x64.ActiveCfg = RelWithDebInfo|x64
-		{99E8B61C-2F37-39FC-8761-4B21D131ABF1}.Tracer|x64.Build.0 = RelWithDebInfo|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
