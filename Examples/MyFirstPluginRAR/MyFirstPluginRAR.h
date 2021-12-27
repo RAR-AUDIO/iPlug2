@@ -27,17 +27,17 @@ const int K_NUM_PRESETS = 1;
 
 enum EParams
 {
-    KGain = 0,
-    KNumParams
+    kGain = 0,
+    kNumParams
 };
 
 using namespace iplug;
 using namespace igraphics;
 
-class PLUG_CLASS_NAME final : public Plugin
+class MyFirstPluginRAR final : public Plugin
 {
 public:
-    PLUG_CLASS_NAME (const InstanceInfo& info);
+    MyFirstPluginRAR (const InstanceInfo& info);
 
 #if IPLUG_DSP // http://bit.ly/2S64BDd
     void ProcessBlock (sample** inputs, sample** outputs, int nFrames) override;
