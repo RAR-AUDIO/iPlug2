@@ -34,13 +34,13 @@ public:
     SetTooltip("TestCustomShaderControl");
   }
   
+#ifdef IGRAPHICS_GL
   ~TestCustomShaderControl()
   {
     if (mFBO)
       nvgDeleteFramebuffer(mFBO);
   }
   
-#ifdef IGRAPHICS_GL
   void Draw(IGraphics& g) override
   {
     NVGcontext* vg = static_cast<NVGcontext*>(g.GetDrawContext());
@@ -175,6 +175,10 @@ public:
     invalidateFBO = true;
   }
 #elif defined IGRAPHICS_METAL
+  ~TestCustomShaderControl();
+  
+  void CleanUp();
+  
   void Draw(IGraphics& g) override;
 #endif
 
@@ -186,8 +190,8 @@ private:
   void* mRenderPipeline = nullptr;
 #else
   int mInitialFBO = 0;
-  bool invalidateFBO = true;
 #endif
+  bool invalidateFBO = true;
 };
 
 #else
@@ -195,8 +199,8 @@ private:
 class TestCustomShaderControl : public IControl
 {
 public:
-  TestCustomShaderControl(IRECT rect, const IBitmap& bmp, int paramIdx)
-  : IControl(rect)
+  TestCustomShaderControl(const IRECT& bounds, int paramIdx)
+  : IControl(bounds)
   {
     SetTooltip("TestCustomShaderControl");
   }
