@@ -13,6 +13,8 @@
 #include "SkTypeface.h"
 #include "SkVertices.h"
 #include "SkSwizzle.h"
+#include "SkBitmap.h"
+#include "SkColorSpace.h"
 #pragma warning( pop )
 
 #if defined OS_MAC || defined OS_IOS
