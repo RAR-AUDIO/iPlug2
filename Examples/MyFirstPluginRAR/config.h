@@ -6,7 +6,7 @@
 #define PLUG_MFR_ID 'Acme'
 #define PLUG_URL_STR "https://raraudio.net"
 #define PLUG_EMAIL_STR "spam@me.com"
-#define PLUG_COPYRIGHT_STR "Copyright 2020 RAR-AUDIO"
+#define PLUG_COPYRIGHT_STR "Copyright 2022 RAR-AUDIO"
 #define PLUG_CLASS_NAME MyFirstPluginRAR
 
 #define BUNDLE_NAME "MyFirstPluginRAR"
