@@ -22,6 +22,8 @@ MyFirstPluginRAR::MyFirstPluginRAR (const InstanceInfo& info)
         pGraphics->AttachCornerResizer (EUIResizerMode::Scale, false);
         pGraphics->AttachPanelBackground (COLOR_GRAY);
         pGraphics->LoadFont ("Roboto-Regular", ROBOTO_FN);
+        pGraphics->LoadFont ("fontaudio", FONTAUDIO_FN);
+        pGraphics->LoadFont ("forkAwesome", FORK_AWESOME_FN);
         const auto b = pGraphics->GetBounds();
         pGraphics->AttachControl (new ITextControl (b.GetMidVPadded (50), "Hello iPlug 2!", IText (50)));
         pGraphics->AttachControl (new IVKnobControl (b.GetCentredInside (100).GetVShifted (-100), kGain));
