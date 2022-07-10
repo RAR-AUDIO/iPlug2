@@ -57,7 +57,7 @@ public:
     kFlagMeta             = 0x10,
   };
   
-  /** DisplayFunc allows custom parameter display functions, defined by a lambda matchin this signature */
+  /** DisplayFunc allows custom parameter display functions, defined by a lambda matching this signature */
   using DisplayFunc = std::function<void(double, WDL_String&)>;
 
 #pragma mark - Shape
@@ -93,7 +93,7 @@ public:
   /** Linear parameter shaping */
   struct ShapeLinear : public Shape
   {
-    Shape* Clone() const override { return new ShapeLinear(*this); };
+    Shape* Clone() const override { return new ShapeLinear(*this); }
     IParam::EDisplayType GetDisplayType() const override { return kDisplayLinear; }
     double NormalizedToValue(double value, const IParam& param) const override;
     double ValueToNormalized(double value, const IParam& param) const override;
@@ -105,7 +105,7 @@ public:
   struct ShapePowCurve : public Shape
   {
     ShapePowCurve(double shape);
-    Shape* Clone() const override { return new ShapePowCurve(*this); };
+    Shape* Clone() const override { return new ShapePowCurve(*this); }
     IParam::EDisplayType GetDisplayType() const override;
     double NormalizedToValue(double value, const IParam& param) const override;
     double ValueToNormalized(double value, const IParam& param) const override;
@@ -117,7 +117,7 @@ public:
   struct ShapeExp : public Shape
   {
     void Init(const IParam& param) override;
-    Shape* Clone() const override { return new ShapeExp(*this); };
+    Shape* Clone() const override { return new ShapeExp(*this); }
     IParam::EDisplayType GetDisplayType() const override { return kDisplayLog; }
     double NormalizedToValue(double value, const IParam& param) const override;
     double ValueToNormalized(double value, const IParam& param) const override;
@@ -264,11 +264,22 @@ public:
    * @return double The real value */
   double StringToValue(const char* str) const;
 
-  /** Constrains the input value between \c mMin and \c mMax
+  /** Constrains the input value between \c mMin and \c mMax and apply stepping if relevant
    * @param value The input value to constrain
    * @return double The resulting constrained value */
-  inline double Constrain(double value) const { return Clip((mFlags & kFlagStepped ? round(value / mStep) * mStep : value), mMin, mMax); }
+  inline double Constrain(double value) const
+  {
+    return Clip((mFlags & kFlagStepped ? std::round(value / mStep) * mStep : value), mMin, mMax);
+  }
 
+  /** Constrains a normalised input value similarly to Constrain()
+   * @param value The normalised input value to constrain
+   * @return double The resulting constrained value */
+  inline double ConstrainNormalized(double normalizedValue) const
+  {
+    return ToNormalized(mShape->NormalizedToValue(normalizedValue, *this));
+  }
+  
   /** Convert a real value to normalized value for this parameter
    * @param nonNormalizedValue The real input value
    * @return The corresponding normalized value, for this parameter */

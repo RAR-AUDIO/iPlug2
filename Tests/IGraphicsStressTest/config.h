@@ -6,7 +6,7 @@
 #define PLUG_MFR_ID 'Acme'
 #define PLUG_URL_STR "https://iplug2.github.io"
 #define PLUG_EMAIL_STR "spam@me.com"
-#define PLUG_COPYRIGHT_STR "Copyright 2019 Acme Inc"
+#define PLUG_COPYRIGHT_STR "Copyright 2020 Acme Inc"
 #define PLUG_CLASS_NAME IGraphicsStressTest
 
 #define BUNDLE_NAME "IGraphicsStressTest"
@@ -25,6 +25,11 @@
 #define PLUG_HAS_UI 1
 #define PLUG_WIDTH 1024
 #define PLUG_HEIGHT 768
+#define PLUG_MIN_WIDTH 256
+#define PLUG_MIN_HEIGHT 256
+#define PLUG_MAX_WIDTH 8192
+#define PLUG_MAX_HEIGHT 8192
+
 #define PLUG_FPS 60
 #define PLUG_SHARED_RESOURCES 0
 #define PLUG_HOST_RESIZE 1

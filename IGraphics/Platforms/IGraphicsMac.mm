@@ -83,14 +83,7 @@ void IGraphicsMac::CachePlatformFont(const char* fontID, const PlatformFontPtr& 
 
 float IGraphicsMac::MeasureText(const IText& text, const char* str, IRECT& bounds) const
 {
-#ifdef IGRAPHICS_LICE
-  @autoreleasepool
-  {
-    return IGRAPHICS_DRAW_CLASS::MeasureText(text, str, bounds);
-  }
-#else
   return IGRAPHICS_DRAW_CLASS::MeasureText(text, str, bounds);
-#endif
 }
 
 void* IGraphicsMac::OpenWindow(void* pParent)
@@ -134,17 +127,7 @@ void IGraphicsMac::RemovePlatformView(void* pView)
 void IGraphicsMac::CloseWindow()
 {
   if (mView)
-  {
-#ifdef IGRAPHICS_IMGUI
-    if(mImGuiView)
-    {
-      IGRAPHICS_IMGUIVIEW* pImGuiView = (IGRAPHICS_IMGUIVIEW*) mImGuiView;
-      [pImGuiView removeFromSuperview];
-      [pImGuiView release];
-      mImGuiView = nullptr;
-    }
-#endif
-    
+  {    
     IGRAPHICS_VIEW* pView = (IGRAPHICS_VIEW*) mView;
       
 #ifdef IGRAPHICS_GL
@@ -176,13 +159,10 @@ void IGraphicsMac::PlatformResize(bool parentHasResized)
     [[NSAnimationContext currentContext] setDuration:0.0];
     [(IGRAPHICS_VIEW*) mView setFrameSize: size ];
     
-#ifdef IGRAPHICS_IMGUI
-    if(mImGuiView)
-      [(IGRAPHICS_IMGUIVIEW*) mImGuiView setFrameSize: size ];
-#endif
-    
     [NSAnimationContext endGrouping];
-  }  
+  }
+    
+  UpdateTooltips();
 }
 
 void IGraphicsMac::PointToScreen(float& x, float& y) const
@@ -215,22 +195,29 @@ void IGraphicsMac::ScreenToPoint(float& x, float& y) const
 
 void IGraphicsMac::HideMouseCursor(bool hide, bool lock)
 {
-  if (mCursorHidden == hide)
-    return;
-  
-  mCursorHidden = hide;
-  
-  if (hide)
+#if defined AU_API
+  if (!IsXPCAuHost())
+#elif defined AUv3_API
+  if (!IsOOPAuv3AppExtension())
+#endif
   {
-    StoreCursorPosition();
-    CGDisplayHideCursor(kCGDirectMainDisplay);
-    mCursorLock = lock;
-  }
-  else
-  {
-    DoCursorLock(mCursorX, mCursorY, mCursorX, mCursorY);
-    CGDisplayShowCursor(kCGDirectMainDisplay);
-    mCursorLock = false;
+    if (mCursorHidden == hide)
+      return;
+    
+    mCursorHidden = hide;
+    
+    if (hide)
+    {
+      StoreCursorPosition();
+      CGDisplayHideCursor(kCGDirectMainDisplay);
+      mCursorLock = lock;
+    }
+    else
+    {
+      DoCursorLock(mCursorX, mCursorY, mCursorX, mCursorY);
+      CGDisplayShowCursor(kCGDirectMainDisplay);
+      mCursorLock = false;
+    }
   }
 }
 
@@ -299,11 +286,11 @@ EMsgBoxResult IGraphicsMac::ShowMessageBox(const char* str, const char* caption,
   if (!str) str= "";
   if (!caption) caption= "";
   
-  NSString *msg = (NSString *) CFStringCreateWithCString(NULL,str,kCFStringEncodingUTF8);
-  NSString *cap = (NSString *) CFStringCreateWithCString(NULL,caption,kCFStringEncodingUTF8);
+  NSString* msg = (NSString*) CFStringCreateWithCString(NULL,str,kCFStringEncodingUTF8);
+  NSString* cap = (NSString*) CFStringCreateWithCString(NULL,caption,kCFStringEncodingUTF8);
  
-  msg = msg ? msg : (NSString *) CFStringCreateWithCString(NULL, str, kCFStringEncodingASCII);
-  cap = cap ? cap : (NSString *) CFStringCreateWithCString(NULL, caption, kCFStringEncodingASCII);
+  msg = msg ? msg : (NSString*) CFStringCreateWithCString(NULL, str, kCFStringEncodingASCII);
+  cap = cap ? cap : (NSString*) CFStringCreateWithCString(NULL, caption, kCFStringEncodingASCII);
   
   switch (type)
   {
@@ -360,11 +347,11 @@ void IGraphicsMac::UpdateTooltips()
     return;
   }
 
-  auto func = [this](IControl& control)
+  auto func = [this](IControl* pControl)
   {
-    if (control.GetTooltip() && !control.IsHidden())
+    if (pControl->GetTooltip() && !pControl->IsHidden())
     {
-      IRECT pR = control.GetTargetRECT();
+      IRECT pR = pControl->GetTargetRECT();
       if (!pR.Empty())
       {
         [(IGRAPHICS_VIEW*) mView registerToolTip: pR];
@@ -425,19 +412,15 @@ void IGraphicsMac::PromptForFile(WDL_String& fileName, WDL_String& path, EFileAc
     return;
   }
 
-  NSString* pDefaultFileName;
-  NSString* pDefaultPath;
+  NSString* pDefaultFileName = nil;
+  NSString* pDefaultPath = nil;
   NSArray* pFileTypes = nil;
 
   if (fileName.GetLength())
     pDefaultFileName = [NSString stringWithCString:fileName.Get() encoding:NSUTF8StringEncoding];
-  else
-    pDefaultFileName = [NSString stringWithCString:"" encoding:NSUTF8StringEncoding];
 
-  if(!path.GetLength())
-    DesktopPath(path);
-
-  pDefaultPath = [NSString stringWithCString:path.Get() encoding:NSUTF8StringEncoding];
+  if(path.GetLength())
+    pDefaultPath = [NSString stringWithCString:path.Get() encoding:NSUTF8StringEncoding];
 
   fileName.Set(""); // reset it
 
@@ -626,30 +609,24 @@ bool IGraphicsMac::SetTextInClipboard(const char* str)
   return [[NSPasteboard generalPasteboard] setString:pTextForClipboard forType:NSStringPboardType];
 }
 
-void IGraphicsMac::CreatePlatformImGui()
+EUIAppearance IGraphicsMac::GetUIAppearance() const
 {
-#ifdef IGRAPHICS_IMGUI
-  if(mView)
-  {
-    IGRAPHICS_VIEW* pView = (IGRAPHICS_VIEW*) mView;
-    
-    IGRAPHICS_IMGUIVIEW* pImGuiView = [[IGRAPHICS_IMGUIVIEW alloc] initWithIGraphicsView:pView];
-    [pView addSubview: pImGuiView];
-    mImGuiView = pImGuiView;
+  if (@available(macOS 10.14, *)) {
+    if(mView)
+    {
+      IGRAPHICS_VIEW* pView = (IGRAPHICS_VIEW*) mView;
+      BOOL isDarkMode = [[[pView effectiveAppearance] name] isEqualToString: (NSAppearanceNameDarkAqua)];
+      return isDarkMode ? EUIAppearance::Dark :  EUIAppearance::Light;
+    }
   }
-#endif
+  
+  return EUIAppearance::Light;
 }
 
-#ifdef IGRAPHICS_AGG
-  #include "IGraphicsAGG.cpp"
-#elif defined IGRAPHICS_CAIRO
-  #include "IGraphicsCairo.cpp"
-#elif defined IGRAPHICS_NANOVG
+#if defined IGRAPHICS_NANOVG
   #include "IGraphicsNanoVG.cpp"
 #elif defined IGRAPHICS_SKIA
   #include "IGraphicsSkia.cpp"
-#elif defined IGRAPHICS_LICE
-  #include "IGraphicsLice.cpp"
 #else
   #error Either NO_IGRAPHICS or one and only one choice of graphics library must be defined!
 #endif

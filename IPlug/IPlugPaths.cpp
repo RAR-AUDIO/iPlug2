@@ -136,11 +136,6 @@ void VST3PresetsPath(WDL_String& path, const char* mfrName, const char* pluginNa
   path.AppendFormatted(MAX_WIN32_PATH_LEN, "\\VST3 Presets\\%s\\%s", mfrName, pluginName);
 }
 
-void SandboxSafeAppSupportPath(WDL_String& path, const char* appGroupID)
-{
-  AppSupportPath(path);
-}
-
 void INIPath(WDL_String& path, const char * pluginName)
 {
   GetKnownFolder(path, CSIDL_LOCAL_APPDATA);
@@ -230,20 +225,10 @@ const void* LoadWinResource(const char* resid, const char* type, int& sizeInByte
   }
 }
 
-bool AppIsSandboxed()
-{
-  return false;
-}
-
 #elif defined OS_WEB
 #pragma mark - OS_WEB
 
 void AppSupportPath(WDL_String& path, bool isSystem)
-{
-  path.Set("Settings");
-}
-
-void SandboxSafeAppSupportPath(WDL_String& path, const char* appGroupID)
 {
   path.Set("Settings");
 }
@@ -272,7 +257,7 @@ EResourceLocation LocateResource(const char* name, const char* type, WDL_String&
     
     if(strcmp(type, "png") == 0) { //TODO: lowercase/uppercase png
       plusSlash.SetFormatted(strlen("/resources/img/") + strlen(file) + 1, "/resources/img/%s", file);
-      foundResource = emscripten::val::global("Module")["preloadedImages"].call<bool>("hasOwnProperty", std::string(plusSlash.Get()));
+      foundResource = emscripten::val::global("preloadedImages").call<bool>("hasOwnProperty", std::string(plusSlash.Get()));
     }
     else if(strcmp(type, "ttf") == 0) { //TODO: lowercase/uppercase ttf
       plusSlash.SetFormatted(strlen("/resources/fonts/") + strlen(file) + 1, "/resources/fonts/%s", file);
@@ -290,11 +275,6 @@ EResourceLocation LocateResource(const char* name, const char* type, WDL_String&
     }
   }
   return EResourceLocation::kNotFound;
-}
-
-bool AppIsSandboxed()
-{
-  return true;
 }
 
 #endif

@@ -14,12 +14,6 @@
 #import <Metal/Metal.h>
 #endif
 
-#ifdef IGRAPHICS_IMGUI
-#import <Metal/Metal.h>
-#include "imgui.h"
-#import "imgui_impl_metal.h"
-#endif
-
 #include "wdlutf8.h"
 
 #import "IGraphicsMac_view.h"
@@ -158,8 +152,8 @@ static int MacKeyEventToVK(NSEvent* pEvent, int& flag)
 {
   [self initWithTitle: @""];
 
-  NSMenuItem* nsMenuItem;
-  NSMutableString* nsMenuItemTitle;
+  NSMenuItem* nsMenuItem = nil;
+  NSMutableString* nsMenuItemTitle = nil;
 
   [self setAutoenablesItems:NO];
 
@@ -204,7 +198,7 @@ static int MacKeyEventToVK(NSEvent* pEvent, int& flag)
       [nsMenuItem setTarget:pView];
     }
     
-    if (!pMenuItem->GetIsSeparator())
+    if (nsMenuItem && !pMenuItem->GetIsSeparator())
     {
       [nsMenuItem setIndentationLevel:pMenuItem->GetIsTitle() ? 1 : 0 ];
       [nsMenuItem setEnabled:pMenuItem->GetEnabled() ? YES : NO];
@@ -488,7 +482,7 @@ static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink, const CVTimeSt
   #ifdef IGRAPHICS_GL
   CGLContextObj cglContext = [[self openGLContext] CGLContextObj];
   CGLPixelFormatObj cglPixelFormat = [[self pixelFormat] CGLPixelFormatObj];
-  CVDisplayLinkSetCurrentCGDisplayFromOpenGLContext(displayLink, cglContext, cglPixelFormat);
+  CVDisplayLinkSetCurrentCGDisplayFromOpenGLContext(mDisplayLink, cglContext, cglPixelFormat);
   #endif
   
   CGDirectDisplayID viewDisplayID =
@@ -540,6 +534,14 @@ static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink, const CVTimeSt
 - (BOOL) isFlipped
 {
   return YES;
+}
+
+- (void) viewDidChangeEffectiveAppearance
+{
+  if (@available(macOS 10.14, *)) {
+    BOOL isDarkMode = [[[self effectiveAppearance] name] isEqualToString: (NSAppearanceNameDarkAqua)];
+    mGraphics->OnAppearanceChanged(isDarkMode ? EUIAppearance::Dark : EUIAppearance::Light);
+  }
 }
 
 - (BOOL) acceptsFirstResponder
@@ -621,8 +623,7 @@ static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink, const CVTimeSt
   #if !defined IGRAPHICS_GL && !defined IGRAPHICS_METAL
   if (mGraphics)
   {
-    if (!mGraphics->GetPlatformContext())
-      mGraphics->SetPlatformContext([self getCGContextRef]);
+    mGraphics->SetPlatformContext([self getCGContextRef]);
       
     if (mGraphics->GetPlatformContext())
     {
@@ -655,9 +656,9 @@ static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink, const CVTimeSt
       for (int i = 0; i < mDirtyRects.Size(); i++)
         [self setNeedsDisplayInRect:ToNSRect(mGraphics, mDirtyRects.Get(i))];
     #else
-    #ifdef IGRAPHICS_GL
-      [[self openGLContext] makeCurrentContext];
-    #endif
+      #ifdef IGRAPHICS_GL
+        [[self openGLContext] makeCurrentContext];
+      #endif
       // so just draw on each frame, if something is dirty
       mGraphics->Draw(mDirtyRects);
     #endif
@@ -710,7 +711,7 @@ static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink, const CVTimeSt
     [mTrackingArea release];
   }
     
-  int opts = (NSTrackingMouseEnteredAndExited | NSTrackingActiveAlways);
+  int opts = (NSTrackingMouseEnteredAndExited | NSTrackingActiveAlways | NSTrackingEnabledDuringMouseDrag);
   mTrackingArea = [ [NSTrackingArea alloc] initWithRect:[self bounds] options:opts owner:self userInfo:nil];
   [self addTrackingArea:mTrackingArea];
 }
@@ -793,8 +794,15 @@ static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink, const CVTimeSt
   IMouseInfo info = [self getMouseRight:pEvent];
   if (mGraphics)
   {
-    std::vector<IMouseInfo> list {info};
-    mGraphics->OnMouseDown(list);
+    if (([pEvent clickCount] - 1) % 2)
+    {
+      mGraphics->OnMouseDblClick(info.x, info.y, info.ms);
+    }
+    else
+    {
+      std::vector<IMouseInfo> list {info};
+      mGraphics->OnMouseDown(list);
+    }
   }
 }
 
@@ -1069,7 +1077,7 @@ static void MakeCursorFromName(NSCursor*& cursor, const char *name)
 {
   IGRAPHICS_MENU_RCVR* pDummyView = [[[IGRAPHICS_MENU_RCVR alloc] initWithFrame:bounds] autorelease];
   NSMenu* pNSMenu = [[[IGRAPHICS_MENU alloc] initWithIPopupMenuAndReceiver:&menu : pDummyView] autorelease];
-  NSPoint wp = {bounds.origin.x, bounds.origin.y + 4};
+  NSPoint wp = {bounds.origin.x, bounds.origin.y + bounds.size.height + 4};
 
   [pNSMenu popUpMenuPositioningItem:nil atLocation:wp inView:self];
   
@@ -1180,6 +1188,7 @@ static void MakeCursorFromName(NSCursor*& cursor, const char *name)
   [pWindow makeFirstResponder: self];
 
   mTextFieldView = nullptr;
+  mGraphics->ClearInTextEntryControl();
 }
 
 - (BOOL) promptForColor: (IColor&) color : (IColorPickerHandlerFunc) func;
@@ -1254,7 +1263,7 @@ static void MakeCursorFromName(NSCursor*& cursor, const char *name)
 }
 #endif
 
-//- (void)windowResized: (NSNotification *) notification;
+//- (void) windowResized: (NSNotification*) notification;
 //{
 //  if(!mGraphics)
 //    return;
@@ -1292,52 +1301,3 @@ static void MakeCursorFromName(NSCursor*& cursor, const char *name)
 //}
 
 @end
-
-#ifdef IGRAPHICS_IMGUI
-
-@implementation IGRAPHICS_IMGUIVIEW
-{
-}
-
-- (id) initWithIGraphicsView: (IGRAPHICS_VIEW*) pView;
-{
-  mView = pView;
-  self = [super initWithFrame:[pView frame] device: MTLCreateSystemDefaultDevice()];
-  if(self) {
-    _commandQueue = [self.device newCommandQueue];
-    self.layer.opaque = NO;
-  }
-  
-  return self;
-}
-
-- (void) drawRect: (NSRect) dirtyRect
-{
-  id<MTLCommandBuffer> commandBuffer = [self.commandQueue commandBuffer];
-  
-  MTLRenderPassDescriptor *renderPassDescriptor = self.currentRenderPassDescriptor;
-  if (renderPassDescriptor != nil)
-  {
-    renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(0,0,0,0);
-    
-    id <MTLRenderCommandEncoder> renderEncoder = [commandBuffer renderCommandEncoderWithDescriptor:renderPassDescriptor];
-    [renderEncoder pushDebugGroup:@"ImGui IGraphics"];
-    
-    ImGui_ImplMetal_NewFrame(renderPassDescriptor);
-    
-    mView->mGraphics->mImGuiRenderer->DoFrame();
-
-    ImDrawData *drawData = ImGui::GetDrawData();
-    ImGui_ImplMetal_RenderDrawData(drawData, commandBuffer, renderEncoder);
-    
-    [renderEncoder popDebugGroup];
-    [renderEncoder endEncoding];
-    
-    [commandBuffer presentDrawable:self.currentDrawable];
-  }
-  [commandBuffer commit];
-}
-
-@end
-
-#endif

@@ -6,7 +6,7 @@
 #define PLUG_MFR_ID 'Acme'
 #define PLUG_URL_STR "https://iplug2.github.io"
 #define PLUG_EMAIL_STR "spam@me.com"
-#define PLUG_COPYRIGHT_STR "Copyright 2019 Acme Inc"
+#define PLUG_COPYRIGHT_STR "Copyright 2020 Acme Inc"
 #define PLUG_CLASS_NAME IPlugSurroundEffect
 
 #define BUNDLE_NAME "IPlugSurroundEffect"
@@ -15,7 +15,7 @@
 
 #define SHARED_RESOURCES_SUBPATH "IPlugSurroundEffect"
 
-#define PLUG_CHANNEL_IO "1-1 2-2 6-6 8-8"
+#define PLUG_CHANNEL_IO "1-1 2-2 6-6 8-8 10-10 12-12"
 
 #define PLUG_LATENCY 0
 #define PLUG_TYPE 0

@@ -31,17 +31,11 @@ void GetScreenDimensions(int& width, int& height)
   height = bounds.size.height;
 }
 
-float GetScaleForScreen(int plugHeight)
+float GetScaleForScreen(int plugWidth, int plugHeight)
 {
-  float scale = 1.f;
   int width, height;
   GetScreenDimensions(width, height);
-  if(height > width)
-    scale = (float) width / (float) plugHeight;
-  else
-    scale = (float) height / (float) plugHeight;
-  
-  return scale;
+  return std::min((float) width / (float) plugWidth, (float) height / (float) plugHeight);
 }
 
 END_IGRAPHICS_NAMESPACE
@@ -61,12 +55,12 @@ IGraphicsIOS::IGraphicsIOS(IGEditorDelegate& dlg, int w, int h, int fps, float s
 : IGRAPHICS_DRAW_CLASS(dlg, w, h, fps, scale)
 {
  
-#ifdef IGRAPHICS_METAL
+#if defined IGRAPHICS_METAL && !defined IGRAPHICS_SKIA
   if(!gTextureMap.size())
   {
     NSBundle* pBundle = [NSBundle mainBundle];
 
-    if(IsAuv3AppExtension())
+    if(IsOOPAuv3AppExtension())
       pBundle = [NSBundle bundleWithPath: [[[pBundle bundlePath] stringByDeletingLastPathComponent] stringByDeletingLastPathComponent]];
     
     NSArray<NSURL*>* pTextureFiles = [pBundle URLsForResourcesWithExtension:@"ktx" subdirectory:@""];
@@ -85,7 +79,7 @@ IGraphicsIOS::IGraphicsIOS(IGEditorDelegate& dlg, int w, int h, int fps, float s
         gTextureMap.insert(std::make_pair([[[pTextureFiles[i] lastPathComponent] stringByDeletingPathExtension] cStringUsingEncoding:NSUTF8StringEncoding], (MTLTexturePtr) gTextures[i]));
       }
     
-      DBGMSG("Preloaded %i textures", (int) [pTextureFiles count]);
+      DBGMSG("Preloaded %i textures\n", (int) [pTextureFiles count]);
     
       [textureLoader release];
       textureLoader = nil;
@@ -126,17 +120,7 @@ void* IGraphicsIOS::OpenWindow(void* pParent)
 void IGraphicsIOS::CloseWindow()
 {
   if (mView)
-  {
-#ifdef IGRAPHICS_IMGUI
-    if(mImGuiView)
-    {
-      IGRAPHICS_IMGUIVIEW* pImGuiView = (IGRAPHICS_IMGUIVIEW*) mImGuiView;
-      [pImGuiView removeFromSuperview];
-      [pImGuiView release];
-      mImGuiView = nullptr;
-    }
-#endif
-    
+  { 
     IGRAPHICS_VIEW* pView = (IGRAPHICS_VIEW*) mView;
     [pView removeFromSuperview];
     [pView release];
@@ -155,7 +139,8 @@ void IGraphicsIOS::PlatformResize(bool parentHasResized)
 {
   if (mView)
   {
-    //TODO
+    CGRect r = CGRectMake(0., 0., static_cast<CGFloat>(WindowWidth()), static_cast<CGFloat>(WindowHeight()));
+    [(IGRAPHICS_VIEW*) mView setFrame: r ];
   }
 }
 
@@ -289,20 +274,6 @@ bool IGraphicsIOS::SetTextInClipboard(const char* str)
   return false;
 }
 
-void IGraphicsIOS::CreatePlatformImGui()
-{
-#ifdef IGRAPHICS_IMGUI
-  if(mView)
-  {
-    IGRAPHICS_VIEW* pView = (IGRAPHICS_VIEW*) mView;
-    
-    IGRAPHICS_IMGUIVIEW* pImGuiView = [[IGRAPHICS_IMGUIVIEW alloc] initWithIGraphicsView:pView];
-    [pView addSubview: pImGuiView];
-    mImGuiView = pImGuiView;
-  }
-#endif
-}
-
 PlatformFontPtr IGraphicsIOS::LoadPlatformFont(const char* fontID, const char* fileNameOrResID)
 {
   return CoreTextHelpers::LoadPlatformFont(fontID, fileNameOrResID, GetBundleID());
@@ -328,6 +299,21 @@ void IGraphicsIOS::LaunchBluetoothMidiDialog(float x, float y)
   ReleaseMouseCapture();
   NSDictionary* dic = @{@"x": @(x), @"y": @(y)};
   [[NSNotificationCenter defaultCenter] postNotificationName:@"LaunchBTMidiDialog" object:nil userInfo:dic];
+}
+
+EUIAppearance IGraphicsIOS::GetUIAppearance() const
+{
+  IGRAPHICS_VIEW* pView = (IGRAPHICS_VIEW*) mView;
+  
+  if (pView)
+  {
+    return [[pView traitCollection] userInterfaceStyle] == UIUserInterfaceStyleDark ? EUIAppearance::Dark
+                                                                                    : EUIAppearance::Light;
+  }
+  else
+  {
+    return EUIAppearance::Light;
+  }
 }
 
 #if defined IGRAPHICS_NANOVG

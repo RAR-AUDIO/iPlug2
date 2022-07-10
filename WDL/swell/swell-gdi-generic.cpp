@@ -151,6 +151,11 @@ HFONT CreateFont(int lfHeight, int lfWidth, int lfEscapement, int lfOrientation,
   return font;
 }
 
+HFONT SWELL_GetDefaultFont()
+{
+  return NULL;
+}
+
 
 HFONT CreateFontIndirect(LOGFONT *lf)
 {
@@ -459,6 +464,17 @@ void DrawImageInRect(HDC ctx, HICON img, const RECT *r)
   // todo
 }
 
+void SWELL_SetViewGL(HWND h, char wantGL)
+{
+}
+bool SWELL_GetViewGL(HWND h)
+{
+  return false;
+}
+bool SWELL_SetGLContextToView(HWND h)
+{
+  return false;
+}
 
 BOOL GetObject(HICON icon, int bmsz, void *_bm)
 {

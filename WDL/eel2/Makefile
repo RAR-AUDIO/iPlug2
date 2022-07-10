@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-g -DWDL_FFT_REALSIZE=8  -Wall -Wno-unused-function -Wno-multichar -Wno-unused-result -Wshadow
+CFLAGS=-g -DWDL_FFT_REALSIZE=8  -Wall -Wno-unused-function -Wno-multichar -Wno-unused-result -Wshadow -Wtype-limits
 LFLAGS=
 CXX=g++
 
@@ -9,6 +9,8 @@ else
 CFLAGS += -DNDEBUG -O
 endif
 
+CFLAGS += -D_FILE_OFFSET_BITS=64
+
 OBJS=nseel-caltab.o nseel-compiler.o nseel-eval.o nseel-lextab.o nseel-ram.o nseel-yylex.o nseel-cfunc.o fft.o
 
 OBJS2=
@@ -16,15 +18,28 @@ OBJS2=
 UNAME_S := $(shell uname -s)
 ARCH := $(shell uname -m)
 
+ifeq ($(ARCH), aarch64)
+  ifeq ($(shell $(CC) -dumpmachine | cut -f 1 -d -), arm)
+    # helper for armv7l userspace on aarch64 cpu
+    ARCH := armv7l
+  endif
+endif
+
 ifeq ($(UNAME_S),Darwin)
+  CC=clang
+  CXX=clang++
   CFLAGS += -arch $(ARCH)
 endif
 
-ifneq ($(filter arm%,$(ARCH)),)
-  CFLAGS += -fsigned-char -mfpu=vfp -march=armv6t2 -marm
-endif
-ifeq ($(ARCH),aarch64)
+ifeq ($(ARCH),arm64)
   CFLAGS += -fsigned-char
+else
+  ifneq ($(filter arm%,$(ARCH)),)
+    CFLAGS += -fsigned-char -mfpu=vfp -march=armv6t2 -marm
+  endif
+  ifeq ($(ARCH),aarch64)
+    CFLAGS += -fsigned-char
+  endif
 endif
 
 ifndef ALLOW_WARNINGS
@@ -83,8 +98,8 @@ ifndef NO_GFX
       LFLAGS += $(shell pkg-config --libs gdk-3.0) -lX11 -lXi
     endif
     ifndef NOFREETYPE
-      CFLAGS += -DSWELL_FREETYPE $(shell freetype-config --cflags)
-      LFLAGS += $(shell freetype-config --libs)
+      CFLAGS += -DSWELL_FREETYPE $(shell pkg-config --cflags freetype2)
+      LFLAGS += $(shell pkg-config --libs freetype2)
     endif
 
     OBJS += swell-wnd-generic.o swell-gdi-lice.o swell.o swell-misc-generic.o \
@@ -96,25 +111,38 @@ ifndef NO_GFX
 
 endif
 
-
-asm-nseel-x64.o: a2x64.php asm-nseel-x86-gcc.c
-	php a2x64.php elf64
-
 ifdef PORTABLE
   CFLAGS +=  -DEEL_TARGET_PORTABLE
 else
   ifeq ($(UNAME_S),Darwin)
     ifeq ($(ARCH),x86_64)
-      OBJS2 += asm-nseel-x64-macho.o
+      ASM_FMT = macho64
+      NASM_OPTS = --prefix _
+      OBJS2 += asm-nseel-x64-sse.o
     endif
   endif
   ifeq ($(UNAME_S),Linux)
     ifeq ($(ARCH),x86_64)
-      OBJS2 += asm-nseel-x64.o
+      ASM_FMT = elf64
+      NASM_OPTS =
+      OBJS2 += asm-nseel-x64-sse.o
     endif
   endif
+
+asm-nseel-x64-sse.o: asm-nseel-x64-sse.asm
+	nasm -D AMD64ABI -f $(ASM_FMT) $(NASM_OPTS) asm-nseel-x64-sse.asm
+
 endif
 CXXFLAGS=$(CFLAGS)
+
+ifeq ($(CXX),g++)
+  GCC_VER := $(shell $(CXX) --version|head -n 1| sed 's/.* \([0-9][0-9]*\)[.][0-9.]*/\1/' )
+  GCC_GT_10 := $(shell [ "$(GCC_VER)" -gt 10 ] && echo true )
+  ifeq ($(GCC_GT_10),true)
+    CXXFLAGS += -std=c++03
+  endif
+endif
+
 
 
 %.o : %.mm
@@ -124,4 +152,6 @@ loose_eel: loose_eel.o $(OBJS) $(OBJS2)
 	g++ -o $@ $^ $(CXXFLAGS) $(LFLAGS)
 
 clean:
-	-rm loose_eel loose_eel.o $(OBJS) 
+	-rm -f -- loose_eel loose_eel.o $(OBJS)
+
+.PHONY: clean

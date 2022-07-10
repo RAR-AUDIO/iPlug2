@@ -6,7 +6,7 @@
 #define PLUG_MFR_ID 'Acme'
 #define PLUG_URL_STR "https://iplug2.github.io"
 #define PLUG_EMAIL_STR "spam@me.com"
-#define PLUG_COPYRIGHT_STR "Copyright 2019 Acme Inc"
+#define PLUG_COPYRIGHT_STR "Copyright 2020 Acme Inc"
 #define PLUG_CLASS_NAME IGraphicsTest
 
 #define BUNDLE_NAME "IGraphicsTest"
@@ -42,7 +42,7 @@
 #define AAX_PLUG_CATEGORY_STR "Effect"
 #define AAX_DOES_AUDIOSUITE 1
 
-#define VST3_SUBCATEGORY "Fx"
+#define VST3_SUBCATEGORY "Instrument"
 
 #define APP_NUM_CHANNELS 2
 #define APP_N_VECTOR_WAIT 0

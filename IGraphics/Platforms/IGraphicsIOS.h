@@ -17,7 +17,7 @@ BEGIN_IGRAPHICS_NAMESPACE
 
 extern void GetScreenDimensions(int& width, int& height);
 
-extern float GetScaleForScreen(int height);
+extern float GetScaleForScreen(int width, int height);
 
 /** IGraphics platform class for IOS
 *   @ingroup PlatformClasses */
@@ -62,13 +62,13 @@ public:
   bool GetTextFromClipboard(WDL_String& str) override;
   bool SetTextInClipboard(const char* str) override;
 
-  void CreatePlatformImGui() override;
-
   void LaunchBluetoothMidiDialog(float x, float y);
   
   void AttachGestureRecognizer(EGestureType type) override;
   
   bool PlatformSupportsMultiTouch() const override { return true; }
+  
+  EUIAppearance GetUIAppearance() const override;
 
 protected:
   PlatformFontPtr LoadPlatformFont(const char* fontID, const char* fileNameOrResID) override;
@@ -81,8 +81,6 @@ protected:
 
 private:
   void* mView = nullptr;
-  void* mImGuiView = nullptr;
-
   WDL_String mBundleID;
 };
 

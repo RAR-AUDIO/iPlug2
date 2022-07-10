@@ -117,12 +117,6 @@ bool WDL_ChooseDirectory(HWND parent, const char *text, const char *initialdir, 
 #endif
 }
 
-static WDL_STATICFUNC_UNUSED const char *stristr(const char* a, const char* b)
-{
-  const size_t n = strlen(a), len = strlen(b);
-  for (size_t i = 0; i+len <= n; ++i) if (!strnicmp(a+i, b, len)) return a+i;
-  return NULL;
-}
 
 #ifdef _WIN32
 struct WDL_FileBrowse_Dis {
@@ -164,6 +158,10 @@ struct WDL_FileBrowse_Dis {
 };
 #endif
 
+#ifdef _WIN32
+bool wdl_use_legacy_filebrowse;
+#endif
+
 bool WDL_ChooseFileForSave(HWND parent, 
                                       const char *text, 
                                       const char *initialdir, 
@@ -195,6 +193,7 @@ bool WDL_ChooseFileForSave(HWND parent,
   WDL_fixfnforopenfn(temp);
 
 #ifdef WDL_FILEBROWSE_WIN7VISTAMODE
+  if (!wdl_use_legacy_filebrowse)
   {
     Win7FileDialog fd(text, 1);
     if(fd.inited())
@@ -325,7 +324,7 @@ char *WDL_ChooseFileForOpen2(HWND parent,
   WDL_FileBrowse_Dis win32disfix(parent);
 
 #ifdef WDL_FILEBROWSE_WIN7VISTAMODE
-  if (allowmul!=1)
+  if (!wdl_use_legacy_filebrowse && allowmul!=1)
   {
     Win7FileDialog fd(text);
     if(fd.inited())
@@ -343,7 +342,7 @@ char *WDL_ChooseFileForOpen2(HWND parent,
         {
           if(*p) p+=strlen(p)+1;
           if(!*p) break;
-          if(stristr(p, defext)) 
+          if(WDL_stristr(p, defext))
           {
             fd.setFileTypeIndex(i+1);
             break;
@@ -358,6 +357,7 @@ char *WDL_ChooseFileForOpen2(HWND parent,
       {
         char temp[4096];
         lstrcpyn_safe(temp,initialfile,sizeof(temp));
+        WDL_fixfnforopenfn(temp);
         //check for folder name
         if (WDL_remove_filepart(temp))
         {

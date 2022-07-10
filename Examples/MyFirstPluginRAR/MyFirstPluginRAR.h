@@ -1,46 +1,51 @@
-//=============================================================================
-// Project     : Plugin
-// Version     : 0.0.1
+// =============================================================================
+//  Project     : MyFirstPluginRAR
+//  Version     : 0.1.0
 //
-// Category    : Main
-// Filename    : Main/MyFirstPluginRAR.h
-// Created by  : RAR-AUDIO, JUL/2020
-// Author      : Roberto Ramirez
-// Description : Plugin Parameters
+//  Category    : MyFirstPluginRAR-vst3
+//  Filename    : MyFirstPluginRAR-vst3/MyFirstPluginRAR.h
+//  Created by  : RAR-AUDIO, 02/2021
+//  Author      : Roberto A. Ramirez Gonzalez
+//  Description :
 //
 //
-//-----------------------------------------------------------------------------
-// LICENSE
-// (c) 2020, RAR-AUDIO, All Rights Reserved
-//-----------------------------------------------------------------------------
-//=============================================================================
+// -----------------------------------------------------------------------------
+//  LICENSE
+//  (c) 2021, RAR-AUDIO, All Rights Reserved
+// -----------------------------------------------------------------------------
+// =============================================================================
 
-#pragma once
+#ifndef MYFIRSTPLUGINRAR_H
+#define MYFIRSTPLUGINRAR_H
 
+//==================================================================================
+/* iPlug Includes */
 #include "IPlug_include_in_plug_hdr.h"
-#include "Interface.h"
-#include "Params.h"
+//==================================================================================
 
-const int kNumPresets = 1;
+const int K_NUM_PRESETS = 1;
+
+enum EParams
+{
+    kGain = 0,
+    kNumParams
+};
 
 using namespace iplug;
 using namespace igraphics;
 
-class MyFirstPluginRAR final : public Plugin {
-  public:
-    MyFirstPluginRAR(const InstanceInfo& info);
+class MyFirstPluginRAR final : public Plugin
+{
+public:
+    MyFirstPluginRAR (const InstanceInfo& info);
 
-    IParam* GetParam(Parameters parameter);
-    void ProcessBlock(sample** inputs, sample** outputs, int nFrames) override;
+#if IPLUG_DSP // http://bit.ly/2S64BDd
+    void ProcessBlock (sample** inputs, sample** outputs, int nFrames) override;
     void OnReset() override;
-    void OnParamChange(int paramIdx) override;
+    void OnIdle() override;
+#endif
 
-  private:
-    void InitParameters();
-    void InitGraphics();
-    void cookVars();
-
-    char* version_string_ = "0.0.1";
-    double gain_;
-    Interface m_interface_;
+private:
 };
+
+#endif // MYFIRSTPLUGINRAR_H

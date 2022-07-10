@@ -64,9 +64,6 @@ IPlugReaperExtension::IPlugReaperExtension(reaper_plugin_info_t* pRec)
                                                    ShowConsoleMsg(valStr.Get());
                                                  }, "Value:", DEFAULT_STYLE, true, EDirection::Horizontal));
     
-//    pGraphics->AttachImGui([](IGraphics* pGraphics) {
-//      ImGui::ShowDemoWindow();
-//    });
   };
 }
 
@@ -78,7 +75,7 @@ void IPlugReaperExtension::OnIdle()
     mPrevTrackCount = tracks;
     
     if(GetUI()) {
-      dynamic_cast<ITextControl*>(GetUI()->GetControlWithTag(kCtrlTagText))->SetStrFmt(64, "NumTracks: %i", tracks);
+      GetUI()->GetControlWithTag(kCtrlTagText)->As<ITextControl>()->SetStrFmt(64, "NumTracks: %i", tracks);
     }
   }
 }

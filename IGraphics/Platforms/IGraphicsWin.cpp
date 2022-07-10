@@ -40,6 +40,14 @@ static double sFPS = 0.0;
 
 #define WM_VBLANK (WM_USER+1)
 
+#ifdef IGRAPHICS_GL3
+typedef HGLRC(WINAPI* PFNWGLCREATECONTEXTATTRIBSARBPROC) (HDC hDC, HGLRC hShareContext, const int* attribList);
+#define WGL_CONTEXT_MAJOR_VERSION_ARB     0x2091
+#define WGL_CONTEXT_MINOR_VERSION_ARB     0x2092
+#define WGL_CONTEXT_PROFILE_MASK_ARB      0x9126
+#define WGL_CONTEXT_CORE_PROFILE_BIT_ARB  0x00000001
+#endif
+
 #pragma mark - Private Classes and Structs
 
 // Fonts
@@ -137,7 +145,7 @@ StaticStorage<IGraphicsWin::HFontHolder> IGraphicsWin::sHFontCache;
 
 #pragma mark - Mouse and tablet helpers
 
-extern int GetScaleForHWND(HWND hWnd);
+extern float GetScaleForHWND(HWND hWnd);
 
 inline IMouseInfo IGraphicsWin::GetMouseInfo(LPARAM lParam, WPARAM wParam)
 {
@@ -225,6 +233,7 @@ void IGraphicsWin::OnDisplayTimer(int vBlankCount)
       }
       case kCancel:
         DestroyEditWindow();
+        ClearInTextEntryControl();
         break;
     }
 
@@ -234,9 +243,12 @@ void IGraphicsWin::OnDisplayTimer(int vBlankCount)
   }
 
   // TODO: move this... listen to the right messages in windows for screen resolution changes, etc.
-  int scale = GetScaleForHWND(mPlugWnd);
-  if (scale != GetScreenScale())
-    SetScreenScale(scale);
+  if (!GetCapture()) // workaround Windows issues with window sizing during mouse move
+  {
+    float scale = GetScaleForHWND(mPlugWnd);
+    if (scale != GetScreenScale())
+      SetScreenScale(scale);
+  }
 
   // TODO: this is far too aggressive for slow drawing animations and data changing.  We need to
   // gate the rate of updates to a certain percentage of the wall clock time.
@@ -278,7 +290,7 @@ void IGraphicsWin::OnDisplayTimer(int vBlankCount)
         {
           // we are late, skip the next vblank to give us a breather.
           mVBlankSkipUntil = curCount+1;
-          DBGMSG("vblank painting was late by %i frames.", (mVBlankSkipUntil - msgCount));
+          //DBGMSG("vblank painting was late by %i frames.", (mVBlankSkipUntil - msgCount));
         }
       }
     }
@@ -417,8 +429,16 @@ LRESULT CALLBACK IGraphicsWin::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARA
         {
           std::vector<IMouseInfo> list{ info };
           pGraphics->OnMouseDrag(list);
+            
           if (pGraphics->MouseCursorIsLocked())
-            pGraphics->MoveMouseCursor(pGraphics->mHiddenCursorX, pGraphics->mHiddenCursorY);
+          {
+            const float x = pGraphics->mHiddenCursorX;
+            const float y = pGraphics->mHiddenCursorY;
+            
+            pGraphics->MoveMouseCursor(x, y);
+            pGraphics->mHiddenCursorX = x;
+            pGraphics->mHiddenCursorY = y;
+          }
         }
       }
 
@@ -445,6 +465,7 @@ LRESULT CALLBACK IGraphicsWin::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARA
       return 0;
     }
     case WM_LBUTTONDBLCLK:
+    case WM_RBUTTONDBLCLK:
     {
       if (IsTouchEvent())
         return 0;
@@ -636,7 +657,7 @@ LRESULT CALLBACK IGraphicsWin::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARA
         pGraphics->Draw(rects);
 
         #ifdef IGRAPHICS_GL
-        SwapBuffers((HDC) pGraphics->mPlatformContext);
+        SwapBuffers((HDC) pGraphics->GetPlatformContext());
         pGraphics->DeactivateGLContext();
         #endif
 
@@ -946,14 +967,8 @@ void IGraphicsWin::MoveMouseCursor(float x, float y)
     GetCursorPos(&p);
     ScreenToClient(mPlugWnd, &p);
     
-    mCursorX = p.x / scale;
-    mCursorY = p.y / scale;
-      
-    if (mCursorHidden && !mCursorLock)
-    {
-      mHiddenCursorX = p.x / scale;
-      mHiddenCursorY = p.y / scale;
-    }
+    mHiddenCursorX = mCursorX = p.x / scale;
+    mHiddenCursorY = mCursorY = p.y / scale;
   }
 }
 
@@ -1028,9 +1043,30 @@ void IGraphicsWin::CreateGLContext()
   HDC dc = GetDC(mPlugWnd);
   int fmt = ChoosePixelFormat(dc, &pfd);
   SetPixelFormat(dc, fmt, &pfd);
-
   mHGLRC = wglCreateContext(dc);
   wglMakeCurrent(dc, mHGLRC);
+
+#ifdef IGRAPHICS_GL3
+  // On windows we can't create a 3.3 context directly, since we need the wglCreateContextAttribsARB extension.
+  // We load the extension, then re-create the context.
+  auto wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC) wglGetProcAddress("wglCreateContextAttribsARB");
+
+  if (wglCreateContextAttribsARB)
+  {
+    wglDeleteContext(mHGLRC);
+
+    const int attribList[] = {
+      WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
+      WGL_CONTEXT_MINOR_VERSION_ARB, 3,
+      WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+      0
+    };
+
+    mHGLRC = wglCreateContextAttribsARB(dc, 0, attribList);
+    wglMakeCurrent(dc, mHGLRC);
+  }
+
+#endif
 
   //TODO: return false if GL init fails?
   if (!gladLoadGL())
@@ -1057,7 +1093,7 @@ void IGraphicsWin::ActivateGLContext()
 
 void IGraphicsWin::DeactivateGLContext()
 {
-  ReleaseDC(mPlugWnd, (HDC) mPlatformContext);
+  ReleaseDC(mPlugWnd, (HDC) GetPlatformContext());
   wglMakeCurrent(mStartHDC, mStartHGLRC); // return current ctxt to start
 }
 #endif
@@ -1434,7 +1470,7 @@ IPopupMenu* IGraphicsWin::CreatePlatformPopupMenu(IPopupMenu& menu, const IRECT&
     }
     DestroyMenu(hMenu);
 
-    RECT r = { 0, 0, WindowWidth() * GetScreenScale(), WindowHeight() * GetScreenScale() };
+    RECT r = { 0, 0, static_cast<LONG>(WindowWidth() * GetScreenScale()), static_cast<LONG>(WindowHeight() * GetScreenScale()) };
     InvalidateRect(mPlugWnd, &r, FALSE);
 
     return result;
@@ -1613,7 +1649,6 @@ void IGraphicsWin::PromptForFile(WDL_String& fileName, WDL_String& path, EFileAc
       ofn.Flags |= OFN_OVERWRITEPROMPT;
       rc = GetSaveFileNameW(&ofn);
       break;
-            
     case EFileAction::Open:
       default:
       ofn.Flags |= OFN_FILEMUSTEXIST;
@@ -2192,13 +2227,7 @@ void IGraphicsWin::VBlankNotify()
 }
 
 #ifndef NO_IGRAPHICS
-#if defined IGRAPHICS_AGG
-  #include "IGraphicsAGG.cpp"
-#elif defined IGRAPHICS_CAIRO
-  #include "IGraphicsCairo.cpp"
-#elif defined IGRAPHICS_LICE
-  #include "IGraphicsLice.cpp"
-#elif defined IGRAPHICS_SKIA
+#if defined IGRAPHICS_SKIA
   #include "IGraphicsSkia.cpp"
   #ifdef IGRAPHICS_GL
     #include "glad.c"
@@ -2211,8 +2240,6 @@ void IGraphicsWin::VBlankNotify()
 #endif
   #include "nanovg.c"
   #include "glad.c"
-#elif defined IGRAPHICS_D2D
-  #include "IGraphicsD2D.cpp"
 #else
   #error
 #endif

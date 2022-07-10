@@ -21,6 +21,13 @@ typedef unsigned long long WDL_UINT64;
   #define WDL_INT64_CONST(x) (x##LL)
 #endif
 
+#ifdef _WIN32
+  #define WDL_PRI_UINT64 "I64u"
+  #define WDL_PRI_INT64 "I64d"
+#else
+  #define WDL_PRI_UINT64 "llu"
+  #define WDL_PRI_INT64 "lld"
+#endif
 
 #if !defined(_MSC_VER) ||  _MSC_VER > 1200
 #define WDL_DLGRET INT_PTR CALLBACK
@@ -31,6 +38,7 @@ typedef unsigned long long WDL_UINT64;
 
 #ifdef _WIN32
 #include <windows.h>
+#include <stdio.h>
 #else
 #include <stdint.h>
 typedef intptr_t INT_PTR;
@@ -149,13 +157,24 @@ typedef bool WDL_bool;
 
 #if defined(_DEBUG) || defined(DEBUG)
 #include <assert.h>
-#define WDL_ASSERT(x) assert(x)
-#define WDL_NORMALLY(x) (assert(x),1)
-#define WDL_NOT_NORMALLY(x) (assert(!(x)),0)
+
+  #ifdef _MSC_VER
+    // msvc assert failure allows message loop to run, potentially resulting in recursive asserts
+    static LONG WDL_ASSERT_INTERNALCNT;
+    static int WDL_ASSERT_END() { WDL_ASSERT_INTERNALCNT=0; return 0; }
+    static int WDL_ASSERT_BEGIN() { return InterlockedCompareExchange(&WDL_ASSERT_INTERNALCNT,1,0) == 0; }
+    #define WDL_ASSERT(x) do { if (WDL_ASSERT_BEGIN()) { assert(x); WDL_ASSERT_END(); } } while(0)
+  #else
+    #define WDL_ASSERT_BEGIN() (1)
+    #define WDL_ASSERT_END() (0)
+    #define WDL_ASSERT(x) assert(x)
+  #endif
+  #define WDL_NORMALLY(x)     ((x) ? 1 : (WDL_ASSERT_BEGIN() && (assert(0/*ignorethis*/ && (x)),WDL_ASSERT_END())))
+  #define WDL_NOT_NORMALLY(x) ((x) ? !WDL_ASSERT_BEGIN() || (assert(0/*ignorethis*/ && !(x)),!WDL_ASSERT_END()) : 0)
 #else
-#define WDL_ASSERT(x)
-#define WDL_NORMALLY(x) WDL_likely(x)
-#define WDL_NOT_NORMALLY(x) WDL_unlikely(x)
+  #define WDL_ASSERT(x)
+  #define WDL_NORMALLY(x) WDL_likely(x)
+  #define WDL_NOT_NORMALLY(x) WDL_unlikely(x)
 #endif
 
 
@@ -189,6 +208,32 @@ static WDL_bool WDL_STATICFUNC_UNUSED WDL_TICKS_IN_RANGE_ENDING_AT(WDL_TICKTYPE 
   // callers of WDL_fopenA don't mind being non-UTF8-compatible on win32
   // (this could map to either fopen() or fopenUTF8()
   #define WDL_fopenA(fn,mode) fopen(fn,mode)
+#endif
+
+#ifndef WDL_ALLOW_UNSIGNED_DEFAULT_CHAR
+typedef char wdl_assert_failed_unsigned_char[((char)-1) > 0 ? -1 : 1];
+#endif
+
+// wdl_log() / printf() wrapper. no-op on release builds
+#if !defined(_DEBUG) && !defined(WDL_LOG_ON_RELEASE)
+  static void WDL_STATICFUNC_UNUSED WDL_VARARG_WARN(printf,1,2) wdl_log(const char *format, ...) { }
+#elif defined(_WIN32)
+  static void WDL_STATICFUNC_UNUSED WDL_VARARG_WARN(printf,1,2) wdl_log(const char *format, ...)
+  {
+    int rv;
+    va_list va;
+
+    char tmp[3800];
+    va_start(va,format);
+    tmp[0]=0;
+    rv=_vsnprintf(tmp,sizeof(tmp),format,va); // returns -1  if over, and does not null terminate, ugh
+    va_end(va);
+
+    if (rv < 0 || rv>=(int)sizeof(tmp)-1) tmp[sizeof(tmp)-1]=0;
+    OutputDebugStringA(tmp);
+  }
+#else
+  #define wdl_log printf
 #endif
 
 #endif

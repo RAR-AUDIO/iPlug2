@@ -23,6 +23,9 @@
 
 #ifndef SWELL_PROVIDED_BY_APP
 
+#ifndef WDL_NO_DEFINE_MINMAX
+#define WDL_NO_DEFINE_MINMAX
+#endif
 #include "swell.h"
 
 #define SWELL_INTERNAL_MERGESORT_IMPL
@@ -50,7 +53,6 @@ static bool swell_is_virtkey_char(int c)
   return (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9');
 }
 
-bool swell_app_is_inactive;
 HWND__ *SWELL_topwindows;
 HWND swell_oswindow_to_hwnd(SWELL_OSWINDOW w)
 {
@@ -82,14 +84,14 @@ void swell_on_toplevel_raise(SWELL_OSWINDOW wnd) // called by swell-generic-gdk 
   }
 }
 
-HWND__::HWND__(HWND par, int wID, RECT *wndr, const char *label, bool visible, WNDPROC wndproc, DLGPROC dlgproc, HWND ownerWindow)
+HWND__::HWND__(HWND par, int wID, const RECT *wndr, const char *label, bool visible, WNDPROC wndproc, DLGPROC dlgproc, HWND ownerWindow)
 {
   m_refcnt=1;
   m_private_data=0;
   m_israised=false;
   m_has_had_position=false;
   m_oswindow_private=0;
-  m_oswindow_fullscreen=false;
+  m_oswindow_fullscreen=0;
 
      m_classname = "unknown";
      m_wndproc=wndproc?wndproc:dlgproc?(WNDPROC)SwellDialogDefaultWindowProc:(WNDPROC)DefWindowProc;
@@ -141,7 +143,7 @@ HWND__::~HWND__()
 
 HWND GetParent(HWND hwnd)
 {  
-  if (hwnd)
+  if (WDL_NORMALLY(hwnd))
   {
     return hwnd->m_parent ? hwnd->m_parent : hwnd->m_owner;
   }
@@ -151,6 +153,7 @@ HWND GetParent(HWND hwnd)
 HWND GetDlgItem(HWND hwnd, int idx)
 {
   if (!idx) return hwnd;
+  WDL_ASSERT(hwnd != NULL);
   if (hwnd) hwnd=hwnd->m_children;
   while (hwnd && hwnd->m_id != (UINT)idx) hwnd=hwnd->m_next;
   return hwnd;
@@ -159,7 +162,7 @@ HWND GetDlgItem(HWND hwnd, int idx)
 
 LONG_PTR SetWindowLong(HWND hwnd, int idx, LONG_PTR val)
 {
-  if (!hwnd) return 0;
+  if (WDL_NOT_NORMALLY(!hwnd)) return 0;
   if (idx==GWL_STYLE)
   {
     LONG ret = hwnd->m_style;
@@ -231,7 +234,7 @@ LONG_PTR SetWindowLong(HWND hwnd, int idx, LONG_PTR val)
 
 LONG_PTR GetWindowLong(HWND hwnd, int idx)
 {
-  if (!hwnd) return 0;
+  if (WDL_NOT_NORMALLY(!hwnd)) return 0;
   if (idx==GWL_STYLE)
   {
     LONG_PTR ret = hwnd->m_style;
@@ -298,7 +301,7 @@ bool IsWindow(HWND hwnd)
 
 bool IsWindowVisible(HWND hwnd)
 {
-  if (!hwnd) return false;
+  if (WDL_NOT_NORMALLY(!hwnd)) return false;
   while (hwnd->m_visible)
   {
     hwnd = hwnd->m_parent;
@@ -311,7 +314,7 @@ bool IsModalDialogBox(HWND hwnd);
 
 LRESULT SendMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-  if (!hwnd) return 0;
+  if (WDL_NOT_NORMALLY(!hwnd)) return 0;
   WNDPROC wp = hwnd->m_wndproc;
 
   if (msg == WM_DESTROY)
@@ -445,7 +448,7 @@ void RecurseDestroyWindow(HWND hwnd)
 
 void DestroyWindow(HWND hwnd)
 {
-  if (!hwnd) return;
+  if (WDL_NOT_NORMALLY(!hwnd)) return;
   if (hwnd->m_hashaddestroy) return; 
  
   // broadcast WM_DESTROY
@@ -459,7 +462,7 @@ void DestroyWindow(HWND hwnd)
 
 bool IsWindowEnabled(HWND hwnd)
 {
-  if (!hwnd) return false;
+  if (WDL_NOT_NORMALLY(!hwnd)) return false;
   while (hwnd && hwnd->m_enabled) 
   {
     hwnd=hwnd->m_parent;
@@ -469,7 +472,7 @@ bool IsWindowEnabled(HWND hwnd)
 
 void EnableWindow(HWND hwnd, int enable)
 {
-  if (!hwnd) return;
+  if (WDL_NOT_NORMALLY(!hwnd)) return;
   if (!!hwnd->m_enabled == !!enable) return;
 
   hwnd->m_enabled=!!enable;
@@ -485,8 +488,9 @@ void EnableWindow(HWND hwnd, int enable)
 
 void SetForegroundWindow(HWND hwnd)
 {
-  if (!hwnd) return;
+  if (WDL_NOT_NORMALLY(!hwnd)) return;
 
+  HWND oldFoc = GetFocus();
   // if a child window has focus, preserve that focus
   while (hwnd->m_parent && !hwnd->m_oswindow)
   {
@@ -494,28 +498,42 @@ void SetForegroundWindow(HWND hwnd)
     hwnd = hwnd->m_parent;
   }
   if (hwnd) swell_oswindow_focus(hwnd);
-}
-
-void SetFocusInternal(HWND hwnd)
-{
-  hwnd->m_focused_child=NULL; // make sure this window has focus, not a child
-  SetForegroundWindow(hwnd);
+  HWND foc = GetFocus();
+  if (foc && foc != oldFoc)
+    SendMessage(foc,WM_SETFOCUS,(WPARAM)oldFoc,0);
 }
 
 void SetFocus(HWND hwnd)
 {
-  if (!hwnd) return;
-  HWND oldfoc = GetFocus();
-  SetFocusInternal(hwnd);
+  if (!hwnd) return; // windows allows SetFocus(NULL) to defocus, but we do not support that yet
+  HWND oldFoc = GetFocus();
+  if (oldFoc && oldFoc != hwnd)
+    SendMessage(oldFoc,WM_KILLFOCUS,(WPARAM)hwnd,0);
+  hwnd->m_focused_child=NULL; // make sure this window has focus, not a child
 
-  if (hwnd->m_classname && oldfoc != hwnd)
+  HWND p = hwnd;
+  while (p->m_parent && !p->m_oswindow)
   {
-    if (!strcmp(hwnd->m_classname,"Edit") ||
-        !strcmp(hwnd->m_classname,"combobox"))
-      SendMessage(hwnd,EM_SETSEL,0,-1);
+    p->m_parent->m_focused_child = p;
+    p = p->m_parent;
   }
+  if (p) swell_oswindow_focus(p);
+
+  if (hwnd != oldFoc)
+    SendMessage(hwnd,WM_SETFOCUS,(WPARAM)oldFoc,0);
 }
 
+void SWELL_OnNavigationFocus(HWND ch)
+{
+  if (ch && ch->m_classname && (
+       (!strcmp(ch->m_classname,"Edit") && !(ch->m_style & ES_READONLY)) ||
+       !strcmp(ch->m_classname,"combobox")
+     ))
+  {
+    SendMessage(ch,EM_SETSEL,0,-1);
+  }
+
+}
 
 int IsChild(HWND hwndParent, HWND hwndChild)
 {
@@ -526,11 +544,9 @@ int IsChild(HWND hwndParent, HWND hwndChild)
   return hwndChild == hwndParent;
 }
 
-
-HWND GetFocusIncludeMenus()
+HWND SWELL_GetFocusedChild(HWND h)
 {
-  HWND h = swell_app_is_inactive ? NULL : swell_oswindow_to_hwnd(SWELL_focused_oswindow);
-  while (h) 
+  while (h)
   {
     HWND fc = h->m_focused_child;
     if (!fc) break;
@@ -540,6 +556,12 @@ HWND GetFocusIncludeMenus()
     h = s; // descend to focused child
   }
   return h;
+}
+
+HWND GetFocusIncludeMenus()
+{
+  HWND h = swell_is_app_inactive()>0 ? NULL : swell_oswindow_to_hwnd(SWELL_focused_oswindow);
+  return SWELL_GetFocusedChild(h);
 }
 
 HWND GetForegroundWindow()
@@ -557,7 +579,7 @@ HWND GetFocus()
 
 void ScreenToClient(HWND hwnd, POINT *pt)
 {
-  if (!hwnd) return;
+  if (WDL_NOT_NORMALLY(!hwnd)) return;
   
   HWND tmp=hwnd;
   while (tmp)
@@ -573,7 +595,7 @@ void ScreenToClient(HWND hwnd, POINT *pt)
 
 void ClientToScreen(HWND hwnd, POINT *pt)
 {
-  if (!hwnd) return;
+  if (WDL_NOT_NORMALLY(!hwnd)) return;
   
   HWND tmp=hwnd;
   while (tmp)
@@ -588,7 +610,7 @@ void ClientToScreen(HWND hwnd, POINT *pt)
 
 void GetWindowContentViewRect(HWND hwnd, RECT *r)
 {
-  if (hwnd && hwnd->m_oswindow) 
+  if (WDL_NORMALLY(hwnd) && hwnd->m_oswindow) 
   {
     *r = hwnd->m_position;
     return;
@@ -599,7 +621,7 @@ void GetWindowContentViewRect(HWND hwnd, RECT *r)
 void GetClientRect(HWND hwnd, RECT *r)
 {
   r->left=r->top=r->right=r->bottom=0;
-  if (!hwnd) return;
+  if (WDL_NOT_NORMALLY(!hwnd)) return;
   
   r->right = hwnd->m_position.right - hwnd->m_position.left;
   r->bottom = hwnd->m_position.bottom - hwnd->m_position.top;
@@ -614,7 +636,7 @@ void GetClientRect(HWND hwnd, RECT *r)
 
 void SetWindowPos(HWND hwnd, HWND zorder, int x, int y, int cx, int cy, int flags)
 {
-  if (!hwnd) return;
+  if (WDL_NOT_NORMALLY(!hwnd)) return;
  // todo: handle SWP_SHOWWINDOW
   RECT f = hwnd->m_position;
   int reposflag = 0;
@@ -714,7 +736,7 @@ BOOL EnumWindows(BOOL (*proc)(HWND, LPARAM), LPARAM lp)
 
 HWND GetWindow(HWND hwnd, int what)
 {
-  if (!hwnd) return 0;
+  if (WDL_NOT_NORMALLY(!hwnd)) return 0;
   
   if (what == GW_CHILD) return hwnd->m_children;
   if (what == GW_OWNER) return hwnd->m_owner;
@@ -735,7 +757,7 @@ HWND GetWindow(HWND hwnd, int what)
 
 HWND SetParent(HWND hwnd, HWND newPar)
 {
-  if (!hwnd) return NULL;
+  if (WDL_NOT_NORMALLY(!hwnd)) return NULL;
 
   HWND oldPar = hwnd->m_parent;
 
@@ -781,14 +803,35 @@ typedef struct TimerInfoRec
   UINT_PTR timerid;
   HWND hwnd;
   UINT interval;
+
   DWORD lastFire;
+  int refcnt; // 0 normally, 1 if currently processing this timer
+
   TIMERPROC tProc;
   struct TimerInfoRec *_next;
 } TimerInfoRec;
 
 static TimerInfoRec *m_timer_list;
 static WDL_Mutex m_timermutex;
-static pthread_t m_pmq_mainthread;
+
+static TimerInfoRec *spare_timers;
+static void free_timer(TimerInfoRec *rec)
+{
+  int c = 3; // max spares
+  TimerInfoRec *p = spare_timers;
+  while (p)
+  {
+    if (--c <= 0)
+    {
+      free(rec);
+      return;
+    }
+    p = p->_next;
+  }
+  rec->_next=spare_timers;
+  spare_timers=rec;
+}
+
 
 void SWELL_RunMessageLoop()
 {
@@ -800,9 +843,13 @@ void SWELL_RunMessageLoop()
   TimerInfoRec *rec = m_timer_list;
   while (rec)
   {
-    if ((now-rec->lastFire) >= rec->interval)
+    // rec->lastFire might be after now, if the timer was set from another timer
+    // we should run this timer if rec->lastFire is in the interval
+    // [now-rec->interval-some big range,now-rec->interval]
+    if (WDL_TICKS_IN_RANGE_ENDING_AT(rec->lastFire, now - rec->interval, 100000))
     {
-      rec->lastFire = now;
+      rec->lastFire = GetTickCount();
+      ++rec->refcnt;
 
       HWND h = rec->hwnd;
       TIMERPROC tProc = rec->tProc;
@@ -813,11 +860,11 @@ void SWELL_RunMessageLoop()
       else if (h) SendMessage(h,WM_TIMER,tid,0);
 
       m_timermutex.Enter();
-      TimerInfoRec *tr = m_timer_list;
-      while (tr && tr != rec) tr=tr->_next;
-      if (!tr) 
+
+      if (--rec->refcnt < 0)
       {
-        rec = m_timer_list;  // if no longer in the list, then abort
+        free_timer(rec);
+        rec = m_timer_list;
         continue;
       }
     }
@@ -825,12 +872,11 @@ void SWELL_RunMessageLoop()
   } 
 }
 
-
 UINT_PTR SetTimer(HWND hwnd, UINT_PTR timerid, UINT rate, TIMERPROC tProc)
 {
-  if (!hwnd && !tProc) return 0; // must have either callback or hwnd
+  if (WDL_NOT_NORMALLY(!hwnd && !tProc)) return 0; // must have either callback or hwnd
   
-  if (hwnd && !timerid) return 0;
+  if (WDL_NOT_NORMALLY(hwnd && !timerid)) return 0;
 
   if (hwnd && hwnd->m_hashaddestroy) return 0;
 
@@ -850,17 +896,20 @@ UINT_PTR SetTimer(HWND hwnd, UINT_PTR timerid, UINT rate, TIMERPROC tProc)
   bool recAdd=false;
   if (!rec) 
   {
-    rec=(TimerInfoRec*)malloc(sizeof(TimerInfoRec));
+    rec = spare_timers;
+    if (!rec) rec = (TimerInfoRec *)malloc(sizeof(TimerInfoRec));
+    else spare_timers = rec->_next;
+    rec->refcnt = 0;
     recAdd=true;
   }
    
+  if (!hwnd) timerid = (UINT_PTR)rec;
+
   rec->tProc = tProc;
-  rec->timerid=timerid;
-  rec->hwnd=hwnd;
+  rec->timerid = timerid;
+  rec->hwnd = hwnd;
   rec->interval = rate<1?1: rate;
   rec->lastFire = GetTickCount();
-  
-  if (!hwnd) timerid = rec->timerid = (UINT_PTR)rec;
 
   if (recAdd)
   {
@@ -873,7 +922,7 @@ UINT_PTR SetTimer(HWND hwnd, UINT_PTR timerid, UINT rate, TIMERPROC tProc)
 
 BOOL KillTimer(HWND hwnd, UINT_PTR timerid)
 {
-  if (!hwnd && !timerid) return FALSE;
+  if (WDL_NOT_NORMALLY(!hwnd && !timerid)) return FALSE;
 
   WDL_MutexLock lock(&m_timermutex);
   BOOL rv=FALSE;
@@ -892,7 +941,8 @@ BOOL KillTimer(HWND hwnd, UINT_PTR timerid)
         if (lrec) lrec->_next = nrec;
         else m_timer_list = nrec;
         
-        free(rec);
+        if (--rec->refcnt < 0)
+          free_timer(rec);
 
         rv=TRUE;
         if (timerid!=(UINT_PTR)-1) break;
@@ -912,7 +962,7 @@ BOOL KillTimer(HWND hwnd, UINT_PTR timerid)
 BOOL SetDlgItemText(HWND hwnd, int idx, const char *text)
 {
   hwnd =(idx ? GetDlgItem(hwnd,idx) : hwnd);
-  if (!hwnd) return false;
+  if (WDL_NOT_NORMALLY(!hwnd)) return false;
 
   if (!text) text="";
  
@@ -928,14 +978,14 @@ BOOL SetDlgItemText(HWND hwnd, int idx, const char *text)
 
 int GetWindowTextLength(HWND hwnd)
 {
-  return hwnd ? hwnd->m_title.GetLength() : 0;
+  return WDL_NORMALLY(hwnd) ? hwnd->m_title.GetLength() : 0;
 }
 
 BOOL GetDlgItemText(HWND hwnd, int idx, char *text, int textlen)
 {
   *text=0;
   hwnd = idx?GetDlgItem(hwnd,idx) : hwnd;
-  if (!hwnd) return false;
+  if (WDL_NOT_NORMALLY(!hwnd)) return false;
   
   // todo: sendmessage WM_GETTEXT etc? special casing for combo boxes etc
   lstrcpyn_safe(text,hwnd->m_title.Get(), textlen);
@@ -945,7 +995,7 @@ BOOL GetDlgItemText(HWND hwnd, int idx, char *text, int textlen)
 void CheckDlgButton(HWND hwnd, int idx, int check)
 {
   hwnd = GetDlgItem(hwnd,idx);
-  if (!hwnd) return;
+  if (WDL_NOT_NORMALLY(!hwnd)) return;
   SendMessage(hwnd,BM_SETCHECK,check,0);
 }
 
@@ -953,7 +1003,7 @@ void CheckDlgButton(HWND hwnd, int idx, int check)
 int IsDlgButtonChecked(HWND hwnd, int idx)
 {
   hwnd = GetDlgItem(hwnd,idx);
-  if (!hwnd) return 0;
+  if (WDL_NOT_NORMALLY(!hwnd)) return 0;
   return SendMessage(hwnd,BM_GETCHECK,0,0);
 }
 
@@ -983,7 +1033,7 @@ int GetDlgItemInt(HWND hwnd, int idx, BOOL *translated, int issigned)
 
 void ShowWindow(HWND hwnd, int cmd)
 {
-  if (!hwnd) return;
+  if (WDL_NOT_NORMALLY(!hwnd)) return;
  
   if (cmd==SW_SHOW||cmd==SW_SHOWNA) 
   {
@@ -1156,7 +1206,7 @@ static void paintDialogBackground(HWND hwnd, const RECT *r, HDC hdc)
 
 static bool fast_has_focus(HWND hwnd)
 {
-  if (!hwnd || !SWELL_focused_oswindow || swell_app_is_inactive) return false;
+  if (!hwnd || !SWELL_focused_oswindow || swell_is_app_inactive()>0) return false;
   HWND par;
   while ((par=hwnd->m_parent)!=NULL && par->m_focused_child==hwnd)
   {
@@ -1206,7 +1256,7 @@ static LRESULT WINAPI buttonWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
       hwnd->m_private_data=0;
     break;
     case WM_LBUTTONDOWN:
-      SetFocusInternal(hwnd);
+      SetFocus(hwnd);
       SetCapture(hwnd);
       SendMessage(hwnd,WM_USER+100,0,0); // invalidate
     return 0;
@@ -1486,6 +1536,8 @@ fakeButtonClick:
     case WM_USER+100:
     case WM_CAPTURECHANGED:
     case WM_SETTEXT:
+    case WM_SETFOCUS:
+    case WM_KILLFOCUS:
       InvalidateRect(hwnd,NULL,FALSE);
     break;
   }
@@ -1728,6 +1780,7 @@ struct __SWELL_editControlState
     max_height=0;
     max_width=0;
     cache_linelen_strlen = cache_linelen_w = 0;
+    m_disable_contextmenu = false;
   }
   ~__SWELL_editControlState()  {}
 
@@ -1741,6 +1794,8 @@ struct __SWELL_editControlState
   // used for caching line lengths for multiline word-wrapping edit controls
   int cache_linelen_w, cache_linelen_strlen;
   WDL_TypedBuf<int> cache_linelen_bytes;
+
+  bool m_disable_contextmenu;
 
   bool deleteSelection(WDL_FastString *fs);
   int getSelection(WDL_FastString *fs, const char **ptrOut) const;
@@ -2401,6 +2456,8 @@ static LRESULT WINAPI editWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
     break;
     case WM_CONTEXTMENU:
       {
+        if (es->m_disable_contextmenu) break;
+
         HMENU menu=CreatePopupMenu();
         MENUITEMINFO mi={sizeof(mi),MIIM_ID|MIIM_TYPE,MFT_STRING, 0,
               (UINT) 100, NULL,NULL,NULL,0,(char*)"Copy"};
@@ -2506,7 +2563,7 @@ static LRESULT WINAPI editWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM 
         ReleaseDC(hwnd,hdc);
 
       }
-      SetFocusInternal(hwnd);
+      SetFocus(hwnd);
       if (msg == WM_LBUTTONDOWN) SetCapture(hwnd);
 
       InvalidateRect(hwnd,NULL,FALSE);
@@ -2831,7 +2888,10 @@ forceMouseMove:
     case WM_SETTEXT:
       if (es) 
       {
-        es->cursor_pos = WDL_utf8_get_charlen(hwnd->m_title.Get());
+        es->cursor_pos =
+          (hwnd->m_style & (ES_READONLY|ES_MULTILINE)) == (ES_READONLY|ES_MULTILINE) ? 0 :
+            WDL_utf8_get_charlen(hwnd->m_title.Get());
+
         es->sel1=es->sel2=-1;
         es->cache_linelen_w=es->cache_linelen_strlen=0;
         if ((hwnd->m_style & (ES_MULTILINE|ES_AUTOHSCROLL))==ES_AUTOHSCROLL &&
@@ -2899,6 +2959,11 @@ forceMouseMove:
         }
       }
     return 0;
+    case WM_KILLFOCUS:
+      SendMessage(GetParent(hwnd),WM_COMMAND,(EN_KILLFOCUS<<16) | (hwnd->m_id&0xffff),(LPARAM)hwnd);
+    case WM_SETFOCUS:
+      InvalidateRect(hwnd,NULL,FALSE);
+    break;
   }
   return DefWindowProc(hwnd,msg,wParam,lParam);
 }
@@ -3008,7 +3073,7 @@ static LRESULT WINAPI trackbarWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPA
       }
     return 1;
     case WM_LBUTTONDOWN:
-      SetFocusInternal(hwnd);
+      SetFocus(hwnd);
       SetCapture(hwnd);
 
       if (hwnd->m_private_data)
@@ -3131,6 +3196,10 @@ static LRESULT WINAPI trackbarWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPA
           EndPaint(hwnd,&ps);
         }
       }
+    break;
+    case WM_SETFOCUS:
+    case WM_KILLFOCUS:
+      InvalidateRect(hwnd,NULL,FALSE);
     break;
   }
 
@@ -3442,7 +3511,7 @@ static LRESULT WINAPI comboWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM
 
           ReleaseDC(hwnd,hdc);
 
-          SetFocusInternal(hwnd);
+          SetFocus(hwnd);
         }
         SetCapture(hwnd);
       }
@@ -3491,7 +3560,8 @@ popupMenu:
           hwnd->Retain();
           RECT r;
           GetWindowRect(hwnd,&r);
-          int a = TrackPopupMenu(menu,TPM_NONOTIFY|TPM_RETURNCMD|TPM_LEFTALIGN,r.left,r.bottom,0,hwnd,0);
+          RECT req_r = { 1<<30, 1<<30, 0, s->selidx };
+          int a = TrackPopupMenu(menu,TPM_NONOTIFY|TPM_RETURNCMD|TPM_LEFTALIGN,r.left,r.bottom,0,hwnd,&req_r);
           DestroyMenu(menu);
           if (hwnd->m_private_data && a>=100 && a < s->items.GetSize()+100)
           {
@@ -3655,6 +3725,41 @@ popupMenu:
         InvalidateRect(hwnd,NULL,FALSE);
       }
     return 0;
+    case WM_MOUSEWHEEL:
+      // pass modified mousewheel to parent (not sure if we need to do this but other controls do...)
+      if ((GetAsyncKeyState(VK_CONTROL)&0x8000) || (GetAsyncKeyState(VK_MENU)&0x8000)) break;
+
+      if (s)
+      {
+        int amt = ((short)HIWORD(wParam));
+        if (GetAsyncKeyState(VK_SHIFT)&0x8000)
+        {
+          if (amt<0) amt=-1;
+          else if (amt>0) amt=1;
+        }
+        else
+          amt /= 120;
+
+        if (amt)
+        {
+          int nv = s->selidx + amt;
+          if (nv>=s->items.GetSize()) nv=s->items.GetSize()-1;
+          if (nv < 0) nv=0;
+          if (nv != s->selidx && s->items.Get(nv))
+          {
+            s->selidx=nv;
+            SetWindowText(hwnd,s->items.Get(nv)->desc);
+            InvalidateRect(hwnd,NULL,FALSE);
+            SendMessage(GetParent(hwnd),WM_COMMAND,(GetWindowLong(hwnd,GWL_ID)&0xffff) | (CBN_SELCHANGE<<16),(LPARAM)hwnd);
+          }
+        }
+      }
+
+    return 0;
+    case WM_SETFOCUS:
+    case WM_KILLFOCUS:
+      InvalidateRect(hwnd,NULL,FALSE);
+    break;
   }
   return DefWindowProc(hwnd,msg,wParam,lParam);
 }
@@ -3746,8 +3851,10 @@ struct listViewState
 
     m_color_bg = g_swell_ctheme.listview_bg;
     m_color_bg_sel = g_swell_ctheme.listview_bg_sel;
+    m_color_bg_sel_inactive = g_swell_ctheme.listview_bg_sel_inactive;
     m_color_text = g_swell_ctheme.listview_text;
     m_color_text_sel = g_swell_ctheme.listview_text_sel;
+    m_color_text_sel_inactive = g_swell_ctheme.listview_text_sel_inactive;
     m_color_grid = g_swell_ctheme.listview_grid;
     memset(m_color_extras,0xff,sizeof(m_color_extras)); // if !=-1, overrides bg/fg for (focus?0:2)
   } 
@@ -3801,7 +3908,7 @@ struct listViewState
   int m_scroll_x,m_scroll_y, m_capmode_data1,m_capmode_data2;
   int m_extended_style;
 
-  int m_color_bg, m_color_bg_sel, m_color_text, m_color_text_sel, m_color_grid;
+  int m_color_bg, m_color_bg_sel, m_color_bg_sel_inactive, m_color_text, m_color_text_sel, m_color_text_sel_inactive, m_color_grid;
   int m_color_extras[4];
 
   int getTotalWidth() const
@@ -3936,6 +4043,14 @@ struct listViewState
   bool m_is_multisel, m_is_listbox;
   WDL_PtrList<HGDIOBJ__> *m_status_imagelist;
   int m_status_imagelist_type;
+
+  static int compareRows(const SWELL_ListView_Row **_a, const SWELL_ListView_Row **_b)
+  {
+    const char *a, *b;
+    if (!_a || !(a=(*_a)->m_vals.Get(0))) a="";
+    if (!_b || !(b=(*_b)->m_vals.Get(0))) b="";
+    return strcmp(a,b);
+  }
 };
 
 // returns non-NULL if a searching string occurred
@@ -4062,7 +4177,7 @@ static LRESULT listViewWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
     break;
     case WM_LBUTTONDBLCLK:
     case WM_LBUTTONDOWN:
-      SetFocusInternal(hwnd);
+      SetFocus(hwnd);
       if (msg == WM_LBUTTONDOWN) SetCapture(hwnd);
       else ReleaseCapture();
 
@@ -4616,12 +4731,13 @@ forceMouseMove:
         {
           RECT cr; 
           GetClientRect(hwnd,&cr); 
+          RECT rr = cr;
           HBRUSH bgbr = CreateSolidBrush(lvs->m_color_bg);
           FillRect(ps.hdc,&cr,bgbr);
           DeleteObject(bgbr);
           const bool focused = GetFocus() == hwnd;
           const int bgsel = lvs->m_color_extras[focused ? 0 : 2 ];
-          bgbr=CreateSolidBrush(bgsel == -1 ? lvs->m_color_bg_sel : bgsel);
+          bgbr=CreateSolidBrush(bgsel == -1 ? focused ? lvs->m_color_bg_sel : lvs->m_color_bg_sel_inactive : bgsel);
           if (lvs) 
           {
             TEXTMETRIC tm; 
@@ -4660,6 +4776,8 @@ forceMouseMove:
               oldpen = SelectObject(ps.hdc,gridpen);
             }
 
+            HWND par = GetParent(hwnd);
+            NMLVCUSTOMDRAW nmlvcd={ { {hwnd,(UINT_PTR)hwnd->m_id, NM_CUSTOMDRAW}, CDDS_ITEMPREPAINT,ps.hdc, } };
             for (int rowidx = 0; rowidx < nrows && ypos < cr.bottom; rowidx ++)
             {
               const char *str = NULL;
@@ -4681,19 +4799,28 @@ forceMouseMove:
                 }
               }
 
-              if (sel) 
+              COLORREF text_c;
+              if (sel)
               {
                 int c = lvs->m_color_extras[focused ? 1 : 3 ];
-                SetTextColor(ps.hdc, c == -1 ? lvs->m_color_text_sel : c);
+                text_c = c == -1 ? focused ? lvs->m_color_text_sel : lvs->m_color_text_sel_inactive : c;
               }
-              else SetTextColor(ps.hdc, lvs->m_color_text);
+              else
+                text_c = lvs->m_color_text;
 
+              nmlvcd.nmcd.dwItemSpec = (DWORD)rowidx;
               SWELL_ListView_Row *row = lvs->m_data.Get(rowidx);
               int xpos=-xo;
               for (int col = 0; col < nc && xpos < cr.right; col ++)
               {
-                int image_idx = 0;
                 const int col_idx = lvs->GetColumnIndex(col);
+
+                nmlvcd.iSubItem = col_idx;
+                nmlvcd.clrText = text_c;
+                SendMessage(par,WM_NOTIFY,hwnd->m_id&0xffff,(LPARAM)&nmlvcd);
+                SetTextColor(ps.hdc, nmlvcd.clrText);
+
+                int image_idx = 0;
                 if (owner_data)
                 {
                   NMLVDISPINFO nm={{hwnd,hwnd->m_id,LVN_GETDISPINFO},{LVIF_TEXT, rowidx,col_idx, 0,0, buf, sizeof(buf), -1 }};
@@ -4704,7 +4831,7 @@ forceMouseMove:
 
                   }
                   buf[0]=0;
-                  SendMessage(GetParent(hwnd),WM_NOTIFY,hwnd->m_id,(LPARAM)&nm);
+                  SendMessage(par,WM_NOTIFY,hwnd->m_id,(LPARAM)&nm);
                   str=buf;
                   if (!col && has_image)
                   {
@@ -4913,6 +5040,9 @@ forceMouseMove:
                   totalw,lvs->m_scroll_x);
             }
           }
+          Draw3DBox(ps.hdc,&rr,-1,
+            g_swell_ctheme.listview_hilight,
+            g_swell_ctheme.listview_shadow);
           DeleteObject(bgbr);
 
           EndPaint(hwnd,&ps);
@@ -4924,25 +5054,24 @@ forceMouseMove:
       delete lvs;
     break;
     case LB_ADDSTRING:
-      if (lvs && !lvs->IsOwnerData())
-      {
-         // todo: optional sort
-        int rv=lvs->m_data.GetSize();
-        SWELL_ListView_Row *row=new SWELL_ListView_Row;
-        row->m_vals.Add(strdup((const char *)lParam));
-        lvs->m_data.Add(row); 
-        InvalidateRect(hwnd,NULL,FALSE);
-        return rv;
-      }
-    return LB_ERR;
-     
     case LB_INSERTSTRING:
       if (lvs && !lvs->IsOwnerData())
       {
-        int idx =  (int) wParam;
-        if (idx<0 || idx>lvs->m_data.GetSize()) idx=lvs->m_data.GetSize();
         SWELL_ListView_Row *row=new SWELL_ListView_Row;
         row->m_vals.Add(strdup((const char *)lParam));
+        int idx;
+        if (msg == LB_ADDSTRING && hwnd->m_style & LBS_SORT)
+        {
+          bool isMatch;
+          idx=lvs->m_data.LowerBound(row,&isMatch,listViewState::compareRows);
+        }
+        else if (msg == LB_INSERTSTRING)
+        {
+          idx=(int)wParam;
+          if (idx<0 || idx>lvs->m_data.GetSize()) idx=lvs->m_data.GetSize();
+        }
+        else
+          idx=lvs->m_data.GetSize();
         lvs->m_data.Insert(idx,row); 
         InvalidateRect(hwnd,NULL,FALSE);
         return idx;
@@ -5102,6 +5231,10 @@ forceMouseMove:
         return row ? 0 : LB_ERR;
       }
     return LB_ERR;
+    case WM_SETFOCUS:
+    case WM_KILLFOCUS:
+      InvalidateRect(hwnd,NULL,FALSE);
+    break;
   }
   return DefWindowProc(hwnd,msg,wParam,lParam);
 }
@@ -5126,7 +5259,7 @@ struct treeViewState
     return true;
   }
 
-  int navigateSel(int key, int pagesize) // returns 2 force invalidate, 1 if ate key 
+  int navigateSel(HWND hwnd, int key, int pagesize) // returns 2 force invalidate, 1 if ate key
   {
     HTREEITEM par=NULL;
     int idx=0,tmp=1;
@@ -5138,8 +5271,19 @@ struct treeViewState
         {
           if (m_sel->m_haschildren && (m_sel->m_state & TVIS_EXPANDED))
           {
-            m_sel->m_state &= ~TVIS_EXPANDED;
-            return 2;
+            NMTREEVIEW nmhdr={{hwnd,(UINT_PTR)hwnd->m_id,TVN_ITEMEXPANDING},};
+            nmhdr.action = TVE_COLLAPSE;
+            nmhdr.itemNew.hItem=m_sel;
+            nmhdr.itemNew.lParam=m_sel->m_param;
+            if (!SendMessage(GetParent(hwnd),WM_NOTIFY,hwnd->m_id,(LPARAM)&nmhdr))
+            {
+              m_sel->m_state &= ~TVIS_EXPANDED;
+              return 2;
+            }
+            else
+            {
+              return 1;
+            }
           }
           if (par) m_sel=par;
         }
@@ -5159,8 +5303,19 @@ struct treeViewState
         {
           if (!(m_sel->m_state&TVIS_EXPANDED))
           {
-            m_sel->m_state |= TVIS_EXPANDED;
-            return 2;
+            NMTREEVIEW nmhdr={{hwnd,(UINT_PTR)hwnd->m_id,TVN_ITEMEXPANDING},};
+            nmhdr.action = TVE_EXPAND;
+            nmhdr.itemNew.hItem=m_sel;
+            nmhdr.itemNew.lParam=m_sel->m_param;
+            if (!SendMessage(GetParent(hwnd),WM_NOTIFY,hwnd->m_id,(LPARAM)&nmhdr))
+            {
+              m_sel->m_state |= TVIS_EXPANDED;
+              return 2;
+            }
+            else
+            {
+              return 1;
+            }
           }
           par = m_sel->m_children.Get(0);
           if (par) m_sel=par;
@@ -5222,7 +5377,7 @@ next_item_in_parent:
     return 0;
   }
 
-  void doDrawItem(HTREEITEM item, HDC hdc, RECT *rect) // draws any subitems too, updates rect->top
+  void doDrawItem(HTREEITEM item, HDC hdc, RECT *rect, bool focus) // draws any subitems too, updates rect->top
   {
 #ifdef SWELL_LICE_GDI
     if (!item) return;
@@ -5237,9 +5392,9 @@ next_item_in_parent:
         if (item == m_sel) 
         {
           SetBkMode(hdc,OPAQUE);
-          SetBkColor(hdc,g_swell_ctheme.treeview_bg_sel);
+          SetBkColor(hdc,focus ? g_swell_ctheme.treeview_bg_sel : g_swell_ctheme.treeview_bg_sel_inactive);
           oc = GetTextColor(hdc);
-          SetTextColor(hdc,g_swell_ctheme.treeview_text_sel);
+          SetTextColor(hdc,focus ? g_swell_ctheme.treeview_text_sel : g_swell_ctheme.treeview_text_sel_inactive);
         }
        
         RECT dr = *rect;
@@ -5283,7 +5438,7 @@ next_item_in_parent:
       rect->left += m_last_row_height;
       for (int x=0;x<n && rect->top < rect->bottom;x++)
       {
-        doDrawItem(item->m_children.Get(x),hdc,rect);
+        doDrawItem(item->m_children.Get(x),hdc,rect,focus);
       }
       rect->left -= m_last_row_height;
     } 
@@ -5398,7 +5553,7 @@ static LRESULT treeViewWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
         HTREEITEM oldSel = tvs->m_sel;
         RECT r;
         GetClientRect(hwnd,&r);
-        int flag = tvs->navigateSel((int)wParam,tvs->m_last_row_height ? r.bottom / tvs->m_last_row_height : 4); 
+        int flag = tvs->navigateSel(hwnd,(int)wParam,tvs->m_last_row_height ? r.bottom / tvs->m_last_row_height : 4);
         if (oldSel != tvs->m_sel)
         {
           if (tvs->m_sel) tvs->ensureItemVisible(hwnd,tvs->m_sel);
@@ -5414,7 +5569,7 @@ static LRESULT treeViewWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
       }
     break;
     case WM_LBUTTONDOWN:
-      SetFocusInternal(hwnd);
+      SetFocus(hwnd);
       SetCapture(hwnd);
       if (tvs)
       {
@@ -5452,8 +5607,15 @@ static LRESULT treeViewWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
             {
               if (GET_X_LPARAM(lParam) < xo + (tvs->m_last_row_height/4)*2+3)
               {
-                hit->m_state ^= TVIS_EXPANDED;
-                InvalidateRect(hwnd,NULL,FALSE);
+                NMTREEVIEW nmhdr={{hwnd,(UINT_PTR)hwnd->m_id,TVN_ITEMEXPANDING},};
+                nmhdr.action = (hit->m_state&TVIS_EXPANDED)!=TVIS_EXPANDED ? TVE_EXPAND : TVE_COLLAPSE;
+                nmhdr.itemNew.hItem=hit;
+                nmhdr.itemNew.lParam=hit->m_param;
+                if (!SendMessage(GetParent(hwnd),WM_NOTIFY,hwnd->m_id,(LPARAM)&nmhdr))
+                {
+                  hit->m_state ^= TVIS_EXPANDED;
+                  InvalidateRect(hwnd,NULL,FALSE);
+                }
                 return 0;
               }
             }
@@ -5567,13 +5729,16 @@ forceMouseMove:
             HGDIOBJ oldbr = SelectObject(ps.hdc,br);
 
             r.left -= tvs->m_last_row_height;
-            tvs->doDrawItem(&tvs->m_root,ps.hdc,&r);
+            tvs->doDrawItem(&tvs->m_root,ps.hdc,&r, GetFocus()==hwnd);
 
             SelectObject(ps.hdc,oldbr);
             SelectObject(ps.hdc,oldpen);
             DeleteObject(br);
 
             drawVerticalScrollbar(ps.hdc,cr,total_h,tvs->m_scroll_y);
+            Draw3DBox(ps.hdc,&cr,-1,
+              g_swell_ctheme.treeview_hilight,
+              g_swell_ctheme.treeview_shadow);
           }
 
           EndPaint(hwnd,&ps);
@@ -5583,6 +5748,10 @@ forceMouseMove:
     case WM_NCDESTROY:
       hwnd->m_private_data = 0;
       delete tvs;
+    break;
+    case WM_SETFOCUS:
+    case WM_KILLFOCUS:
+      InvalidateRect(hwnd,NULL,FALSE);
     break;
   }
   return DefWindowProc(hwnd,msg,wParam,lParam);
@@ -5626,7 +5795,7 @@ static LRESULT tabControlWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
       }
     break;
     case WM_KEYDOWN:
-      if (lParam==FVIRTKEY && 
+      if ((lParam&0xff)==FVIRTKEY &&
            (wParam==VK_LEFT || 
             wParam==VK_RIGHT || 
             wParam==VK_HOME || 
@@ -5651,7 +5820,7 @@ static LRESULT tabControlWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
     case WM_LBUTTONDOWN:
       if (GET_Y_LPARAM(lParam) < TABCONTROL_HEIGHT)
       {
-        SetFocusInternal(hwnd);
+        SetFocus(hwnd);
         int xp=GET_X_LPARAM(lParam),tab;
         HDC dc = GetDC(hwnd);
         int tabchg = -1;
@@ -5766,6 +5935,10 @@ static LRESULT tabControlWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
         }
       }
       return 0;
+    case WM_SETFOCUS:
+    case WM_KILLFOCUS:
+      InvalidateRect(hwnd,NULL,FALSE);
+    break;
   }
   return DefWindowProc(hwnd,msg,wParam,lParam);
 }
@@ -5795,22 +5968,23 @@ static ccprocrec *m_ccprocs;
 
 void SWELL_RegisterCustomControlCreator(SWELL_ControlCreatorProc proc)
 {
-  if (!proc) return;
+  if (WDL_NOT_NORMALLY(!proc)) return;
   
   ccprocrec *p=m_ccprocs;
-  while (p && p->next)
+  if (p) for (;;)
   {
     if (p->proc == proc)
     {
       p->cnt++;
       return;
     }
+    if (!p->next) break;
     p=p->next;
   }
   ccprocrec *ent = (ccprocrec*)malloc(sizeof(ccprocrec));
   ent->proc=proc;
   ent->cnt=1;
-  ent->next=0;
+  ent->next=NULL;
   
   if (p) p->next=ent;
   else m_ccprocs=ent;
@@ -5818,7 +5992,7 @@ void SWELL_RegisterCustomControlCreator(SWELL_ControlCreatorProc proc)
 
 void SWELL_UnregisterCustomControlCreator(SWELL_ControlCreatorProc proc)
 {
-  if (!proc) return;
+  if (WDL_NOT_NORMALLY(!proc)) return;
   
   ccprocrec *lp=NULL;
   ccprocrec *p=m_ccprocs;
@@ -5837,6 +6011,7 @@ void SWELL_UnregisterCustomControlCreator(SWELL_ControlCreatorProc proc)
     lp=p;
     p=p->next;
   }
+  WDL_ASSERT(false);
 }
 
 
@@ -5975,12 +6150,12 @@ HWND SWELL_MakeGroupBox(const char *name, int idx, int x, int y, int w, int h, i
 int TabCtrl_GetItemCount(HWND hwnd)
 {
    tabControlState *s = hwnd ? (tabControlState*) hwnd->m_private_data : NULL;
-   return s ? s->m_tabs.GetSize() : 0;
+   return WDL_NORMALLY(s) ? s->m_tabs.GetSize() : 0;
 }
 
 BOOL TabCtrl_AdjustRect(HWND hwnd, BOOL fLarger, RECT *r)
 {
-  if (!r || !hwnd) return FALSE;
+  if (WDL_NOT_NORMALLY(!r || !hwnd)) return FALSE;
  
   r->top += TABCONTROL_HEIGHT;
   
@@ -5991,7 +6166,7 @@ BOOL TabCtrl_AdjustRect(HWND hwnd, BOOL fLarger, RECT *r)
 BOOL TabCtrl_DeleteItem(HWND hwnd, int idx)
 {
   tabControlState *s = hwnd ? (tabControlState*) hwnd->m_private_data : NULL;
-  if (!s || !s->m_tabs.Get(idx)) return FALSE;
+  if (WDL_NOT_NORMALLY(!s || !s->m_tabs.Get(idx))) return FALSE;
   
   s->m_tabs.Delete(idx,true);
   if (s->m_curtab>0) s->m_curtab--;
@@ -6003,9 +6178,9 @@ BOOL TabCtrl_DeleteItem(HWND hwnd, int idx)
 
 int TabCtrl_InsertItem(HWND hwnd, int idx, TCITEM *item)
 {
-  tabControlState *s = hwnd ? (tabControlState*) hwnd->m_private_data : NULL;
-  if (!item || !s) return -1;
-  if (!(item->mask & TCIF_TEXT) || !item->pszText) return -1;
+  tabControlState *s = WDL_NORMALLY(hwnd) ? (tabControlState*) hwnd->m_private_data : NULL;
+  if (WDL_NOT_NORMALLY(!item || !s)) return -1;
+  if (WDL_NOT_NORMALLY(!(item->mask & TCIF_TEXT) || !item->pszText)) return -1;
 
   s->m_tabs.Insert(idx, strdup(item->pszText));
 
@@ -6017,7 +6192,7 @@ int TabCtrl_InsertItem(HWND hwnd, int idx, TCITEM *item)
 
 int TabCtrl_SetCurSel(HWND hwnd, int idx)
 {
-  tabControlState *s = hwnd ? (tabControlState*) hwnd->m_private_data : NULL;
+  tabControlState *s = WDL_NORMALLY(hwnd) ? (tabControlState*) hwnd->m_private_data : NULL;
   if (!s || !s->m_tabs.Get(idx)) return -1;
   const int lt =s->m_curtab;
   s->m_curtab = idx;
@@ -6028,14 +6203,14 @@ int TabCtrl_SetCurSel(HWND hwnd, int idx)
 
 int TabCtrl_GetCurSel(HWND hwnd)
 {
-  tabControlState *s = hwnd ? (tabControlState*) hwnd->m_private_data : NULL;
+  tabControlState *s = WDL_NORMALLY(hwnd) ? (tabControlState*) hwnd->m_private_data : NULL;
   return s ? s->m_curtab : -1;
 }
 
 void ListView_SetExtendedListViewStyleEx(HWND h, int flag, int mask)
 {
   listViewState *lvs = h ? (listViewState *)h->m_private_data : NULL;
-  if (!lvs) return;
+  if (WDL_NOT_NORMALLY(!lvs)) return;
   lvs->m_extended_style = (lvs->m_extended_style & ~mask) | (flag&mask);
 }
 
@@ -6046,7 +6221,7 @@ void SWELL_SetListViewFastClickMask(HWND hList, int mask)
 void ListView_SetImageList(HWND h, HIMAGELIST imagelist, int which)
 {
   listViewState *lvs = h ? (listViewState *)h->m_private_data : NULL;
-  if (!lvs) return;
+  if (WDL_NOT_NORMALLY(!lvs)) return;
   lvs->m_status_imagelist= (WDL_PtrList<HGDIOBJ__> *)imagelist;
   lvs->m_status_imagelist_type = which;
 }
@@ -6054,15 +6229,15 @@ void ListView_SetImageList(HWND h, HIMAGELIST imagelist, int which)
 int ListView_GetColumnWidth(HWND h, int pos)
 {
   listViewState *lvs = h ? (listViewState *)h->m_private_data : NULL;
-  if (!lvs) return 0;
+  if (WDL_NOT_NORMALLY(!lvs)) return 0;
   SWELL_ListView_Col *c = lvs->GetColumnByIndex(pos);
-  return c ? c->xwid : 0;
+  return WDL_NORMALLY(c) ? c->xwid : 0;
 }
 
 void ListView_InsertColumn(HWND h, int pos, const LVCOLUMN *lvc)
 {
   listViewState *lvs = h ? (listViewState *)h->m_private_data : NULL;
-  if (!lvs || !lvc) return;
+  if (WDL_NOT_NORMALLY(!lvs || !lvc)) return;
   SWELL_ListView_Col col = { 0, 100 };
   if (lvc->mask & LVCF_WIDTH) col.xwid = lvc->cx;
   if (lvc->mask & LVCF_TEXT) col.name = lvc->pszText ? strdup(lvc->pszText) : NULL;
@@ -6081,9 +6256,9 @@ void ListView_InsertColumn(HWND h, int pos, const LVCOLUMN *lvc)
 void ListView_SetColumn(HWND h, int pos, const LVCOLUMN *lvc)
 {
   listViewState *lvs = h ? (listViewState *)h->m_private_data : NULL;
-  if (!lvs || !lvc) return;
+  if (WDL_NOT_NORMALLY(!lvs || !lvc)) return;
   SWELL_ListView_Col *col = lvs->GetColumnByIndex(pos);
-  if (!col) return;
+  if (WDL_NOT_NORMALLY(!col)) return;
   if (lvc->mask & LVCF_WIDTH) col->xwid = lvc->cx;
   if (lvc->mask & LVCF_TEXT) 
   {
@@ -6101,7 +6276,7 @@ void ListView_GetItemText(HWND hwnd, int item, int subitem, char *text, int text
 int ListView_InsertItem(HWND h, const LVITEM *item)
 {
   listViewState *lvs = h ? (listViewState *)h->m_private_data : NULL;
-  if (!lvs || lvs->IsOwnerData() || !item || item->iSubItem) return 0;
+  if (WDL_NOT_NORMALLY(!lvs || lvs->IsOwnerData() || !item || item->iSubItem)) return 0;
 
   int idx =  (int) item->iItem;
   if (idx<0 || idx>lvs->m_data.GetSize()) idx=lvs->m_data.GetSize();
@@ -6122,9 +6297,9 @@ int ListView_InsertItem(HWND h, const LVITEM *item)
 void ListView_SetItemText(HWND h, int ipos, int cpos, const char *txt)
 {
   listViewState *lvs = h ? (listViewState *)h->m_private_data : NULL;
-  if (!lvs || lvs->IsOwnerData() || cpos < 0) return;
+  if (WDL_NOT_NORMALLY(!lvs || lvs->IsOwnerData() || cpos < 0)) return;
   const int ncol = wdl_max(lvs->m_cols.GetSize(),1);
-  if (cpos >= ncol) return;
+  if (WDL_NOT_NORMALLY(cpos >= ncol)) return;
 
   SWELL_ListView_Row *row=lvs->m_data.Get(ipos);
   if (!row) return;
@@ -6137,7 +6312,7 @@ void ListView_SetItemText(HWND h, int ipos, int cpos, const char *txt)
 int ListView_GetNextItem(HWND h, int istart, int flags)
 {
   listViewState *lvs = h ? (listViewState *)h->m_private_data : NULL;
-  if (!lvs) return -1;
+  if (WDL_NOT_NORMALLY(!lvs)) return -1;
   const int n = lvs->GetNumItems();
   for (int x = wdl_max(0,istart+1); x < n; x ++)
   {
@@ -6150,7 +6325,7 @@ int ListView_GetNextItem(HWND h, int istart, int flags)
 bool ListView_SetItem(HWND h, LVITEM *item)
 {
   listViewState *lvs = h ? (listViewState *)h->m_private_data : NULL;
-  if (!lvs || !item) return false;
+  if (WDL_NOT_NORMALLY(!lvs || !item)) return false;
 
   const bool ownerData = lvs->IsOwnerData();
   if (!ownerData)
@@ -6194,7 +6369,7 @@ bool ListView_SetItem(HWND h, LVITEM *item)
 bool ListView_GetItem(HWND h, LVITEM *item)
 {
   listViewState *lvs = h ? (listViewState *)h->m_private_data : NULL;
-  if (!lvs || !item) return false;
+  if (WDL_NOT_NORMALLY(!lvs || !item)) return false;
   if (!lvs->IsOwnerData())
   {
     SWELL_ListView_Row *row=lvs->m_data.Get(item->iItem);
@@ -6209,6 +6384,24 @@ bool ListView_GetItem(HWND h, LVITEM *item)
   else 
   {
     if (item->iItem < 0 || item->iItem >= lvs->GetNumItems()) return false;
+
+    int mask = item->mask & (LVIF_PARAM|LVIF_TEXT);
+    if (mask & LVIF_TEXT)
+    {
+      if (!item->pszText || item->cchTextMax < 1) mask &= ~LVIF_TEXT;
+      else *item->pszText = 0;
+    }
+    if (mask)
+    {
+      NMLVDISPINFO nm={{h, (UINT_PTR)GetWindowLong(h,GWL_ID), LVN_GETDISPINFO}};
+      nm.item.mask = mask;
+      nm.item.iItem = item->iItem;
+      nm.item.iSubItem = item->iSubItem;
+      nm.item.pszText = item->pszText;
+      nm.item.cchTextMax = item->cchTextMax;
+      SendMessage(GetParent(h),WM_NOTIFY,nm.hdr.idFrom,(LPARAM)&nm);
+      if (mask & LVIF_PARAM) item->lParam = nm.item.lParam;
+    }
   }
 
   if (item->mask & LVIF_STATE) 
@@ -6229,7 +6422,7 @@ bool ListView_GetItem(HWND h, LVITEM *item)
 int ListView_GetItemState(HWND h, int ipos, UINT mask)
 {
   listViewState *lvs = h ? (listViewState *)h->m_private_data : NULL;
-  if (!lvs) return 0;
+  if (WDL_NOT_NORMALLY(!lvs)) return 0;
   int ret  = 0;
   if (mask & LVIS_SELECTED) ret |= (lvs->get_sel(ipos) ? LVIS_SELECTED : 0 );
   if ((mask & LVIS_FOCUSED) && lvs->m_selitem == ipos) ret |= LVIS_FOCUSED;
@@ -6245,7 +6438,7 @@ int ListView_GetItemState(HWND h, int ipos, UINT mask)
 bool ListView_SetItemState(HWND h, int ipos, UINT state, UINT statemask)
 {
   listViewState *lvs = h ? (listViewState *)h->m_private_data : NULL;
-  if (!lvs) return false;
+  if (WDL_NOT_NORMALLY(!lvs)) return false;
 
   static int _is_doing_all;
   
@@ -6303,14 +6496,14 @@ bool ListView_SetItemState(HWND h, int ipos, UINT state, UINT statemask)
 }
 void ListView_RedrawItems(HWND h, int startitem, int enditem)
 {
-  if (!h) return;
+  if (WDL_NOT_NORMALLY(!h)) return;
   InvalidateRect(h,NULL,FALSE);
 }
 
 void ListView_DeleteItem(HWND h, int ipos)
 {
   listViewState *lvs = h ? (listViewState *)h->m_private_data : NULL;
-  if (!lvs || lvs->IsOwnerData()) return;
+  if (WDL_NOT_NORMALLY(!lvs || lvs->IsOwnerData())) return;
   lvs->m_data.Delete(ipos,true);
   InvalidateRect(h,NULL,FALSE);
 }
@@ -6318,7 +6511,7 @@ void ListView_DeleteItem(HWND h, int ipos)
 void ListView_DeleteAllItems(HWND h)
 {
   listViewState *lvs = h ? (listViewState *)h->m_private_data : NULL;
-  if (!lvs || lvs->IsOwnerData()) return;
+  if (WDL_NOT_NORMALLY(!lvs || lvs->IsOwnerData())) return;
   lvs->m_data.Empty(true);
   InvalidateRect(h,NULL,FALSE);
 }
@@ -6326,7 +6519,7 @@ void ListView_DeleteAllItems(HWND h)
 int ListView_GetSelectedCount(HWND h)
 {
   listViewState *lvs = h ? (listViewState *)h->m_private_data : NULL;
-  if (!lvs) return 0;
+  if (WDL_NOT_NORMALLY(!lvs)) return 0;
   const int n = lvs->GetNumItems();
   int sum=0,x;
   for (x=0;x<n;x++) if (lvs->get_sel(x)) sum++;
@@ -6336,14 +6529,14 @@ int ListView_GetSelectedCount(HWND h)
 int ListView_GetItemCount(HWND h)
 {
   listViewState *lvs = h ? (listViewState *)h->m_private_data : NULL;
-  if (!lvs) return 0;
+  if (WDL_NOT_NORMALLY(!lvs)) return 0;
   return lvs->GetNumItems();
 }
 
 int ListView_GetSelectionMark(HWND h)
 {
   listViewState *lvs = h ? (listViewState *)h->m_private_data : NULL;
-  if (!lvs) return 0;
+  if (WDL_NOT_NORMALLY(!lvs)) return 0;
   const int n = lvs->GetNumItems();
   int x;
   for (x=0;x<n;x++) if (lvs->get_sel(x)) return x;
@@ -6352,15 +6545,16 @@ int ListView_GetSelectionMark(HWND h)
 int SWELL_GetListViewHeaderHeight(HWND h)
 {
   listViewState *lvs = h ? (listViewState *)h->m_private_data : NULL;
-  return lvs ? lvs->GetColumnHeaderHeight(h) : 0;
+  return WDL_NORMALLY(lvs) ? lvs->GetColumnHeaderHeight(h) : 0;
 }
 
 void ListView_SetColumnWidth(HWND h, int pos, int wid)
 {
   listViewState *lvs = h ? (listViewState *)h->m_private_data : NULL;
-  if (!lvs) return;
+  if (WDL_NOT_NORMALLY(!lvs)) return;
   SWELL_ListView_Col *col = lvs->GetColumnByIndex(pos);
-  if (col) 
+  WDL_ASSERT(col || !pos);
+  if (col)
   {
     col->xwid = wid;
     InvalidateRect(h,NULL,FALSE);
@@ -6370,7 +6564,7 @@ void ListView_SetColumnWidth(HWND h, int pos, int wid)
 int ListView_HitTest(HWND h, LVHITTESTINFO *pinf)
 {
   listViewState *lvs = h ? (listViewState *)h->m_private_data : NULL;
-  if (!lvs || !pinf) return -1;
+  if (WDL_NOT_NORMALLY(!lvs || !pinf)) return -1;
 
   pinf->flags=0;
   pinf->iItem=-1;
@@ -6414,7 +6608,7 @@ int ListView_HitTest(HWND h, LVHITTESTINFO *pinf)
 int ListView_SubItemHitTest(HWND h, LVHITTESTINFO *pinf)
 {
   listViewState *lvs = h ? (listViewState *)h->m_private_data : NULL;
-  if (!lvs || !pinf) return -1;
+  if (WDL_NOT_NORMALLY(!lvs || !pinf)) return -1;
 
   const int row = ListView_HitTest(h, pinf);
   int x,xpos=-lvs->m_scroll_x,idx=0;
@@ -6434,7 +6628,7 @@ int ListView_SubItemHitTest(HWND h, LVHITTESTINFO *pinf)
 void ListView_SetItemCount(HWND h, int cnt)
 {
   listViewState *lvs = h ? (listViewState *)h->m_private_data : NULL;
-  if (!lvs || !lvs->IsOwnerData()) return;
+  if (WDL_NOT_NORMALLY(!lvs) || !lvs->IsOwnerData()) return;
   lvs->m_owner_data_size = cnt > 0 ? cnt : 0;
   if (lvs->m_owner_multisel_state.GetSize() > lvs->m_owner_data_size) lvs->m_owner_multisel_state.Resize(lvs->m_owner_data_size);
   if (lvs->m_selitem >= lvs->m_owner_data_size) lvs->m_selitem = -1;
@@ -6443,7 +6637,7 @@ void ListView_SetItemCount(HWND h, int cnt)
 void ListView_EnsureVisible(HWND h, int i, BOOL pok)
 {
   listViewState *lvs = h ? (listViewState *)h->m_private_data : NULL;
-  if (!lvs || !lvs->m_last_row_height) return;
+  if (WDL_NOT_NORMALLY(!lvs) || !lvs->m_last_row_height) return;
   const int n = lvs->GetNumItems();
   if (i>=0 && i < n)
   {
@@ -6467,7 +6661,7 @@ void ListView_EnsureVisible(HWND h, int i, BOOL pok)
 bool ListView_GetSubItemRect(HWND h, int item, int subitem, int code, RECT *r)
 {
   listViewState *lvs = h ? (listViewState *)h->m_private_data : NULL;
-  if (!lvs || !r) return false;
+  if (WDL_NOT_NORMALLY(!lvs || !r)) return false;
 
   r->top = lvs->m_last_row_height * item - lvs->m_scroll_y;
   r->top += lvs->GetColumnHeaderHeight(h);
@@ -6510,7 +6704,7 @@ bool ListView_GetItemRect(HWND h, int item, RECT *r, int code)
 bool ListView_Scroll(HWND h, int xscroll, int yscroll)
 {
   listViewState *lvs = h ? (listViewState *)h->m_private_data : NULL;
-  if (!lvs || !lvs->m_last_row_height) return false;
+  if (WDL_NOT_NORMALLY(!lvs) || !lvs->m_last_row_height) return false;
   const int oldy = lvs->m_scroll_y, oldx = lvs->m_scroll_x;
   lvs->m_scroll_x += xscroll;
   lvs->m_scroll_y += yscroll;
@@ -6523,9 +6717,9 @@ bool ListView_Scroll(HWND h, int xscroll, int yscroll)
 void ListView_SortItems(HWND hwnd, PFNLVCOMPARE compf, LPARAM parm)
 {
   listViewState *lvs = hwnd ? (listViewState *)hwnd->m_private_data : NULL;
-  if (!lvs || 
+  if (WDL_NOT_NORMALLY(!lvs || 
       lvs->m_is_listbox ||
-      lvs->m_owner_data_size >= 0 || !compf) return;
+      lvs->m_owner_data_size >= 0 || !compf)) return;
 
   WDL_HeapBuf tmp;
   char *b = (char*)tmp.ResizeOK(lvs->m_data.GetSize()*sizeof(void *));
@@ -6538,7 +6732,7 @@ void ListView_SortItems(HWND hwnd, PFNLVCOMPARE compf, LPARAM parm)
 bool ListView_DeleteColumn(HWND h, int pos)
 {
   listViewState *lvs = h ? (listViewState *)h->m_private_data : NULL;
-  if (!lvs) return false;
+  if (WDL_NOT_NORMALLY(!lvs)) return false;
   SWELL_ListView_Col *c = lvs->GetColumnByIndex(pos);
   if (!c) return false;
 
@@ -6559,7 +6753,8 @@ bool ListView_DeleteColumn(HWND h, int pos)
 int ListView_GetCountPerPage(HWND h)
 {
   listViewState *lvs = h ? (listViewState *)h->m_private_data : NULL;
-  if (!lvs || !lvs->m_last_row_height) return 0;
+  if (WDL_NOT_NORMALLY(!lvs) ||
+      !lvs->m_last_row_height) return 0;
 
   RECT cr;
   GetClientRect(h,&cr);
@@ -6569,7 +6764,7 @@ int ListView_GetCountPerPage(HWND h)
 
 HWND ChildWindowFromPoint(HWND h, POINT p)
 {
-  if (!h) return 0;
+  if (WDL_NOT_NORMALLY(!h)) return 0;
 
   RECT r={0,};
 
@@ -6650,9 +6845,21 @@ HWND WindowFromPoint(POINT p)
   return NULL;
 }
 
+#ifdef _DEBUG
+int g_swell_in_paint;
+#endif
+
 BOOL InvalidateRect(HWND hwnd, const RECT *r, int eraseBk)
 { 
-  if (!hwnd || hwnd->m_hashaddestroy) return FALSE;
+#ifdef _DEBUG
+  if (g_swell_in_paint)
+  {
+    printf("swell-generic: calling InvalidateRect() from within paint, this is allowed but bad form.\n");
+    // WDL_ASSERT(false);
+  }
+#endif
+
+  if (WDL_NOT_NORMALLY(!hwnd) || hwnd->m_hashaddestroy) return FALSE;
 
 #ifdef SWELL_LICE_GDI
   RECT rect;
@@ -6730,6 +6937,7 @@ HWND GetCapture()
 
 HWND SetCapture(HWND hwnd)
 {
+  WDL_ASSERT(hwnd != NULL);
   HWND oc = swell_captured_window;
   if (oc != hwnd)
   {
@@ -6852,7 +7060,7 @@ LRESULT SwellDialogDefaultWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM
       int navdir = 0;
 
       if (wParam == VK_TAB && (lParam&~FSHIFT) == FVIRTKEY) navdir = (lParam & FSHIFT) ? -1 : 1;
-      else if (lParam == FVIRTKEY)
+      else if ((lParam&0xff) == FVIRTKEY)
       {
         if (wParam == VK_LEFT || wParam == VK_UP) navdir = -1;
         else if (wParam == VK_RIGHT || wParam == VK_DOWN) navdir = 1;
@@ -6863,8 +7071,9 @@ LRESULT SwellDialogDefaultWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM
         HWND ch = getNextFocusWindow(hwnd,navdir<0,hwnd->m_focused_child);
         if (ch)
         {
+          HWND oldfoc = GetFocus();
           SetFocus(ch);
-
+          if (oldfoc != ch) SWELL_OnNavigationFocus(ch);
           InvalidateRect(ch,NULL,FALSE);
           return 0;
         }
@@ -6876,6 +7085,7 @@ LRESULT SwellDialogDefaultWindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM
 
 BOOL EndPaint(HWND hwnd, PAINTSTRUCT *ps)
 {
+  WDL_ASSERT(hwnd != NULL);
   return TRUE;
 }
 
@@ -6888,7 +7098,10 @@ static bool wantRightAlignedMenuBarItem(const char *p)
   return c > 0 && c != '&' && !isalnum(c);
 }
 
-static int menuBarHitTest(HWND hwnd, int mousex, int mousey, RECT *rOut, int forceItem)
+#define MENUBAR_SELECTED_ITEM_XPAD \
+   wdl_min(g_swell_ctheme.menubar_spacing_width,g_swell_ctheme.menubar_margin_width)
+
+static int menuBarHitTest(HWND hwnd, int mousex, int mousey, RECT *rOut, int forceItem, int expandedItem)
 {
   int rv=-1;
   RECT r;
@@ -6897,6 +7110,7 @@ static int menuBarHitTest(HWND hwnd, int mousex, int mousey, RECT *rOut, int for
   {
     HDC dc = GetWindowDC(hwnd);
 
+    const int xselpad = MENUBAR_SELECTED_ITEM_XPAD, xpad=g_swell_ctheme.menubar_spacing_width;
     int x,xpos=r.left + g_swell_ctheme.menubar_margin_width;
     HMENU__ *menu = (HMENU__*)hwnd->m_menu;
     HGDIOBJ oldfont = dc ? SelectObject(dc,menubar_font) : NULL;
@@ -6915,11 +7129,15 @@ static int menuBarHitTest(HWND hwnd, int mousex, int mousey, RECT *rOut, int for
           cr.right = r.right - g_swell_ctheme.menubar_margin_width - xpos;
         }
 
-        if (forceItem>=0 ? forceItem == x : (mousex >=xpos && mousex< xpos + cr.right + g_swell_ctheme.menubar_spacing_width))
+        if (forceItem >=0 ? forceItem == x :
+            expandedItem < 0 ? (mousex >= xpos - xpad && mousex < xpos + cr.right + (xpad+1)*3/4) :
+            x == expandedItem ? (mousex >= xpos - xselpad && mousex < xpos + cr.right + xselpad) :
+            mousex >= xpos && mousex < xpos + cr.right + xpad - (x == expandedItem-1 ? xselpad : 0)
+           )
         {
           if (!dis) 
           {
-            rOut->left = xpos;
+            rOut->left = xpos - xselpad;
             rOut->right = xpos + cr.right;
             rOut->top = r.top;
             rOut->bottom = r.top + g_swell_ctheme.menubar_height;
@@ -6928,7 +7146,7 @@ static int menuBarHitTest(HWND hwnd, int mousex, int mousey, RECT *rOut, int for
           break;
         }
 
-        xpos+=cr.right+g_swell_ctheme.menubar_spacing_width;
+        xpos+=cr.right+xpad;
       }
     }
     
@@ -6943,7 +7161,6 @@ static int menuBarHitTest(HWND hwnd, int mousex, int mousey, RECT *rOut, int for
 
 static RECT g_menubar_lastrect;
 static HWND g_menubar_active;
-static POINT g_menubar_startpt;
 static bool g_menubar_active_drag;
 
 HWND swell_window_wants_all_input()
@@ -6956,7 +7173,7 @@ int menuBarNavigate(int dir) // -1 if no menu bar active, 0 if did nothing, 1 if
   if (!g_menubar_active || !g_menubar_active->m_menu) return -1;
   HMENU__ *menu = (HMENU__*)g_menubar_active->m_menu;
   RECT r;
-  const int x = menuBarHitTest(g_menubar_active,0,0,&r,menu->sel_vis + dir);
+  const int x = menuBarHitTest(g_menubar_active,0,0,&r,menu->sel_vis + dir, -1);
   if (x>=0)
   {
     MENUITEMINFO *inf = menu->items.Get(x);
@@ -6973,7 +7190,7 @@ int menuBarNavigate(int dir) // -1 if no menu bar active, 0 if did nothing, 1 if
 }
 
 RECT g_trackpopup_yroot;
-static void runMenuBar(HWND hwnd, HMENU__ *menu, int x, const RECT *use_r)
+static void runMenuBar(HWND hwnd, HMENU__ *menu, int x, const RECT *use_r, int flag)
 {
   menu->Retain();
   MENUITEMINFO *inf = menu->items.Get(x);
@@ -6987,13 +7204,12 @@ static void runMenuBar(HWND hwnd, HMENU__ *menu, int x, const RECT *use_r)
   mbr.bottom = 0;
   mbr.top = -g_swell_ctheme.menubar_height;
   menu->sel_vis = x;
-  GetCursorPos(&g_menubar_startpt);
   g_menubar_active = hwnd;
   g_menubar_active_drag=true;
   for (;;)
   {
     InvalidateRect(hwnd,&mbr,FALSE);
-    if (TrackPopupMenu(inf->hSubMenu,0,r.left,r.bottom,0xbeef,hwnd,NULL) || menu->sel_vis == x) break;
+    if (TrackPopupMenu(inf->hSubMenu,0,r.left,r.bottom,flag,hwnd,NULL) || menu->sel_vis == x) break;
 
     x = menu->sel_vis;
     inf = menu->items.Get(x);
@@ -7022,7 +7238,7 @@ LRESULT DefWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
         HMENU__ *menu = (HMENU__*)hwnd->m_menu;
         RECT r;
-        const int x = menuBarHitTest(hwnd,GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam),&r,-1);
+        const int x = menuBarHitTest(hwnd,GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam),&r,-1, menu->sel_vis);
         if (x>=0 && x != menu->sel_vis)
         {
           MENUITEMINFO *inf = menu->items.Get(x);
@@ -7059,8 +7275,15 @@ LRESULT DefWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
           r.bottom -= r.top; r.top=0;
           if (r.bottom>g_swell_ctheme.menubar_height) r.bottom=g_swell_ctheme.menubar_height;
 
+          bool isactive = false;
+          if (swell_is_app_inactive() == 0) // draw as inactive if maybe inactive
           {
-            HBRUSH br=CreateSolidBrush(g_swell_ctheme.menubar_bg);
+            HWND foc = GetFocus();
+            if (foc && (foc == hwnd || IsChild(hwnd,foc))) isactive = true;
+          }
+
+          {
+            HBRUSH br=CreateSolidBrush(isactive ? g_swell_ctheme.menubar_bg : g_swell_ctheme.menubar_bg_inactive);
             FillRect(dc,&r,br);
             DeleteObject(br);
           }
@@ -7094,12 +7317,16 @@ LRESULT DefWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
               cr.bottom = r.bottom;
               if (!dis && menu->sel_vis == x)
               {
+                RECT crb = cr;
+                crb.left -= MENUBAR_SELECTED_ITEM_XPAD;
+                crb.right += MENUBAR_SELECTED_ITEM_XPAD;
                 HBRUSH br = CreateSolidBrush(g_swell_ctheme.menubar_bg_sel);
-                FillRect(dc,&cr,br);
+                FillRect(dc,&crb,br);
                 DeleteObject(br);
                 SetTextColor(dc,g_swell_ctheme.menubar_text_sel);
               }
               else SetTextColor(dc,
+                 !isactive ? g_swell_ctheme.menubar_text_inactive :
                  dis ? g_swell_ctheme.menubar_text_disabled :
                    g_swell_ctheme.menubar_text);
 
@@ -7138,16 +7365,19 @@ LRESULT DefWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
           POINT pt;
           GetCursorPos(&pt);
-          pt.x -= g_menubar_startpt.x;
-          pt.y -= g_menubar_startpt.y;
-          if (pt.x*pt.x+ pt.y*pt.y > 4*4) 
+
+          RECT r;
+          GetWindowContentViewRect(hwnd,&r);
+          r.bottom = r.top + g_swell_ctheme.menubar_height;
+
+          if (!PtInRect(&r,pt))
           {
             DestroyPopupMenus();
             return 0;
           }
         }
         RECT r;
-        const int x = menuBarHitTest(hwnd,GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam),&r,-1);
+        const int x = menuBarHitTest(hwnd,GET_X_LPARAM(lParam),GET_Y_LPARAM(lParam),&r,-1,-1);
         if (x>=0)
         {
           HMENU__ *menu = (HMENU__*)hwnd->m_menu;
@@ -7158,7 +7388,7 @@ LRESULT DefWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             { 
               if (msg == WM_NCLBUTTONDOWN) 
               {
-                runMenuBar(hwnd,menu,x,&r);
+                runMenuBar(hwnd,menu,x,&r,0xbeef);
               }
             }
             else if (msg == WM_NCLBUTTONUP)
@@ -7212,9 +7442,9 @@ LRESULT DefWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 if (inf->hSubMenu)
                 {
                   RECT r;
-                  if (menuBarHitTest(hwnd,0,0,&r,x)>=0)
+                  if (menuBarHitTest(hwnd,0,0,&r,x,-1)>=0)
                   {
-                    runMenuBar(hwnd,menu,x,&r);
+                    runMenuBar(hwnd,menu,x,&r,0xbeee);
                   }
                 }
                 else
@@ -7240,17 +7470,10 @@ LRESULT DefWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     return 0;
 
     case WM_GETFONT:
-        if (hwnd->m_font) return (LRESULT) hwnd->m_font;
-#ifdef SWELL_FREETYPE
-        {
-          HFONT SWELL_GetDefaultFont(void);
-          return (LRESULT)SWELL_GetDefaultFont();
-        }
-#endif
+      return (LRESULT)(hwnd->m_font ? hwnd->m_font : SWELL_GetDefaultFont());
 
-        return 0;
     case WM_DROPFILES:
-        if (hwnd->m_parent && wParam)
+        if (hwnd->m_parent && wParam && !(GetWindowLong(hwnd,GWL_EXSTYLE)&WS_EX_ACCEPTFILES))
         {
           DROPFILES *df=(DROPFILES*)wParam;
           ClientToScreen(hwnd,&df->pt);
@@ -7341,6 +7564,7 @@ UINT DragQueryFile(HDROP hDrop, UINT wf, char *buf, UINT bufsz)
 
 BOOL PostMessage(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+  WDL_ASSERT(hwnd != NULL);
   return SWELL_Internal_PostMessage(hwnd,message,wParam,lParam);
 }
 
@@ -7366,7 +7590,7 @@ typedef struct PMQ_rec
   struct PMQ_rec *next;
 } PMQ_rec;
 
-static WDL_Mutex *m_pmq_mutex;
+static WDL_Mutex m_pmq_mutex;
 static PMQ_rec *m_pmq, *m_pmq_empty, *m_pmq_tail;
 static int m_pmq_size;
 
@@ -7375,17 +7599,11 @@ static int m_pmq_size;
 
 void SWELL_Internal_PostMessage_Init()
 {
-  if (m_pmq_mutex) return;
-  
-  m_pmq_mainthread=pthread_self();
-  m_pmq_mutex = new WDL_Mutex;
 }
 
 void SWELL_MessageQueue_Flush()
 {
-  if (!m_pmq_mutex) return;
-  
-  m_pmq_mutex->Enter();
+  m_pmq_mutex.Enter();
   int max_amt = m_pmq_size;
   PMQ_rec *p=m_pmq;
   if (p)
@@ -7394,14 +7612,14 @@ void SWELL_MessageQueue_Flush()
     if (m_pmq_tail == p) m_pmq_tail=NULL;
     m_pmq_size--;
   }
-  m_pmq_mutex->Leave();
+  m_pmq_mutex.Leave();
   
   // process out up to max_amt of queue
   while (p)
   {
     SendMessage(p->hwnd,p->msg,p->wParam,p->lParam); 
 
-    m_pmq_mutex->Enter();
+    m_pmq_mutex.Enter();
     // move this message to empty list
     p->next=m_pmq_empty;
     m_pmq_empty = p;
@@ -7414,15 +7632,13 @@ void SWELL_MessageQueue_Flush()
       if (m_pmq_tail == p) m_pmq_tail=NULL;
       m_pmq_size--;
     }
-    m_pmq_mutex->Leave();
+    m_pmq_mutex.Leave();
   }
 }
 
 void SWELL_Internal_PMQ_ClearAllMessages(HWND hwnd)
 {
-  if (!m_pmq_mutex) return;
-  
-  m_pmq_mutex->Enter();
+  m_pmq_mutex.Enter();
   PMQ_rec *p=m_pmq;
   PMQ_rec *lastrec=NULL;
   while (p)
@@ -7443,15 +7659,15 @@ void SWELL_Internal_PMQ_ClearAllMessages(HWND hwnd)
       else p = m_pmq = next;
     }
   }
-  m_pmq_mutex->Leave();
+  m_pmq_mutex.Leave();
 }
 
 BOOL SWELL_Internal_PostMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-  if (!hwnd||hwnd->m_hashaddestroy||!m_pmq_mutex) return FALSE;
+  if (WDL_NOT_NORMALLY(!hwnd) || hwnd->m_hashaddestroy) return FALSE;
 
   BOOL ret=FALSE;
-  m_pmq_mutex->Enter();
+  m_pmq_mutex.Enter();
 
   if (m_pmq_empty||m_pmq_size<MAX_POSTMESSAGE_SIZE)
   {
@@ -7478,7 +7694,7 @@ BOOL SWELL_Internal_PostMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
     ret=TRUE;
   }
 
-  m_pmq_mutex->Leave();
+  m_pmq_mutex.Leave();
 
   return ret;
 }
@@ -7486,7 +7702,7 @@ BOOL SWELL_Internal_PostMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
 
 int EnumPropsEx(HWND hwnd, PROPENUMPROCEX proc, LPARAM lParam)
 {
-  if (!hwnd) return -1;
+  if (WDL_NOT_NORMALLY(!hwnd)) return -1;
   int x;
   for (x =0 ; x < hwnd->m_props.GetSize(); x ++)
   {
@@ -7499,19 +7715,20 @@ int EnumPropsEx(HWND hwnd, PROPENUMPROCEX proc, LPARAM lParam)
 
 HANDLE GetProp(HWND hwnd, const char *name)
 {
-  if (!hwnd) return NULL;
+  if (WDL_NOT_NORMALLY(!hwnd)) return NULL;
   return hwnd->m_props.Get(name);
 }
 
 BOOL SetProp(HWND hwnd, const char *name, HANDLE val)
 {
-  if (!hwnd) return false;
+  if (WDL_NOT_NORMALLY(!hwnd)) return false;
   hwnd->m_props.Insert(name,(void *)val);
   return TRUE;
 }
 
 HANDLE RemoveProp(HWND hwnd, const char *name)
 {
+  if (WDL_NOT_NORMALLY(!hwnd)) return NULL;
   HANDLE h =GetProp(hwnd,name);
   hwnd->m_props.Delete(name);
   return h;
@@ -7533,13 +7750,14 @@ int GetSystemMetrics(int p)
     case SM_CYHSCROLL:
     case SM_CXVSCROLL:
     case SM_CYVSCROLL: return g_swell_ctheme.smscrollbar_width;
+    case SM_CYMENU: return g_swell_ctheme.menubar_height;
   }
   return 0;
 }
 
 BOOL ScrollWindow(HWND hwnd, int xamt, int yamt, const RECT *lpRect, const RECT *lpClipRect)
 {
-  if (!hwnd || (!xamt && !yamt)) return FALSE;
+  if (WDL_NOT_NORMALLY(!hwnd) || (!xamt && !yamt)) return FALSE;
   InvalidateRect(hwnd,NULL,FALSE);
   
   // move child windows only
@@ -7578,7 +7796,7 @@ HWND FindWindowEx(HWND par, HWND lastw, const char *classname, const char *title
 HTREEITEM TreeView_InsertItem(HWND hwnd, TV_INSERTSTRUCT *ins)
 {
   treeViewState *tvs = hwnd ? (treeViewState *)hwnd->m_private_data : NULL;
-  if (!tvs || !ins) return NULL;
+  if (WDL_NOT_NORMALLY(!tvs || !ins)) return NULL;
 
   HTREEITEM__ *par=NULL;
   int inspos=0;
@@ -7611,33 +7829,42 @@ HTREEITEM TreeView_InsertItem(HWND hwnd, TV_INSERTSTRUCT *ins)
 BOOL TreeView_Expand(HWND hwnd, HTREEITEM item, UINT flag)
 {
   treeViewState *tvs = hwnd ? (treeViewState *)hwnd->m_private_data : NULL;
-  if (!tvs || !tvs->findItem(item,NULL,NULL)) return FALSE;
+  if (WDL_NOT_NORMALLY(!tvs || !tvs->findItem(item,NULL,NULL))) return FALSE;
+
+  if (flag == TVE_EXPAND && (item->m_state & TVIS_EXPANDED)) return TRUE;
+  if (flag == TVE_COLLAPSE && !(item->m_state & TVIS_EXPANDED)) return TRUE;
  
-  const int os = item->m_state;
+  NMTREEVIEW nmhdr={{hwnd,(UINT_PTR)hwnd->m_id,TVN_ITEMEXPANDING},};
+  nmhdr.action = flag;
+  nmhdr.itemNew.hItem=item;
+  nmhdr.itemNew.lParam=item->m_param;
+  if (SendMessage(GetParent(hwnd),WM_NOTIFY,hwnd->m_id,(LPARAM)&nmhdr)) return TRUE;
+
   if (flag == TVE_EXPAND) item->m_state |= TVIS_EXPANDED;
   else if (flag == TVE_COLLAPSE) item->m_state &= ~TVIS_EXPANDED;
   else if (flag == TVE_TOGGLE) item->m_state ^= TVIS_EXPANDED;
   
-  if (item->m_state != os) InvalidateRect(hwnd,NULL,FALSE);
+  InvalidateRect(hwnd,NULL,FALSE);
   return TRUE;
 }
 
 HTREEITEM TreeView_GetSelection(HWND hwnd)
 { 
   treeViewState *tvs = hwnd ? (treeViewState *)hwnd->m_private_data : NULL;
-  if (!tvs || !tvs->m_sel || !tvs->findItem(tvs->m_sel,NULL,NULL)) return NULL;
+  if (WDL_NOT_NORMALLY(!tvs) ||
+      !tvs->m_sel || !tvs->findItem(tvs->m_sel,NULL,NULL)) return NULL;
   return tvs->m_sel;
 }
 
 void TreeView_DeleteItem(HWND hwnd, HTREEITEM item)
 {
   treeViewState *tvs = hwnd ? (treeViewState *)hwnd->m_private_data : NULL;
-  if (!tvs) return;
+  if (WDL_NOT_NORMALLY(!tvs)) return;
   HTREEITEM par=NULL;
   int idx=0;
   if (!tvs->findItem(item,&par,&idx)) return;
 
-  if (tvs->m_sel && (item == tvs->m_sel || item->FindItem(tvs->m_sel,NULL,NULL))) tvs->m_sel=NULL;
+  if (tvs->m_sel && (item == tvs->m_sel || item->FindItem(tvs->m_sel,NULL,NULL))) tvs->m_sel=par;
 
   (par ? par : &tvs->m_root)->m_children.Delete(idx,true);
   InvalidateRect(hwnd,NULL,FALSE);
@@ -7646,16 +7873,25 @@ void TreeView_DeleteItem(HWND hwnd, HTREEITEM item)
 void TreeView_DeleteAllItems(HWND hwnd)
 {
   treeViewState *tvs = hwnd ? (treeViewState *)hwnd->m_private_data : NULL;
-  if (!tvs) return;
+  if (WDL_NOT_NORMALLY(!tvs)) return;
   tvs->m_root.m_children.Empty(true);
   tvs->m_sel=NULL;
+  InvalidateRect(hwnd,NULL,FALSE);
+}
+
+void TreeView_EnsureVisible(HWND hwnd, HTREEITEM item)
+{
+  treeViewState *tvs = hwnd ? (treeViewState *)hwnd->m_private_data : NULL;
+  if (WDL_NOT_NORMALLY(!tvs)) return;
+  if (!item || !tvs->findItem(item,NULL,NULL)) return;
+  tvs->ensureItemVisible(hwnd,item);
   InvalidateRect(hwnd,NULL,FALSE);
 }
 
 void TreeView_SelectItem(HWND hwnd, HTREEITEM item)
 {
   treeViewState *tvs = hwnd ? (treeViewState *)hwnd->m_private_data : NULL;
-  if (!tvs) return;
+  if (WDL_NOT_NORMALLY(!tvs)) return;
 
   if (tvs->m_sel == item || (item && !tvs->findItem(item,NULL,NULL))) return;
 
@@ -7678,7 +7914,8 @@ void TreeView_SelectItem(HWND hwnd, HTREEITEM item)
 BOOL TreeView_GetItem(HWND hwnd, LPTVITEM pitem)
 {
   treeViewState *tvs = hwnd ? (treeViewState *)hwnd->m_private_data : NULL;
-  if (!tvs || !pitem || !(pitem->mask & TVIF_HANDLE) || !(pitem->hItem)) return FALSE;
+  if (WDL_NOT_NORMALLY(!tvs || !pitem) ||
+      !(pitem->mask & TVIF_HANDLE) || !(pitem->hItem)) return FALSE;
   
   HTREEITEM ti = pitem->hItem;
   pitem->cChildren = ti->m_haschildren ? 1:0;
@@ -7695,7 +7932,8 @@ BOOL TreeView_GetItem(HWND hwnd, LPTVITEM pitem)
 BOOL TreeView_SetItem(HWND hwnd, LPTVITEM pitem)
 {
   treeViewState *tvs = hwnd ? (treeViewState *)hwnd->m_private_data : NULL;
-  if (!tvs || !pitem || !(pitem->mask & TVIF_HANDLE) || !(pitem->hItem)) return FALSE;
+  if (WDL_NOT_NORMALLY(!tvs || !pitem) ||
+      !(pitem->mask & TVIF_HANDLE) || !(pitem->hItem)) return FALSE;
 
   if (!tvs->findItem(pitem->hItem,NULL,NULL)) return FALSE;
   
@@ -7736,7 +7974,8 @@ BOOL TreeView_SetItem(HWND hwnd, LPTVITEM pitem)
 HTREEITEM TreeView_HitTest(HWND hwnd, TVHITTESTINFO *hti)
 {
   treeViewState *tvs = hwnd ? (treeViewState *)hwnd->m_private_data : NULL;
-  if (!tvs || !hti || !tvs->m_last_row_height) return NULL;
+  if (WDL_NOT_NORMALLY(!tvs || !hti) || 
+      !tvs->m_last_row_height) return NULL;
 
   RECT r;
   GetClientRect(hwnd,&r);
@@ -7754,14 +7993,25 @@ HTREEITEM TreeView_HitTest(HWND hwnd, TVHITTESTINFO *hti)
 HTREEITEM TreeView_GetRoot(HWND hwnd)
 {
   treeViewState *tvs = hwnd ? (treeViewState *)hwnd->m_private_data : NULL;
-  if (!tvs) return NULL;
+  if (WDL_NOT_NORMALLY(!tvs)) return NULL;
   return tvs->m_root.m_children.Get(0);
+}
+
+HTREEITEM TreeView_GetParent(HWND hwnd, HTREEITEM item)
+{
+  if (!item) return TreeView_GetRoot(hwnd);
+  treeViewState *tvs = hwnd ? (treeViewState *)hwnd->m_private_data : NULL;
+
+  HTREEITEM par=NULL;
+  int idx=0;
+  if (WDL_NOT_NORMALLY(!tvs || !tvs->findItem(item,&par,&idx))) return NULL;
+  return par;
 }
 
 HTREEITEM TreeView_GetChild(HWND hwnd, HTREEITEM item)
 {
   treeViewState *tvs = hwnd ? (treeViewState *)hwnd->m_private_data : NULL;
-  if (!tvs) return NULL;
+  if (WDL_NOT_NORMALLY(!tvs)) return NULL;
   return (item && item != TVI_ROOT ? item : &tvs->m_root)->m_children.Get(0);
 }
 
@@ -7771,7 +8021,7 @@ HTREEITEM TreeView_GetNextSibling(HWND hwnd, HTREEITEM item)
   
   HTREEITEM par=NULL;
   int idx=0;
-  if (!tvs || !tvs->findItem(item,&par,&idx)) return NULL;
+  if (WDL_NOT_NORMALLY(!tvs || !tvs->findItem(item,&par,&idx))) return NULL;
 
   return (par ? par : &tvs->m_root)->m_children.Get(idx+1);
 }
@@ -7782,14 +8032,18 @@ BOOL TreeView_SetIndent(HWND hwnd, int indent)
 
 void TreeView_SetBkColor(HWND hwnd, int color)
 {
+  // todo implement treeview colors
 }
 void TreeView_SetTextColor(HWND hwnd, int color)
 {
+  // todo implement treeview colors
 }
+
+#define IS_CLASSNAME_LISTVIEW_LISTBOX(x) ((x) && (!strcmp(x,"SysListView32") || !strcmp(x,"ListBox")))
 
 void ListView_SetBkColor(HWND h, int color)
 {
-  if (h && h->m_private_data && h->m_classname && !strcmp(h->m_classname,"SysListView32"))
+  if (WDL_NORMALLY(h && h->m_private_data && IS_CLASSNAME_LISTVIEW_LISTBOX(h->m_classname)))
   {
     listViewState *lvs = (listViewState *)h->m_private_data;
     if (lvs) lvs->m_color_bg = color;
@@ -7800,7 +8054,7 @@ void ListView_SetTextBkColor(HWND h, int color)
 }
 void ListView_SetTextColor(HWND h, int color)
 {
-  if (h && h->m_private_data && h->m_classname && !strcmp(h->m_classname,"SysListView32"))
+  if (WDL_NORMALLY(h && h->m_private_data && IS_CLASSNAME_LISTVIEW_LISTBOX(h->m_classname)))
   {
     listViewState *lvs = (listViewState *)h->m_private_data;
     lvs->m_color_text = color;
@@ -7808,7 +8062,7 @@ void ListView_SetTextColor(HWND h, int color)
 }
 void ListView_SetGridColor(HWND h, int color)
 {
-  if (h && h->m_private_data && h->m_classname && !strcmp(h->m_classname,"SysListView32"))
+  if (WDL_NORMALLY(h && h->m_private_data && IS_CLASSNAME_LISTVIEW_LISTBOX(h->m_classname)))
   {
     listViewState *lvs = (listViewState *)h->m_private_data;
     lvs->m_color_grid = color;
@@ -7816,24 +8070,35 @@ void ListView_SetGridColor(HWND h, int color)
 }
 void ListView_SetSelColors(HWND h, int *colors, int ncolors)
 {
-  if (h && h->m_private_data && h->m_classname && !strcmp(h->m_classname,"SysListView32"))
+  if (WDL_NORMALLY(h && h->m_private_data && h->m_classname))
   {
-    listViewState *lvs = (listViewState *)h->m_private_data;
-    if (colors && ncolors > 0) 
-      memcpy(lvs->m_color_extras,colors,wdl_min(ncolors*sizeof(int),sizeof(lvs->m_color_extras)));
+    if (IS_CLASSNAME_LISTVIEW_LISTBOX(h->m_classname))
+    {
+      listViewState *lvs = (listViewState *)h->m_private_data;
+      if (colors && ncolors > 0) 
+        memcpy(lvs->m_color_extras,colors,wdl_min(ncolors*sizeof(int),sizeof(lvs->m_color_extras)));
+    }
+    else if (!strcmp(h->m_classname,"SysTreeView32"))
+    {
+      // todo implement treeview colors
+    }
+    else
+    {
+      WDL_ASSERT(false);
+    }
   }
 }
 int ListView_GetTopIndex(HWND h)
 {
   listViewState *lvs = h ? (listViewState *)h->m_private_data : NULL;
-  if (!lvs || !lvs->m_last_row_height) return 0;
+  if (WDL_NOT_NORMALLY(!lvs) || !lvs->m_last_row_height) return 0;
   return lvs->m_scroll_y / lvs->m_last_row_height;
 }
 BOOL ListView_GetColumnOrderArray(HWND h, int cnt, int* arr)
 {
-  if (!arr) return FALSE;
+  if (WDL_NOT_NORMALLY(!arr)) return FALSE;
   listViewState *lvs = h ? (listViewState *)h->m_private_data : NULL;
-  if (!lvs || !lvs->HasColumnHeaders(h)) return FALSE;
+  if (WDL_NOT_NORMALLY(!lvs || !lvs->HasColumnHeaders(h))) return FALSE;
 
   for (int x=0;x<cnt;x++)
     arr[x]=x < lvs->m_cols.GetSize() ? lvs->m_cols.Get()[x].col_index : x;
@@ -7843,7 +8108,7 @@ BOOL ListView_SetColumnOrderArray(HWND h, int cnt, int* arr)
 {
   if (!arr) return FALSE;
   listViewState *lvs = h ? (listViewState *)h->m_private_data : NULL;
-  if (!lvs || !lvs->HasColumnHeaders(h)) return FALSE;
+  if (WDL_NOT_NORMALLY(!lvs || !lvs->HasColumnHeaders(h))) return FALSE;
 
   WDL_TypedBuf<SWELL_ListView_Col> tmp;
 
@@ -7874,13 +8139,13 @@ HWND ListView_GetHeader(HWND h)
 int Header_GetItemCount(HWND h)
 {
   listViewState *lvs = h ? (listViewState *)h->m_private_data : NULL;
-  return lvs ? lvs->m_cols.GetSize() : 0;
+  return WDL_NORMALLY(lvs) ? lvs->m_cols.GetSize() : 0;
 }
 
 BOOL Header_GetItem(HWND h, int col, HDITEM* hi)
 {
   listViewState *lvs = h ? (listViewState *)h->m_private_data : NULL;
-  if (!lvs) return FALSE;
+  if (WDL_NOT_NORMALLY(!lvs)) return FALSE;
   const SWELL_ListView_Col *c = lvs->GetColumnByIndex(col);
   if (!c) return FALSE;
 
@@ -7897,7 +8162,7 @@ BOOL Header_GetItem(HWND h, int col, HDITEM* hi)
 BOOL Header_SetItem(HWND h, int col, HDITEM* hi)
 {
   listViewState *lvs = h ? (listViewState *)h->m_private_data : NULL;
-  if (!lvs) return FALSE;
+  if (WDL_NOT_NORMALLY(!lvs)) return FALSE;
   SWELL_ListView_Col *c = lvs->GetColumnByIndex(col);
   if (!c) return FALSE;
 
@@ -7914,7 +8179,7 @@ BOOL Header_SetItem(HWND h, int col, HDITEM* hi)
 
 BOOL EnumChildWindows(HWND hwnd, BOOL (*cwEnumFunc)(HWND,LPARAM),LPARAM lParam)
 {
-  if (hwnd && hwnd->m_children)
+  if (WDL_NORMALLY(hwnd) && hwnd->m_children)
   {
     HWND n=hwnd->m_children;
     while (n)
@@ -7931,15 +8196,15 @@ void SWELL_GetDesiredControlSize(HWND hwnd, RECT *r)
 
 BOOL SWELL_IsGroupBox(HWND hwnd)
 {
-  return hwnd && hwnd->m_classname && !stricmp(hwnd->m_classname,"Button") && (hwnd->m_style & BS_GROUPBOX);
+  return WDL_NORMALLY(hwnd) && hwnd->m_classname && !stricmp(hwnd->m_classname,"Button") && (hwnd->m_style & BS_GROUPBOX);
 }
 BOOL SWELL_IsButton(HWND hwnd)
 {
-  return hwnd && hwnd->m_classname && !stricmp(hwnd->m_classname,"Button") && !(hwnd->m_style & BS_GROUPBOX);
+  return WDL_NORMALLY(hwnd) && hwnd->m_classname && !stricmp(hwnd->m_classname,"Button") && !(hwnd->m_style & BS_GROUPBOX);
 }
 BOOL SWELL_IsStaticText(HWND hwnd)
 {
-  return hwnd && hwnd->m_classname && !stricmp(hwnd->m_classname,"Static");
+  return WDL_NORMALLY(hwnd) && hwnd->m_classname && !stricmp(hwnd->m_classname,"Static");
 }
 
 
@@ -8037,7 +8302,7 @@ static LRESULT WINAPI focusRectWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPAR
 // otherwise r is in hwndPar coordinates
 void SWELL_DrawFocusRect(HWND hwndPar, RECT *rct, void **handle)
 {
-  if (!handle) return;
+  if (WDL_NOT_NORMALLY(!handle)) return;
 
   HWND h = (HWND) *handle;
   if (h && (!rct || h->m_parent != hwndPar))
@@ -8157,27 +8422,29 @@ void SWELL_GenerateDialogFromList(const void *_list, int listsz)
   }
 }
 
-int swell_fullscreenWindow(HWND hwnd, BOOL fs)
-{
-  if (hwnd)
-  {
-    hwnd->m_oswindow_fullscreen = fs;
-    return 1;
-  }
-  return 0;
-}
-
 void SWELL_SetClassName(HWND hwnd, const char *p)
 {
-  if (hwnd)
+  if (WDL_NORMALLY(hwnd))
     hwnd->m_classname=p;
 }
 
 int GetClassName(HWND hwnd, char *buf, int bufsz)
 {
-  if (!hwnd || !hwnd->m_classname || !buf || bufsz<1) return 0;
+  if (WDL_NOT_NORMALLY(!hwnd || !hwnd->m_classname || !buf || bufsz<1)) return 0;
   lstrcpyn_safe(buf,hwnd->m_classname,bufsz);
   return (int)strlen(buf);
+}
+
+void SWELL_DisableContextMenu(HWND hwnd, bool dis)
+{
+  if (WDL_NORMALLY(hwnd))
+  {
+    if (!strcmp(hwnd->m_classname,"Edit"))
+    {
+      __SWELL_editControlState *es = (__SWELL_editControlState*)hwnd->m_private_data;
+      if (es) es->m_disable_contextmenu = dis;
+    }
+  }
 }
 
 #ifdef _DEBUG

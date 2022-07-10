@@ -76,8 +76,8 @@ class IGraphicsNanoVG::Bitmap : public APIBitmap
 {
 public:
   Bitmap(NVGcontext* pContext, const char* path, double sourceScale, int nvgImageID, bool shared = false);
-  Bitmap(IGraphicsNanoVG* pGraphics, NVGcontext* pContext, int width, int height, int scale, float drawScale);
-  Bitmap(NVGcontext* pContext, int width, int height, const uint8_t* pData, int scale, float drawScale);
+  Bitmap(IGraphicsNanoVG* pGraphics, NVGcontext* pContext, int width, int height, float scale, float drawScale);
+  Bitmap(NVGcontext* pContext, int width, int height, const uint8_t* pData, float scale, float drawScale);
   virtual ~Bitmap();
   NVGframebuffer* GetFBO() const { return mFBO; }
 private:
@@ -99,7 +99,7 @@ IGraphicsNanoVG::Bitmap::Bitmap(NVGcontext* pContext, const char* path, double s
   SetBitmap(nvgImageID, w, h, sourceScale, 1.f);
 }
 
-IGraphicsNanoVG::Bitmap::Bitmap(IGraphicsNanoVG* pGraphics, NVGcontext* pContext, int width, int height, int scale, float drawScale)
+IGraphicsNanoVG::Bitmap::Bitmap(IGraphicsNanoVG* pGraphics, NVGcontext* pContext, int width, int height, float scale, float drawScale)
 {
   mGraphics = pGraphics;
   mVG = pContext;
@@ -120,7 +120,7 @@ IGraphicsNanoVG::Bitmap::Bitmap(IGraphicsNanoVG* pGraphics, NVGcontext* pContext
   SetBitmap(mFBO->image, width, height, scale, drawScale);
 }
 
-IGraphicsNanoVG::Bitmap::Bitmap(NVGcontext* pContext, int width, int height, const uint8_t* pData, int scale, float drawScale)
+IGraphicsNanoVG::Bitmap::Bitmap(NVGcontext* pContext, int width, int height, const uint8_t* pData, float scale, float drawScale)
 {
   int idx = nvgCreateImageRGBA(pContext, width, height, 0, pData);
   mVG = pContext;
@@ -227,7 +227,7 @@ END_IPLUG_NAMESPACE
 #pragma mark -
 
 IGraphicsNanoVG::IGraphicsNanoVG(IGEditorDelegate& dlg, int w, int h, int fps, float scale)
-: IGraphicsPathBase(dlg, w, h, fps, scale)
+: IGraphics(dlg, w, h, fps, scale)
 {
   DBGMSG("IGraphics NanoVG @ %i FPS\n", fps);
   StaticStorage<IFontData>::Accessor storage(sFontCache);
@@ -272,7 +272,7 @@ bool IGraphicsNanoVG::BitmapExtSupported(const char* ext)
 IBitmap IGraphicsNanoVG::LoadBitmap(const char* name, int nStates, bool framesAreHorizontal, int targetScale)
 {
   if (targetScale == 0)
-    targetScale = GetScreenScale();
+    targetScale = GetRoundedScreenScale();
 
   // NanoVG does not use the global static cache, since bitmaps are textures linked to a context
   StaticStorage<APIBitmap>::Accessor storage(mBitmapCache);
@@ -369,14 +369,14 @@ APIBitmap* IGraphicsNanoVG::LoadAPIBitmap(const char* name, const void* pData, i
   return pBitmap;
 }
 
-APIBitmap* IGraphicsNanoVG::CreateAPIBitmap(int width, int height, int scale, double drawScale, bool cacheable)
+APIBitmap* IGraphicsNanoVG::CreateAPIBitmap(int width, int height, float scale, double drawScale, bool cacheable)
 {
   if (mInDraw)
   {
     nvgEndFrame(mVG);
   }
   
-  APIBitmap* pAPIBitmap =  new Bitmap(this, mVG, width, height, scale, drawScale);
+  APIBitmap* pAPIBitmap = new Bitmap(this, mVG, width, height, scale, drawScale);
 
   if (mInDraw)
   {
@@ -496,9 +496,7 @@ void IGraphicsNanoVG::BeginFrame()
   mInDraw = true;
   IGraphics::BeginFrame(); // start perf graph timing
 
-#ifdef IGRAPHICS_METAL
-  //  mnvgClearWithColor(mVG, nvgRGBAf(0, 0, 0, 0));
-#else
+#ifdef IGRAPHICS_GL
     glViewport(0, 0, WindowWidth() * GetScreenScale(), WindowHeight() * GetScreenScale());
     glClearColor(0.f, 0.f, 0.f, 0.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -533,11 +531,6 @@ void IGraphicsNanoVG::EndFrame()
 #endif
 
   nvgEndFrame(mVG);
-
-#if defined IGRAPHICS_IMGUI && defined IGRAPHICS_GL
-  if(mImGuiRenderer)
-    mImGuiRenderer->NewFrame();
-#endif
   
   mInDraw = false;
   ClearFBOStack();
@@ -906,4 +899,15 @@ void IGraphicsNanoVG::ClearFBOStack()
     nvgDeleteFramebuffer(mFBOStack.top());
     mFBOStack.pop();
   }
+}
+
+void IGraphicsNanoVG::DrawFastDropShadow(const IRECT& innerBounds, const IRECT& outerBounds, float xyDrop, float roundness, float blur, IBlend* pBlend)
+{
+  NVGpaint shadowPaint = nvgBoxGradient(mVG, innerBounds.L + xyDrop, innerBounds.T + xyDrop, innerBounds.W(), innerBounds.H(), roundness, blur, NanoVGColor(COLOR_BLACK_DROP_SHADOW, pBlend), NanoVGColor(COLOR_TRANSPARENT, nullptr));
+  nvgBeginPath(mVG);
+  nvgRect(mVG, outerBounds.L, outerBounds.T, outerBounds.W(), outerBounds.H());
+  nvgFillPaint(mVG, shadowPaint);
+  nvgGlobalCompositeOperation(mVG, NVG_SOURCE_OVER);
+  nvgFill(mVG);
+  nvgBeginPath(mVG);
 }

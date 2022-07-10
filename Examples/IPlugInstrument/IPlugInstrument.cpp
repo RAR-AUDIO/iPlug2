@@ -19,7 +19,7 @@ IPlugInstrument::IPlugInstrument(const InstanceInfo& info)
     
 #if IPLUG_EDITOR // http://bit.ly/2S64BDd
   mMakeGraphicsFunc = [&]() {
-    return MakeGraphics(*this, PLUG_WIDTH, PLUG_HEIGHT, PLUG_FPS, GetScaleForScreen(PLUG_HEIGHT));
+    return MakeGraphics(*this, PLUG_WIDTH, PLUG_HEIGHT, PLUG_FPS, GetScaleForScreen(PLUG_WIDTH, PLUG_HEIGHT));
   };
   
   mLayoutFunc = [&](IGraphics* pGraphics) {
@@ -72,18 +72,18 @@ IPlugInstrument::IPlugInstrument(const InstanceInfo& info)
         pGraphics->GetControlWithTag(kCtrlTagKeyboard)->Hide(hide = !hide);
         pGraphics->Resize(PLUG_WIDTH, hide ? PLUG_HEIGHT / 2 : PLUG_HEIGHT, pGraphics->GetDrawScale());
     });
-#ifdef OS_IOS
-    if(!IsAuv3AppExtension())
-    {
-      pGraphics->AttachControl(new IVButtonControl(b.GetFromTRHC(100, 100), [pGraphics](IControl* pCaller) {
-                               dynamic_cast<IGraphicsIOS*>(pGraphics)->LaunchBluetoothMidiDialog(pCaller->GetRECT().L, pCaller->GetRECT().MH());
-                               SplashClickActionFunc(pCaller);
-                             }, "BTMIDI"));
-    }
-#endif
+//#ifdef OS_IOS
+//    if(!IsOOPAuv3AppExtension())
+//    {
+//      pGraphics->AttachControl(new IVButtonControl(b.GetFromTRHC(100, 100), [pGraphics](IControl* pCaller) {
+//                               dynamic_cast<IGraphicsIOS*>(pGraphics)->LaunchBluetoothMidiDialog(pCaller->GetRECT().L, pCaller->GetRECT().MH());
+//                               SplashClickActionFunc(pCaller);
+//                             }, "BTMIDI"));
+//    }
+//#endif
     
     pGraphics->SetQwertyMidiKeyHandlerFunc([pGraphics](const IMidiMsg& msg) {
-                                              dynamic_cast<IVKeyboardControl*>(pGraphics->GetControlWithTag(kCtrlTagKeyboard))->SetNoteFromMidi(msg.NoteNumber(), msg.StatusMsg() == IMidiMsg::kNoteOn);
+                                              pGraphics->GetControlWithTag(kCtrlTagKeyboard)->As<IVKeyboardControl>()->SetNoteFromMidi(msg.NoteNumber(), msg.StatusMsg() == IMidiMsg::kNoteOn);
                                            });
   };
 #endif
@@ -106,6 +106,7 @@ void IPlugInstrument::OnIdle()
 void IPlugInstrument::OnReset()
 {
   mDSP.Reset(GetSampleRate(), GetBlockSize());
+  mMeterSender.Reset(GetSampleRate());
 }
 
 void IPlugInstrument::ProcessMidiMsg(const IMidiMsg& msg)

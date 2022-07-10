@@ -41,12 +41,12 @@ if [ "$#" -eq 1 ]; then
   skia_use_metal = true
   skia_use_icu = true
   skia_use_sfntly = false
+  skia_enable_svg = true
   skia_enable_skottie = true
   skia_enable_pdf = false
   skia_enable_particles = true
   skia_enable_gpu = true
   skia_enable_skparagraph = true
-  skia_enable_sksl_interpreter = true
   cc = "clang"
   cxx = "clang++"
   target_os = "ios"
@@ -76,6 +76,8 @@ if [ "$#" -eq 1 ]; then
   mv ../../tmp/skia/ios/$DIR_ARCH_STR/libsksg.a ../../ios/lib/$DIR_ARCH_STR
   mv ../../tmp/skia/ios/$DIR_ARCH_STR/libskshaper.a ../../ios/lib/$DIR_ARCH_STR
   mv ../../tmp/skia/ios/$DIR_ARCH_STR/libskparagraph.a ../../ios/lib/$DIR_ARCH_STR
+  mv ../../tmp/skia/ios/$DIR_ARCH_STR/libskunicode.a ../../ios/lib/$DIR_ARCH_STR
+  mv ../../tmp/skia/ios/$DIR_ARCH_STR/libsvg.a ../../ios/lib/$DIR_ARCH_STR
 
 else
   echo $ERROR_STR

@@ -6,7 +6,7 @@
 #define PLUG_MFR_ID 'Acme'
 #define PLUG_URL_STR "https://iplug2.github.io"
 #define PLUG_EMAIL_STR "spam@me.com"
-#define PLUG_COPYRIGHT_STR "Copyright 2019 Acme Inc"
+#define PLUG_COPYRIGHT_STR "Copyright 2020 Acme Inc"
 #define PLUG_CLASS_NAME IPlugResponsiveUI
 
 #define BUNDLE_NAME "IPlugResponsiveUI"
@@ -29,10 +29,10 @@
 #define PLUG_FPS 60
 #define PLUG_SHARED_RESOURCES 0
 #define PLUG_HOST_RESIZE 1
-#define PLUG_MIN_WIDTH 512
-#define PLUG_MIN_HEIGHT 512
-#define PLUG_MAX_WIDTH 2048
-#define PLUG_MAX_HEIGHT 2048
+#define PLUG_MIN_WIDTH 256
+#define PLUG_MIN_HEIGHT 256
+#define PLUG_MAX_WIDTH 8192
+#define PLUG_MAX_HEIGHT 8192
 
 #define AUV2_ENTRY IPlugResponsiveUI_Entry
 #define AUV2_ENTRY_STR "IPlugResponsiveUI_Entry"
@@ -47,7 +47,7 @@
 #define AAX_PLUG_CATEGORY_STR "Effect"
 #define AAX_DOES_AUDIOSUITE 0
 
-#define VST3_SUBCATEGORY "Fx"
+#define VST3_SUBCATEGORY "Instrument|Synth"
 
 #define APP_NUM_CHANNELS 2
 #define APP_N_VECTOR_WAIT 0

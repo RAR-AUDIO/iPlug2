@@ -90,7 +90,7 @@ END_IPLUG_NAMESPACE
 #pragma mark -
 
 IGraphicsCanvas::IGraphicsCanvas(IGEditorDelegate& dlg, int w, int h, int fps, float scale)
-: IGraphicsPathBase(dlg, w, h, fps, scale)
+: IGraphics(dlg, w, h, fps, scale)
 {
   StaticStorage<Font>::Accessor storage(sFontCache);
   storage.Retain();
@@ -243,6 +243,8 @@ void IGraphicsCanvas::SetCanvasSourcePattern(val& context, const IPattern& patte
       context.set("strokeStyle", gradient);
     }
     break;
+    default:
+    break;
   }
 }
 
@@ -387,7 +389,7 @@ APIBitmap* IGraphicsCanvas::LoadAPIBitmap(const char* name, const void* pData, i
   return new Bitmap(canvas, name, scale);
 }
 
-APIBitmap* IGraphicsCanvas::CreateAPIBitmap(int width, int height, int scale, double drawScale, bool cacheable)
+APIBitmap* IGraphicsCanvas::CreateAPIBitmap(int width, int height, float scale, double drawScale, bool cacheable)
 {
   return new Bitmap(width, height, scale, drawScale);
 }
@@ -441,9 +443,7 @@ bool IGraphicsCanvas::CompareFontMetrics(const char* style, const char* font1, c
 
 bool IGraphicsCanvas::FontExists(const char* font, const char* style)
 {
-    return !CompareFontMetrics(style, font, "monospace") ||
-    !CompareFontMetrics(style, font, "sans-serif") ||
-    !CompareFontMetrics(style, font, "serif");
+  return !CompareFontMetrics(style, font, "monospace") || !CompareFontMetrics(style, font, "sans-serif") || !CompareFontMetrics(style, font, "serif");
 }
 
 bool IGraphicsCanvas::LoadAPIFont(const char* fontID, const PlatformFontPtr& font)
