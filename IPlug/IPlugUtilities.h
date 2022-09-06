@@ -25,7 +25,7 @@
 #include <cstring>
 #include <cctype>
 
-#include "wdlstring.h"
+#include "../WDL/wdlstring.h"
 
 #include "IPlugConstants.h"
 #include "IPlugPlatform.h"

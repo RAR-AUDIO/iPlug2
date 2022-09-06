@@ -27,8 +27,8 @@
 #include <ctime>
 #include <cassert>
 
-#include "wdlstring.h"
-#include "mutex.h"
+#include "../WDL/wdlstring.h"
+#include "../WDL/mutex.h"
 
 #include "IPlugConstants.h"
 #include "IPlugUtilities.h"

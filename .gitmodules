@@ -1,0 +1,6 @@
+[submodule "Dependencies/IPlug/VST3_SDK"]
+	path = Dependencies/IPlug/VST3_SDK
+	url = git@github.com:steinbergmedia/vst3sdk.git
+[submodule "IPlug/Extras/RARClasses"]
+	path = IPlug/Extras/RARClasses
+	url = git@github.com:Ramirez97/RAR_Classes.git
