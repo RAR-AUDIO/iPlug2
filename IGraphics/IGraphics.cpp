@@ -1886,7 +1886,7 @@ void IGraphics::DoCreatePopupMenu(IControl& control, IPopupMenu& menu, const IRE
   mPopupMenuValIdx = valIdx;
   mIsContextMenu = isContext;
   
-  if(mPopupControl) // if we are not using platform pop-up menus
+  if (mPopupControl) // if we are not using platform pop-up menus
   {
     mPopupControl->CreatePopupMenu(menu, bounds);
   }
@@ -1895,7 +1895,7 @@ void IGraphics::DoCreatePopupMenu(IControl& control, IPopupMenu& menu, const IRE
     bool isAsync = false;
     IPopupMenu* pReturnMenu = CreatePlatformPopupMenu(menu, bounds, isAsync);
     
-    if(!isAsync)
+    if (!isAsync)
       SetControlValueAfterPopupMenu(pReturnMenu);
   }
 }
