@@ -466,6 +466,7 @@ void IGraphicsMac::PromptForFile(WDL_String& fileName, WDL_String& path, EFileAc
     [(NSOpenPanel*) pPanel setCanChooseDirectories:NO];
     [(NSOpenPanel*) pPanel setResolvesAliases:YES];
   }
+  [pPanel setFloatingPanel: YES];
   
   if (completionHandler)
   {
@@ -502,7 +503,7 @@ void IGraphicsMac::PromptForDirectory(WDL_String& dir, IFileDialogCompletionHand
   [panelOpen setCanChooseDirectories:YES];
   [panelOpen setResolvesAliases:YES];
   [panelOpen setCanCreateDirectories:YES];
-
+  [panelOpen setFloatingPanel: YES];
   [panelOpen setDirectoryURL: [NSURL fileURLWithPath: defaultPath]];
   
   auto doHandleResponse = [](NSOpenPanel* pPanel, NSModalResponse response, WDL_String& chosenDir, IFileDialogCompletionHandlerFunc completionHandler){

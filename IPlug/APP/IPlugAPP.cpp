@@ -14,9 +14,6 @@
 #if defined OS_MAC || defined OS_LINUX
 #include <IPlugSWELL.h>
 #endif
-#if defined(OS_LINUX)
-const int TITLE_BAR_OFFSET = 17;
-#endif
 
 #if defined OS_MAC
 int GetTitleBarOffset()
@@ -46,41 +43,28 @@ IPlugAPP::IPlugAPP(const InstanceInfo& info, const Config& config)
   SetBlockSize(DEFAULT_BLOCK_SIZE);
   
   CreateTimer();
-
-#ifdef OS_LINUX
-  // Every 50ms check to see if the main window needs to be resized.
-  // This fixes basically all the issues related to resizing the window on Linux.
-  mResizeTimer = std::unique_ptr<Timer>(Timer::Create([&](Timer& timer) {
-    if (mNeedResize)
-    {
-      int viewWidth = GetEditorWidth();
-      int viewHeight = GetEditorHeight();
-      RECT r;
-      GetWindowRect(gHWND, &r);
-      SetWindowPos(gHWND, 0, r.left, r.bottom - viewHeight - TITLE_BAR_OFFSET, viewWidth, viewHeight + TITLE_BAR_OFFSET, 0);
-      mNeedResize = false;
-    }
-  }, 50));
-#endif
 }
 
 bool IPlugAPP::EditorResize(int viewWidth, int viewHeight)
 {
   bool parentResized = false;
+    
   if (viewWidth != GetEditorWidth() || viewHeight != GetEditorHeight())
   {
     #ifdef OS_MAC
-    const int titleBarOffset = GetTitleBarOffset();
-    RECT r;
-    GetWindowRect(gHWND, &r);
-    SetWindowPos(gHWND, 0, r.left, r.bottom - viewHeight - titleBarOffset, viewWidth, viewHeight + titleBarOffset, 0);
+    RECT rcClient, rcWindow;
+    POINT ptDiff;
+    
+    GetClientRect(gHWND, &rcClient);
+    GetWindowRect(gHWND, &rcWindow);
+    
+    ptDiff.x = (rcWindow.right - rcWindow.left) - rcClient.right;
+    ptDiff.y = (rcWindow.bottom - rcWindow.top) - rcClient.bottom;
+    
+    SetWindowPos(gHWND, 0, rcWindow.left, rcWindow.bottom - viewHeight - ptDiff.y, viewWidth + ptDiff.x, viewHeight + ptDiff.y, 0);
     parentResized = true;
-  #elif defined(OS_LINUX)
-    // Resize later
-    mNeedResize = true;
-    SetWindowPos(mAppHost->mSite, 0, 0, 0, viewWidth, viewHeight, SWP_NOMOVE);
-    parentResized = true;
-  #endif
+    #endif
+    
     SetEditorSize(viewWidth, viewHeight);
   }
   
