@@ -542,12 +542,13 @@ public:
   * @param shadow - the shadow to add */
   void ApplyLayerDropShadow(ILayerPtr& layer, const IShadow& shadow);
 
-protected:
-  /** Get the contents of a layers pixels as bitmap data
+  /** Get the contents of a layer as Raw RGBA bitmap data
+   * NOTE: you should only call this within IControl::Draw()
    * @param layer The layer to get the data from
    * @param data The pixel data extracted from the layer */
   virtual void GetLayerBitmapData(const ILayerPtr& layer, RawBitmapData& data) = 0;
   
+protected:
   /** Implemented by a graphics backend to apply a calculated shadow mask to a layer, according to the shadow settings specified
    * @param layer The layer to apply the shadow to
    * @param mask The mask of the shadow as raw bitmap data
@@ -942,11 +943,12 @@ protected:
   /* Implemented on Windows to restore previous GL context calls ReleaseDC */
   virtual void DeactivateGLContext() {};
 
-  /** \todo
-   * @param control \todo
-   * @param text \todo
-   * @param bounds \todo
-   * @param str \todo */
+  /** Creates a platform native text entry field.
+  * @param paramIdx The index of the parameter associated with the text entry field.
+  * @param text The text to be displayed in the text entry field.
+  * @param bounds The rectangle that defines the size and position of the text entry field.
+  * @param length The maximum allowed length of the text in the text entry field.
+  * @param str The initial string to be displayed in the text entry field. */
   virtual void CreatePlatformTextEntry(int paramIdx, const IText& text, const IRECT& bounds, int length, const char* str) = 0;
   
   /** Calls the platform backend to create the platform popup menu
@@ -1322,11 +1324,13 @@ public:
    * @return The index of the control (and the number of controls in the stack) */
   IControl* AttachControl(IControl* pControl, int ctrlTag = kNoTag, const char* group = "");
 
-  /** @param idx The index of the control to get
+  /** Get the control at a certain index in the control stack
+   * @param idx The index of the control to get
    * @return A pointer to the IControl object at idx or nullptr if not found */
   IControl* GetControl(int idx) { return mControls.Get(idx); }
 
-  /** @param pControl Pointer to the control to get
+  /** Get the index of a particular IControl in the control stack
+   * @param pControl Pointer to the control to get
    * @return integer index of the control in mControls array or -1 if not found */
   int GetControlIdx(IControl* pControl) const { return mControls.Find(pControl); }
   
@@ -1339,7 +1343,8 @@ public:
     return pControl ? GetControlIdx(pControl) : -1;
   }
   
-  /** @param ctrlTag The tag to look for
+  /** Get the control with a particular tag
+   * @param ctrlTag The tag to look for
    * @return A pointer to the IControl object with the tag of nullptr if not found */
   IControl* GetControlWithTag(int ctrlTag) const;
   
@@ -1356,6 +1361,11 @@ public:
     
     return kNoTag;
   }
+  
+  /** Get the first control with a parameter index that matches paramIdx
+   * @param idx The paramater index of the control to get
+   * @return A pointer to the IControl object at idx or nullptr if not found */
+  IControl* GetControlWithParamIdx(int paramIdx);
   
   /** Check to see if any control is captured */
   bool ControlIsCaptured() const { return mCapturedMap.size() > 0; }
@@ -1644,7 +1654,7 @@ public:
 
   /** Registers a gesture recognizer with the graphics context
    * @param type The type of gesture recognizer */
-  virtual void AttachGestureRecognizer(EGestureType type); //TODO: should be protected?
+  virtual void AttachGestureRecognizer(EGestureType type);
   
   /** Attach a gesture recognizer to a rectangular region of the GUI, i.e. not linked to an IControl
    * @param bounds The area that should recognize the gesture
@@ -1695,11 +1705,6 @@ protected:
 
   /** @return bool \c true if the drawing backend flips images (e.g. OpenGL) */
   virtual bool FlippedBitmap() const = 0;
-
-  /** Utility used by SearchImageResource/SearchBitmapInCache
-   * @param sourceScale \todo
-   * @param targetScale \todo */
-  inline void SearchNextScale(int& sourceScale, int targetScale);
 
   /** Search for a bitmap image resource matching the target scale 
    * @param fileName \todo
