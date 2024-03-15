@@ -172,7 +172,10 @@ extern StaticStorage<CoreTextFontDescriptor> sFontDescriptorCache;
 {
   if (self.presentingViewController && self.tableView != nil)
   {
-    return [self.tableView sizeThatFits:self.presentingViewController.view.bounds.size];
+    CGSize tempSize = self.presentingViewController.view.bounds.size;
+    tempSize.width = 300;
+    CGSize size = [self.tableView sizeThatFits:tempSize];
+    return size;
   } else {
     return [super preferredContentSize];
   }
@@ -579,7 +582,9 @@ extern StaticStorage<CoreTextFontDescriptor> sFontDescriptorCache;
     [alertController addAction:cancelAction];
   }
   
-  [self.window.rootViewController presentViewController:alertController animated:YES completion:nil];
+  [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+    [self.window.rootViewController presentViewController:alertController animated:YES completion:nil];
+  }];
 }
 
 - (void) promptForFile: (NSString*) fileName : (NSString*) path : (EFileAction) action : (NSArray*) contentTypes : (IFileDialogCompletionHandlerFunc) completionHandler
@@ -633,13 +638,7 @@ extern StaticStorage<CoreTextFontDescriptor> sFontDescriptorCache;
 
   UIColorPickerViewController* colorSelectionController = [[UIColorPickerViewController alloc] init];
   
-  UIUserInterfaceIdiom idiom = [[UIDevice currentDevice] userInterfaceIdiom];
-  
-  if(idiom == UIUserInterfaceIdiomPad)
-    colorSelectionController.modalPresentationStyle = UIModalPresentationPopover;
-  else
-    colorSelectionController.modalPresentationStyle = UIModalPresentationPageSheet;
-  
+  colorSelectionController.modalPresentationStyle = UIModalPresentationPopover;
   colorSelectionController.popoverPresentationController.delegate = self;
   colorSelectionController.popoverPresentationController.sourceView = self;
   

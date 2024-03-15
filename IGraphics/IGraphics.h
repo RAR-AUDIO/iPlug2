@@ -338,14 +338,16 @@ public:
   /** Draw some text to the graphics context in a specific rectangle
    * @param text An IText struct containing font and text properties and layout info
    * @param str The text string to draw
-   * @param bounds The rectangular region in the graphics where you would like to draw the text */
+   * @param bounds The rectangular region in the graphics where you would like to draw the text
+   * @param pBlend Optional blend method */
   void DrawText(const IText& text, const char* str, const IRECT& bounds, const IBlend* pBlend = 0);
 
   /** Draw some text to the graphics context at a point
    * @param text An IText struct containing font and text properties and layout info
    * @param str The text string to draw
    * @param x The x position in the graphics where you would like to draw the text
-   * @param y The y position in the graphics where you would like to draw the text */
+   * @param y The y position in the graphics where you would like to draw the text
+   * @param pBlend Optional blend method */
   void DrawText(const IText& text, const char* str, float x, float y, const IBlend* pBlend = 0);
   
   /** Measure the rectangular region that some text will occupy
@@ -353,6 +355,13 @@ public:
    * @param str The text string to draw
    * @param bounds after calling the method this IRECT will be updated with the rectangular region the text will occupy */
   virtual float MeasureText(const IText& text, const char* str, IRECT& bounds) const;
+  
+  /** Draw some  multi-line text to the graphics context in a specific rectangle (NanoVG only)
+   * @param text An IText struct containing font and text properties and layout info
+   * @param str The text string to draw
+   * @param bounds The rectangular region in the graphics where you would like to draw the text
+   * @param pBlend Optional blend method */
+  virtual void DrawMultiLineText(const IText& text, const char* str, IRECT& bounds, const IBlend* pBlend = 0) { DrawText(text, "Unsupported", bounds, pBlend); }
 
   /** Get the color at an X, Y location in the graphics context
    * @param x The X coordinate of the pixel
@@ -851,6 +860,11 @@ public:
    * @return /c true on success */
   virtual bool SetTextInClipboard(const char* str) = 0;
 
+  /** Set a file path in the clipboard. Returns false on unsupported platforms
+   * @param str A CString that contains a path to a file on disk
+   * @return /c true on success */
+  virtual bool SetFilePathInClipboard(const char* path) { return false; }
+
   /** Call this if you modify control tool tips at runtime. \todo explain */
   virtual void UpdateTooltips() = 0;
 
@@ -945,7 +959,10 @@ public:
   virtual void CachePlatformFont(const char* fontID, const PlatformFontPtr& font) = 0;
 
   /** Get the bundle ID on macOS and iOS, returns emtpy string on other OSs */
-  virtual const char* GetBundleID() { return ""; }
+  virtual const char* GetBundleID() const { return ""; }
+
+  /** Get the app group ID on macOS and iOS, returns emtpy string on other OSs */
+  virtual const char* GetAppGroupID() const { return ""; }
 
 protected:
   /* Implemented on Windows to store previously active GLContext and HDC for restoring, calls GetDC */
@@ -1233,7 +1250,7 @@ private:
 public:
   /** For all controls, including the "special controls" call a method
    * @param func A std::function to perform on each control */
-  void ForAllControlsFunc(std::function<void(IControl* pControl)> func);
+  void ForAllControlsFunc(IControlFunction func);
   
   /** For all controls, including the "special controls" call a method
    * @param method The method to call
@@ -1243,7 +1260,7 @@ public:
   
   /** For all standard controls in the main control stack perform a function
    * @param func A std::function to perform on each control */
-  void ForStandardControlsFunc(std::function<void(IControl* pControl)> func);
+  void ForStandardControlsFunc(IControlFunction func);
   
   /** For all standard controls in the main control stack that are linked to a specific parameter, call a method
    * @param method The method to call
@@ -1255,12 +1272,17 @@ public:
   /** For all standard controls in the main control stack that are linked to a specific parameter, execute a function
    * @param paramIdx The parameter index to match
    * @param func A std::function to perform on each control */
-  void ForControlWithParam(int paramIdx, std::function<void(IControl* pControl)> func);
+  void ForControlWithParam(int paramIdx, IControlFunction func);
   
-  /** For all standard controls in the main control stack that are linked to a group, execute a function
-   * @param group CString specificying the goupd name
+  /** For all standard controls in the main control stack that are linked to one of several parameters, execute a function
+   * @param params The parameter indexes to match
    * @param func A std::function to perform on each control */
-  void ForControlInGroup(const char* group, std::function<void(IControl* pControl)> func);
+  void ForControlWithParam(const std::initializer_list<int>& params, IControlFunction func);
+
+  /** For all standard controls in the main control stack that are linked to a group, execute a function
+   * @param group CString specifying the group name
+   * @param func A std::function to perform on each control */
+  void ForControlInGroup(const char* group, IControlFunction func);
   
   /** Attach an IBitmapControl as the lowest IControl in the control stack to be the background for the graphics context
    * @param fileName CString fileName resource id for the bitmap image */
@@ -1543,6 +1565,11 @@ public:
    * @param x The X coordinate where the drag and drop occurred
    * @param y The Y coordinate where the drag and drop occurred */
   void OnDrop(const char* str, float x, float y);
+
+  /** @param paths A vector with the absolute paths of the dropped items
+   * @param x The X coordinate where the drag and drop occurred
+   * @param y The Y coordinate where the drag and drop occurred */
+  void OnDropMultiple(const std::vector<const char*>& paths, float x, float y);
 
   /** This is an idle timer tick call on the GUI thread, only active if USE_IDLE_CALLS is defined */
   void OnGUIIdle();
