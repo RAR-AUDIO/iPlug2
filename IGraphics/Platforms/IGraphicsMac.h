@@ -35,6 +35,7 @@ public:
   void PlatformResize(bool parentHasResized) override;
   void AttachPlatformView(const IRECT& r, void* pView) override;
   void RemovePlatformView(void* pView) override;
+  void HidePlatformView(void* pView, bool hide) override;
 
   void HideMouseCursor(bool hide, bool lock) override;
   void MoveMouseCursor(float x, float y) override;
@@ -44,7 +45,7 @@ public:
 
   void DoCursorLock(float x, float y, float& prevX, float& prevY);
     
-  EMsgBoxResult ShowMessageBox(const char* str, const char* caption, EMsgBoxType type, IMsgBoxCompletionHandlerFunc completionHandler) override;
+  EMsgBoxResult ShowMessageBox(const char* str, const char* title, EMsgBoxType type, IMsgBoxCompletionHandlerFunc completionHandler) override;
   void ForceEndUserEdit() override;
 
   const char* GetPlatformAPIStr() override;
@@ -67,6 +68,8 @@ public:
   bool GetTextFromClipboard(WDL_String& str) override;
   bool SetTextInClipboard(const char* str) override;
   bool SetFilePathInClipboard(const char* path) override;
+
+  bool InitiateExternalFileDragDrop(const char* path, const IRECT& iconBounds) override API_AVAILABLE(macos(10.13));
 
   float MeasureText(const IText& text, const char* str, IRECT& bounds) const override;
 

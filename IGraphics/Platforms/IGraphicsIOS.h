@@ -36,10 +36,11 @@ public:
   void PlatformResize(bool parentHasResized) override;
   void AttachPlatformView(const IRECT& r, void* pView) override;
   void RemovePlatformView(void* pView) override;
+  void HidePlatformView(void* pView, bool hide) override;
 
   void GetMouseLocation(float& x, float&y) const override;
 
-  EMsgBoxResult ShowMessageBox(const char* str, const char* caption, EMsgBoxType type, IMsgBoxCompletionHandlerFunc completionHandler) override;
+  EMsgBoxResult ShowMessageBox(const char* str, const char* title, EMsgBoxType type, IMsgBoxCompletionHandlerFunc completionHandler) override;
   void ForceEndUserEdit() override;
 
   const char* GetPlatformAPIStr() override;

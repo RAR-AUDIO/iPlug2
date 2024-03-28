@@ -802,6 +802,11 @@ public:
   /** Remove a previously attached platform view from the IGraphics view
    * @param pView the platform view to remove, which would be a HWND on Windows, NSView* on macOS or UIView* on iOS */
   virtual void RemovePlatformView(void* pView) {};
+  
+  /** Hide a previously attached platform view from the IGraphics view
+   * @param pView the platform view to remove, which would be a HWND on Windows, NSView* on macOS or UIView* on iOS
+   * @param hide should it be hidden or not */
+  virtual void HidePlatformView(void* pView, bool hide) {};
 
   /** Get the x, y position of the mouse cursor
    * @param x Where the X position will be stored
@@ -865,16 +870,22 @@ public:
    * @return /c true on success */
   virtual bool SetFilePathInClipboard(const char* path) { return false; }
 
+  /** Initiate an drag-n-drop operation of an existing file, to be dropped outside of the current window
+   * @param path A CString that contains a path to a file on disk
+   * @param iconBounds The area where the icon should appear
+   * @return /c true on success */
+  virtual bool InitiateExternalFileDragDrop(const char* path, const IRECT& iconBounds) { return false; };
+
   /** Call this if you modify control tool tips at runtime. \todo explain */
   virtual void UpdateTooltips() = 0;
 
   /** Pop up a modal platform message box dialog.
-   * @param str The text message to display in the dialogue
-   * @param caption The title of the message box window
+   * @param str The text message to display in the dialog
+   * @param title The title of the message box window
    * @param type EMsgBoxType describing the button options available \see EMsgBoxType
    * @param completionHanlder an IMsgBoxCompletionHandlerFunc that will be called when a button is pressed
    * @return EMsgBoxResult signifying which button was pressed */
-  virtual EMsgBoxResult ShowMessageBox(const char* str, const char* caption, EMsgBoxType type, IMsgBoxCompletionHandlerFunc completionHandler = nullptr) = 0;
+  virtual EMsgBoxResult ShowMessageBox(const char* str, const char* title, EMsgBoxType type, IMsgBoxCompletionHandlerFunc completionHandler = nullptr) = 0;
 
   /** Create a platform file prompt dialog to choose a path for opening/saving a single file. NOTE: this method will block the main thread on macOS, unless you speficy the completionHander, which will be called asynchronously when the dialog button is pressed. On iOS, you must supply a completionHander.
    * @param fileName Non const WDL_String reference specifying the file name. Set this prior to calling the method for save dialogs, to provide a default file name. For file-open dialogs, on successful selection of a file this will get set to the file’s name.

@@ -380,7 +380,7 @@ public:
   
   /** Specify whether the control should respond to mouse events
    * @param ignore \c true if it should ignore mouse events */
-  void SetIgnoreMouse(bool ignore) { mIgnoreMouse = ignore; }
+  virtual void SetIgnoreMouse(bool ignore) { mIgnoreMouse = ignore; }
   
   /** @return \c true if the control should show parameter labels/units e.g. "Hz" in text entry prompts */
   bool GetPromptShowsParamLabel() const { return mPromptShowsParamLabel; }
@@ -1662,7 +1662,7 @@ public:
 protected:
   virtual void DrawBackground(IGraphics& g, const IRECT& r) override
   {
-    g.FillRect(kBG, r, &mBlend);
+    g.FillRect(GetColor(kBG), r, &mBlend);
 
     if(mBaseValue > 0.)
     {
