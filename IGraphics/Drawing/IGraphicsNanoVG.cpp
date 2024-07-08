@@ -486,6 +486,8 @@ void IGraphicsNanoVG::OnViewDestroyed()
 
 void IGraphicsNanoVG::DrawResize()
 {
+  ActivateGLContext();
+  
   if (mMainFrameBuffer != nullptr)
     nvgDeleteFramebuffer(mMainFrameBuffer);
   
@@ -496,6 +498,8 @@ void IGraphicsNanoVG::DrawResize()
     if (mMainFrameBuffer == nullptr)
       DBGMSG("Could not init FBO.\n");
   }
+  
+  DeactivateGLContext();
 }
 
 void IGraphicsNanoVG::BeginFrame()
