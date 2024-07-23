@@ -238,10 +238,10 @@ private:
 
   IRECT mMaxBounds; // if view is only showing a part of the graphics context, we need to know because menus can't go there
   
-  IColor mPanelBackgroundColor = COLOR_WHITE;
-  IColor mCellBackGroundColor = COLOR_BLUE;
+  IColor mPanelBackgroundColor = IColor(255, 26, 25, 21);
+  IColor mCellBackGroundColor = IColor(255, 85, 86, 83);
   IColor mItemMouseoverColor = COLOR_WHITE;
-  IColor mItemColor = COLOR_BLACK;
+  IColor mItemColor = COLOR_WHITE;
   IColor mDisabledItemColor = COLOR_GRAY;
   IColor mSeparatorColor = COLOR_MID_GRAY;
 
