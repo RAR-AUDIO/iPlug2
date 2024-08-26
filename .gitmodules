@@ -3,4 +3,4 @@
 	url = git@github.com:steinbergmedia/vst3sdk.git
 [submodule "IPlug/Extras/RARClasses"]
 	path = IPlug/Extras/RARClasses
-	url = git@github.com:Ramirez97/RAR_Classes.git
+	url = https://github.com/RAR-AUDIO/RAR_Classes.git
