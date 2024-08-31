@@ -22,8 +22,7 @@ public:
   virtual void Draw(IGraphics& g) override
   {
     IRECT innerRECT = mRECT.GetPadded(-10);
-    g.DrawFastDropShadow(innerRECT, mRECT);
-    g.FillRect(COLOR_WHITE, innerRECT);
+    g.FillRect(mBGColor, innerRECT);
     g.DrawText(mText, mDisplayStr.Get(), mRECT.GetPadded(-2));
   }
 
