@@ -66,7 +66,8 @@ public:
     if (pSize)
     {
       rect = *pSize;
-      mOwner.OnParentWindowResize(rect.getWidth(), rect.getHeight());
+      mOwner.OnParentWindowResize(rect.getWidth() / mScaleFactor, 
+                                  rect.getHeight() / mScaleFactor);
     }
     
     return Steinberg::kResultTrue;
@@ -78,7 +79,7 @@ public:
     
     if (mOwner.HasUI())
     {
-      *pSize = Steinberg::ViewRect(0, 0, mOwner.GetEditorWidth(), mOwner.GetEditorHeight());
+      *pSize = Steinberg::ViewRect(0, 0, mOwner.GetEditorWidth() * mScaleFactor, mOwner.GetEditorHeight() * mScaleFactor);
       
       return Steinberg::kResultTrue;
     }
@@ -100,13 +101,13 @@ public:
   
   Steinberg::tresult PLUGIN_API checkSizeConstraint(Steinberg::ViewRect* pRect) override
   {
-    int w = pRect->getWidth();
-    int h = pRect->getHeight();
+    int w = pRect->getWidth() / mScaleFactor;
+    int h = pRect->getHeight() / mScaleFactor;
     
-    if(!mOwner.ConstrainEditorResize(w, h))
+    if (!mOwner.ConstrainEditorResize(w, h))
     {
-      pRect->right = pRect->left + w;
-      pRect->bottom = pRect->top + h;
+      pRect->right = pRect->left + (w * mScaleFactor);
+      pRect->bottom = pRect->top + (h * mScaleFactor);
     }
     
     return Steinberg::kResultTrue;
@@ -150,7 +151,7 @@ public:
   Steinberg::tresult PLUGIN_API setContentScaleFactor(ScaleFactor factor) override
   {
     mOwner.SetScreenScale(factor);
-
+    mScaleFactor = factor;
     return Steinberg::kResultOk;
   }
 
@@ -360,9 +361,10 @@ public:
   {
     TRACE
     
-    Steinberg::ViewRect newSize = Steinberg::ViewRect(0, 0, w, h);
+    Steinberg::ViewRect newSize = Steinberg::ViewRect(0, 0, w * mScaleFactor, h * mScaleFactor);
     plugFrame->resizeView(this, &newSize);
   }
 
   T& mOwner;
+  float mScaleFactor = 1.f;
 };

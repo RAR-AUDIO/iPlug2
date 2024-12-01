@@ -39,7 +39,12 @@ Dependencies/IPlug/WAM_SDK/*
 Dependencies/Build/*
 Documentation/html
 Documentation/doxygen_warnings.txt
+Examples/build_errors.log
 Projects/*
-Podfile.lock
+Examples/IPlugSwift/Pods
+PodFile.lock
 */*/.vscode/ipch
-Examples/*
+Examples/*/EBWebView
+Examples/*/packages
+Examples/IPlugConvoEngine/r8brain
+**/node_modules
