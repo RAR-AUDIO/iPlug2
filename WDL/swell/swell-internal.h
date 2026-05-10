@@ -174,6 +174,7 @@ typedef struct WindowPropRec
   bool m_last_dark_mode;
   bool m_ctlcolor_set;
   bool m_disable_menu;
+  bool m_need_alphachg;
   LONG_PTR m_userdata;
 }
 - (id) init;
@@ -234,6 +235,9 @@ typedef struct WindowPropRec
 -(void)mouseUp:(NSEvent *)theEvent;
 - (void)rightMouseUp:(NSEvent *)theEvent;
 - (void)highlightSelectionInClipRect:(NSRect)theClipRect;
+- (void)setFrame:(NSRect)r;
+- (NSRect)rectOfColumn:(NSInteger)column;
+- (NSRect)rectOfRow:(NSInteger) row;
 
 // data source
 -(NSInteger) outlineView:(NSOutlineView *)outlineView numberOfChildrenOfItem:(id)item;
@@ -301,6 +305,7 @@ typedef struct WindowPropRec
 -(NSInteger)columnAtPoint:(NSPoint)pt;
 -(int)getColumnPos:(int)idx; // get current position of column that was originally at idx
 -(int)getColumnIdx:(int)pos; // get original index of column that is currently at position
+-(void)setFrame:(NSRect)r;
 
 -(BOOL)accessibilityPerformShowMenu;
 @end
@@ -458,6 +463,7 @@ typedef struct WindowPropRec
 - (void) setEnabledSwellNoFocus;
 - (void) setEnabled:(BOOL)en;
 - (BOOL) isEnabled;
+- (BOOL) clipsToBounds;
 -(const char *)getSwellClass;
 
 // NSAccessibility
@@ -557,7 +563,7 @@ typedef struct WindowPropRec
 
 #ifndef SWELL_NO_METAL
 void swell_removeMetalDirty(SWELL_hwndChild *slf);
-void swell_updateAllMetalDirty(void);
+void swell_updateAllMetalDirty(HWND h=NULL);
 void swell_addMetalDirty(SWELL_hwndChild *slf, const RECT *r, bool isReleaseDC=false);
 HDC SWELL_CreateMetalDC(SWELL_hwndChild *);
 #endif
@@ -777,7 +783,16 @@ SWELL_IMPLEMENT_GETOSXVERSION int SWELL_GetOSXVersion()
   {
     if (NSAppKitVersionNumber >= 1266.0)
     {
-      if (NSAppKitVersionNumber >= 2487.0)
+      if (NSAppKitVersionNumber >= 2600.0)
+      {
+        v = (int)(NSAppKitVersionNumber/100.0);
+        v = ((v/10) << 12) + ((v%10) << 8); // convert 26 to 0x2600
+      }
+      else if (NSAppKitVersionNumber >= 2500.0)
+        v = 0x1500;
+      else if (NSAppKitVersionNumber >= 2487.0)
+        v = 0x1400;
+      else if (NSAppKitVersionNumber >= 2487.0)
         v = 0x1400;
       else if (NSAppKitVersionNumber >= 2299.0)
         v = 0x1300;
@@ -903,7 +918,6 @@ struct HWND__
 
   int m_refcnt; 
   int m_oswindow_private; // private state for generic-gtk or whatever
-  RECT m_oswindow_lastcfgpos; // gdk will check for duplicate configure events and ignore
 
   HMENU m_menu;
   HFONT m_font;

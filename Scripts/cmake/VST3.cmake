@@ -1,223 +1,194 @@
-cmake_minimum_required(VERSION 3.11)
+#  ==============================================================================
+#
+#  This file is part of the iPlug 2 library. Copyright (C) the iPlug 2 developers.
+#
+#  See LICENSE.txt for  more info.
+#
+#  ==============================================================================
 
-set(VST3_SDK "${IPLUG2_DIR}/Dependencies/IPlug/VST3_SDK" CACHE PATH "VST3 SDK directory.")
-set(vst3_target_arch "")
+# VST3 target configuration for iPlug2
 
-if (WIN32)
-  set(fn "VST3")
-  if (CMAKE_SYSTEM_PROCESSOR MATCHES "X86")
-    # $ENV{CommonProgramFiles} ???
-    set(_paths "C:/Program Files (x86)/Common Files/${fn}" "C:/Program Files/Common Files/${fn}")
-    set(vst3_target_arch "x86")
-  elseif ((CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "AMD64") OR (CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "IA64"))
-    set(_paths "C:/Program Files/Common Files/${fn}")
-    set(vst3_target_arch "x86_64")
+include(${CMAKE_CURRENT_LIST_DIR}/IPlug.cmake)
+
+if(NOT TARGET iPlug2::VST3)
+  # Define SDK path
+  set(VST3_SDK_DIR ${IPLUG_DEPS_DIR}/VST3_SDK)
+
+  # Check if VST3 SDK exists
+  if(NOT EXISTS ${VST3_SDK_DIR})
+    message(STATUS "VST3 SDK not found at ${VST3_SDK_DIR}. VST3 targets will not be available.")
+    set(IPLUG2_VST3_SUPPORTED FALSE CACHE INTERNAL "VST3 SDK available")
+    # Create a dummy iPlug2::VST3 target so projects can link to it without errors
+    add_library(iPlug2::VST3 INTERFACE IMPORTED)
+    # Define stub function that excludes the target from default build
+    function(iplug_configure_vst3 target project_name)
+      message(STATUS "Skipping VST3 target '${target}' - VST3 SDK not available")
+      set_target_properties(${target} PROPERTIES EXCLUDE_FROM_ALL TRUE)
+    endfunction()
+    return()
   endif()
-  set(vst3_target_arch "${vst3_target_arch}-win")
 
-elseif (CMAKE_SYSTEM_NAME MATCHES "Darwin")
-  set(_paths "$ENV{HOME}/Library/Audio/Plug-Ins/VST3" "/Library/Audio/Plug-Ins/VST3")
+  set(IPLUG2_VST3_SUPPORTED TRUE CACHE INTERNAL "VST3 SDK available")
 
-elseif (CMAKE_SYSTEM_NAME MATCHES "Linux")
-  set(_paths "$ENV{HOME}/.vst3")
-  set(vst3_target_arch "${CMAKE_SYSTEM_PROCESSOR}-linux")
-endif()
+  add_library(iPlug2::VST3 INTERFACE IMPORTED)
 
-iplug_find_path(VST3_INSTALL_PATH REQUIRED DIR DEFAULT_IDX 0 
-  DOC "Path to install VST3 plugins"
-  PATHS ${_paths})
-
-set(IPLUG2_VST_ICON 
-  "${IPLUG2_DIR}/Dependencies/IPlug/VST3_SDK/doc/artwork/VST_Logo_Steinberg.ico"
-  CACHE FILEPATH "Path to VST3 plugin icon"
-)
-
-##########################
-# VST3 Interface Library #
-##########################
-
-add_library(iPlug2_VST3 INTERFACE)
-set(sdk ${IPLUG2_DIR}/IPlug/VST3)
-set(_src
-  "${sdk}/IPlugVST3.h"
-  "${sdk}/IPlugVST3.cpp"
-  "${sdk}/IPlugVST3_Common.h"
-  "${sdk}/IPlugVST3_Controller.h"
-  "${sdk}/IPlugVST3_Controller.cpp"
-  "${sdk}/IPlugVST3_ControllerBase.h"
-  "${sdk}/IPlugVST3_Defs.h"
-  "${sdk}/IPlugVST3_Parameter.h"
-  "${sdk}/IPlugVST3_Processor.h"
-  #"${sdk}/IPlugVST3_Processor.cpp"
-  "${sdk}/IPlugVST3_ProcessorBase.h"
-  "${sdk}/IPlugVST3_ProcessorBase.cpp"
-  "${sdk}/IPlugVST3_View.h"
+  # iPlug2 VST3 wrapper sources
+  set(VST3_IPLUG_SRC
+    ${IPLUG_DIR}/VST3/IPlugVST3.cpp
+    ${IPLUG_DIR}/VST3/IPlugVST3_ProcessorBase.cpp
   )
 
-list(APPEND _inc ${sdk})
-iplug_target_add(iPlug2_VST3 INTERFACE
-  SOURCE ${_src}
-  INCLUDE "${sdk}"
-  DEFINE "VST3_API" "IPLUG_DSP=1"
-  LINK iPlug2_Core
-)
-
-if (CMAKE_SYSTEM_NAME MATCHES "Linux")
-  target_sources(iPlug2_VST3 INTERFACE "${sdk}/IPlugVST3_RunLoop.cpp")
-endif()
-
-source_group(TREE ${IPLUG2_DIR} PREFIX IPlug/VST3 FILES ${_src})
-
-############
-# VST3 SDK #
-############
-
-set(_src "")
-set(_def "")
-set(_inf "")
-
-set(sdk "${VST3_SDK}/base/source")
-list(APPEND _src
-  "${sdk}/baseiids.cpp"
-  "${sdk}/classfactoryhelpers.h"
-  "${sdk}/fbuffer.cpp"
-  "${sdk}/fbuffer.h"
-  "${sdk}/fcleanup.h"
-  "${sdk}/fcommandline.h"
-  "${sdk}/fdebug.cpp"
-  "${sdk}/fdebug.h"
-  "${sdk}/fdynlib.cpp"
-  "${sdk}/fdynlib.h"
-  "${sdk}/fobject.cpp"
-  "${sdk}/fobject.h"
-  "${sdk}/fstdmethods.h"
-  "${sdk}/fstreamer.cpp"
-  "${sdk}/fstreamer.h"
-  "${sdk}/fstring.cpp"
-  "${sdk}/fstring.h"
-  "${sdk}/hexbinary.h"
-  
-  "${sdk}/updatehandler.cpp"
-  "${sdk}/updatehandler.h"
-)
-# Timer isn't implemented on Linux
-if (NOT (CMAKE_SYSTEM_NAME MATCHES "Linux"))
-  list(APPEND _src
-    "${sdk}/timer.cpp"
-    "${sdk}/timer.h"
+  # VST3 SDK base sources
+  set(VST3_SDK_BASE_SRC
+    ${VST3_SDK_DIR}/base/source/baseiids.cpp
+    ${VST3_SDK_DIR}/base/source/fdebug.cpp
+    ${VST3_SDK_DIR}/base/source/fobject.cpp
+    ${VST3_SDK_DIR}/base/source/fstring.cpp
+    ${VST3_SDK_DIR}/base/source/updatehandler.cpp
+    ${VST3_SDK_DIR}/base/thread/source/flock.cpp
   )
-  
-else()
-  list(APPEND _def "SMTG_OS_LINUX")
+
+  # VST3 SDK pluginterfaces sources
+  set(VST3_SDK_PLUGINTERFACES_SRC
+    ${VST3_SDK_DIR}/pluginterfaces/base/funknown.cpp
+    ${VST3_SDK_DIR}/pluginterfaces/base/ustring.cpp
+    ${VST3_SDK_DIR}/pluginterfaces/base/coreiids.cpp
+  )
+
+  # VST3 SDK common sources
+  set(VST3_SDK_COMMON_SRC
+    ${VST3_SDK_DIR}/public.sdk/source/common/pluginview.cpp
+    ${VST3_SDK_DIR}/public.sdk/source/common/commoniids.cpp
+  )
+
+  # VST3 SDK vst sources (single component effect pattern)
+  set(VST3_SDK_VST_SRC
+    ${VST3_SDK_DIR}/public.sdk/source/vst/vstbus.cpp
+    ${VST3_SDK_DIR}/public.sdk/source/vst/vstcomponent.cpp
+    ${VST3_SDK_DIR}/public.sdk/source/vst/vstcomponentbase.cpp
+    ${VST3_SDK_DIR}/public.sdk/source/vst/vstinitiids.cpp
+    ${VST3_SDK_DIR}/public.sdk/source/vst/vstparameters.cpp
+    ${VST3_SDK_DIR}/public.sdk/source/vst/vstsinglecomponenteffect.cpp
+  )
+
+  # Combine all SDK sources
+  set(VST3_SDK_SRC
+    ${VST3_SDK_BASE_SRC}
+    ${VST3_SDK_PLUGINTERFACES_SRC}
+    ${VST3_SDK_COMMON_SRC}
+    ${VST3_SDK_VST_SRC}
+  )
+
+  target_sources(iPlug2::VST3 INTERFACE
+    ${VST3_IPLUG_SRC}
+    ${VST3_SDK_SRC}
+  )
+
+  target_include_directories(iPlug2::VST3 INTERFACE
+    ${IPLUG_DIR}/VST3
+    ${VST3_SDK_DIR}
+    ${VST3_SDK_DIR}/pluginterfaces
+    ${VST3_SDK_DIR}/public.sdk
+    ${VST3_SDK_DIR}/public.sdk/source
+    ${VST3_SDK_DIR}/base
+  )
+
+  target_compile_definitions(iPlug2::VST3 INTERFACE
+    VST3_API
+    IPLUG_EDITOR=1
+    IPLUG_DSP=1
+    # VST3 SDK requires one of: DEVELOPMENT, RELEASE, _DEBUG, NDEBUG
+    $<$<CONFIG:Debug>:DEVELOPMENT>
+    $<$<NOT:$<CONFIG:Debug>>:RELEASE>
+  )
+
+  # VST3 SDK main sources (common)
+  target_sources(iPlug2::VST3 INTERFACE
+    ${VST3_SDK_DIR}/public.sdk/source/main/pluginfactory.cpp
+  )
+
+  if(WIN32)
+    target_sources(iPlug2::VST3 INTERFACE
+      ${VST3_SDK_DIR}/public.sdk/source/main/dllmain.cpp
+    )
+  elseif(APPLE)
+    # Set Obj-C++ for iPlug2 VST3 wrapper on macOS
+    set_source_files_properties(${VST3_IPLUG_SRC} PROPERTIES LANGUAGE OBJCXX)
+
+    # macOS entry point
+    target_sources(iPlug2::VST3 INTERFACE
+      ${VST3_SDK_DIR}/public.sdk/source/main/macmain.cpp
+    )
+    target_link_libraries(iPlug2::VST3 INTERFACE
+      "-framework Cocoa"
+    )
+  elseif(UNIX AND NOT APPLE AND NOT EMSCRIPTEN)
+    # Linux support - to be added later
+    message(WARNING "VST3 Linux support not yet implemented")
+  endif()
+
+  target_link_libraries(iPlug2::VST3 INTERFACE iPlug2::IPlug)
 endif()
 
-set(sdk "${VST3_SDK}/base/thread")
-list(APPEND _src
-  "${sdk}/include/fcondition.h"
-  "${sdk}/include/flock.h"
-  "${sdk}/source/fcondition.cpp"
-  "${sdk}/source/flock.cpp"
-)
-set(sdk "${VST3_SDK}/pluginterfaces/base")
-list(APPEND _src
-  "${sdk}/conststringtable.cpp"
-  "${sdk}/coreiids.cpp"
-  "${sdk}/funknown.cpp"
-  "${sdk}/ustring.cpp"
-)
-# In the public.sdk dir we only add specific sources.
-set(sdk ${VST3_SDK}/public.sdk/source)
-list(APPEND _src
-  "${sdk}/common/commoniids.cpp"
-  "${sdk}/common/memorystream.cpp"
-  "${sdk}/common/pluginview.cpp" 
-  "${sdk}/vst/vstaudioeffect.cpp"
-  "${sdk}/vst/vstbus.cpp" 
-  "${sdk}/vst/vstcomponent.cpp"
-  "${sdk}/vst/vstcomponentbase.cpp" 
-  "${sdk}/vst/vstinitiids.cpp"
-  "${sdk}/vst/vstparameters.cpp"
-  "${sdk}/vst/vstsinglecomponenteffect.cpp"
-)
+# Configuration function for VST3 targets
+function(iplug_configure_vst3 target project_name)
+  target_link_libraries(${target} PUBLIC iPlug2::VST3)
 
-# Platform-dependent stuff
-if (WIN32)
-  list(APPEND _src "${sdk}/main/dllmain.cpp" "${sdk}/main/pluginfactory.cpp" "${sdk}/common/threadchecker_win32.cpp")
-
-elseif (CMAKE_SYSTEM_NAME MATCHES "Darwin")
-  list(APPEND _def "SWELL_CLEANUP_ON_UNLOAD")
-  list(APPEND _src "${sdk}/main/macmain.cpp" "${sdk}/main/pluginfactory.cpp")
-  list(APPEND _inf "${sdk}/main/macexport.exp")
-
-elseif (CMAKE_SYSTEM_NAME MATCHES "Linux")
-  list(APPEND _src "${sdk}/main/linuxmain.cpp" "${sdk}/main/pluginfactory.cpp")
-
-endif()
-
-set(tgt iPlug2_VST3)
-target_sources(${tgt} INTERFACE ${_src})
-target_include_directories(${tgt} INTERFACE "${VST3_SDK}")
-target_compile_definitions(${tgt} INTERFACE "$<IF:$<CONFIG:Debug>,DEVELOPMENT,RELEASE>")
-source_group(TREE ${VST3_SDK} PREFIX "IPlug/VST3" FILES ${_src})
-iplug_target_add(${tgt} INTERFACE SOURCE ${_inf} DEFINE ${_def})
-
-
-function(iplug_configure_vst3 target)
-  iplug_target_add(${target} PUBLIC LINK iPlug2_VST3)
-
-  set(out_dir "${CMAKE_BINARY_DIR}/${PLUG_NAME}.vst3")
-  set(install_dir "${VST3_INSTALL_PATH}/${PLUG_NAME}.vst3")
-  set(res_dir "${CMAKE_BINARY_DIR}/${PLUG_NAME}.vst3/Contents/Resources")
-
-  if (WIN32)
-    # Use .vst3 as the extension instead of .dll
-    set_target_properties(${target} PROPERTIES
-      OUTPUT_NAME "${IPLUG_APP_NAME}"
-      LIBRARY_OUTPUT_DIRECTORY "${out_dir}/Contents/${vst3_target_arch}/"
-      PREFIX ""
-      SUFFIX ".vst3"
-    )
-
-    # After building, we run the post-build script
-    add_custom_command(TARGET ${target} POST_BUILD
-      COMMAND "${CMAKE_BINARY_DIR}/postbuild-win.bat" 
-      ARGS "\"$<TARGET_FILE:${target}>\"" "\".vst3\""
-    )
-
-  elseif (CMAKE_SYSTEM_NAME MATCHES "Darwin")
-    # Set the Info.plist file we're using and add resources
-    set_target_properties(${target} PROPERTIES 
-      BUNDLE TRUE
-      MACOSX_BUNDLE TRUE
-      MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/resources/${PLUG_NAME}-VST3-Info.plist
-      BUNDLE_EXTENSION "vst3"
-      PREFIX ""
-      SUFFIX ""
-    )
-
-    if (CMAKE_GENERATOR STREQUAL "Xcode")
-      set(out_dir "${CMAKE_BINARY_DIR}/$<CONFIG>/${PLUG_NAME}.vst3")
-      set(res_dir "")
+  if(WIN32)
+    # Determine architecture for VST3 bundle path
+    # VST3 spec: x86_64-win, x86-win, arm64-win, arm64ec-win
+    if(CMAKE_GENERATOR_PLATFORM STREQUAL "ARM64EC")
+      set(VST3_ARCH "arm64ec-win")
+    elseif(CMAKE_GENERATOR_PLATFORM STREQUAL "ARM64")
+      set(VST3_ARCH "arm64-win")
+    elseif(CMAKE_SIZEOF_VOID_P EQUAL 8)
+      set(VST3_ARCH "x86_64-win")
+    else()
+      set(VST3_ARCH "x86-win")
     endif()
-    
-    add_custom_command(TARGET ${target} POST_BUILD
-      COMMAND ${CMAKE_COMMAND} ARGS "-E" "copy_directory" "${out_dir}" "${install_dir}")
 
-  elseif (CMAKE_SYSTEM_NAME MATCHES "Linux")
+    set(VST3_OUTPUT_DIR "${CMAKE_BINARY_DIR}/out/${project_name}.vst3/Contents/${VST3_ARCH}")
+
+    # Build directly into bundle structure
+    # Set for all configs to avoid multi-config generator adding /Release/ etc
     set_target_properties(${target} PROPERTIES
-      OUTPUT_NAME "${IPLUG_APP_NAME}"
-      LIBRARY_OUTPUT_DIRECTORY "${out_dir}/Contents/${vst3_target_arch}/"
-      PREFIX ""
-      SUFFIX ".so"
+      OUTPUT_NAME "${project_name}"
+      SUFFIX ".vst3"
+      LIBRARY_OUTPUT_DIRECTORY "${VST3_OUTPUT_DIR}"
+      LIBRARY_OUTPUT_DIRECTORY_DEBUG "${VST3_OUTPUT_DIR}"
+      LIBRARY_OUTPUT_DIRECTORY_RELEASE "${VST3_OUTPUT_DIR}"
+      LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO "${VST3_OUTPUT_DIR}"
+      LIBRARY_OUTPUT_DIRECTORY_MINSIZEREL "${VST3_OUTPUT_DIR}"
     )
 
+    # Create Resources folder for bundle completeness
     add_custom_command(TARGET ${target} POST_BUILD
-      COMMAND ${CMAKE_COMMAND} ARGS "-E" "copy_directory" "${out_dir}" "${install_dir}")
+      COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/out/${project_name}.vst3/Contents/Resources"
+      COMMENT "Creating VST3 bundle structure for ${project_name}"
+    )
+  elseif(APPLE)
+    # VST3 on macOS is a bundle with .vst3 extension
+    set_target_properties(${target} PROPERTIES
+      BUNDLE TRUE
+      BUNDLE_EXTENSION "vst3"
+      MACOSX_BUNDLE_INFO_PLIST ${PLUG_RESOURCES_DIR}/${project_name}-VST3-Info.plist
+      LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/out"
+      MACOSX_BUNDLE_BUNDLE_NAME "${project_name}"
+      OUTPUT_NAME "${project_name}"
+      XCODE_ATTRIBUTE_WRAPPER_EXTENSION "vst3"
+      XCODE_ATTRIBUTE_GENERATE_PKGINFO_FILE "YES"
+    )
 
+    # For non-Xcode generators (e.g., Ninja), create PkgInfo file manually
+    # Generate PkgInfo at configure time for deterministic output (no platform-dependent newlines)
+    if(NOT XCODE)
+      set(VST3_PKGINFO_PATH "${CMAKE_BINARY_DIR}/iplug2_pkginfo/VST3_PkgInfo")
+      file(WRITE "${VST3_PKGINFO_PATH}" "BNDL????")
+      set(PKGINFO_DEST "${CMAKE_BINARY_DIR}/out/${project_name}.vst3/Contents/PkgInfo")
+      add_custom_command(TARGET ${target} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy "${VST3_PKGINFO_PATH}" "${PKGINFO_DEST}"
+        COMMENT "Creating PkgInfo for ${project_name}.vst3"
+      )
+    endif()
   endif()
-
-  if (res_dir)
-    iplug_target_bundle_resources(${target} "${res_dir}")
-  endif()
-
 endfunction()

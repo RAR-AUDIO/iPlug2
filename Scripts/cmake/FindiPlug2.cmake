@@ -6,463 +6,294 @@
 #
 #  ==============================================================================
 
-cmake_minimum_required(VERSION 3.11)
-cmake_policy(SET CMP0076 NEW)
+# FindiPlug2.cmake
+# This module finds the iPlug2 library and sets up the necessary variables and targets.
 
-set(iPlug2_FOUND 1)
-
-set(IPLUG_APP_NAME ${CMAKE_PROJECT_NAME} CACHE STRING "Name of the VST/AU/App/etc.")
-set(PLUG_NAME ${CMAKE_PROJECT_NAME} CACHE STRING "Name of the VST/AU/App/etc.")
-
-if (WIN32)
-  # Need to determine processor arch for postbuild-win.bat
-  if (CMAKE_SYSTEM_PROCESSOR MATCHES "AMD64")
-    set(PROCESSOR_ARCH "x64" CACHE STRING "Processor architecture")
-  else()
-    set(PROCESSOR_ARCH "Win32" CACHE STRING "Processor architecture")
-  endif()
-  set(OS_WINDOWS 1)
-
-elseif (CMAKE_SYSTEM_NAME MATCHES "Darwin")
-  find_program( IBTOOL ibtool HINTS "/usr/bin" "${OSX_DEVELOPER_ROOT}/usr/bin" )
-  if ( ${IBTOOL} STREQUAL "IBTOOL-NOTFOUND" )
-    message( "ibtool can not be found" SEND_ERROR )
-  endif()
-  set(OS_MAC 1)
-
-elseif (CMAKE_SYSTEM_NAME MATCHES "Linux")
-  find_package(PkgConfig REQUIRED)
-  set(OS_LINUX 1)
-
-else()
-  message("Unsupported platform" FATAL_ERROR)
+# Include iOS platform configuration FIRST if building for iOS or visionOS
+# This sets the IOS variable needed by other modules like IGraphics.cmake
+if(CMAKE_SYSTEM_NAME MATCHES "^(iOS|visionOS)$")
+  include(${CMAKE_CURRENT_LIST_DIR}/iOS.cmake)
 endif()
 
-include(CheckCXXCompilerFlag)
-CHECK_CXX_COMPILER_FLAG("-march=native" COMPILER_OPT_ARCH_NATIVE_SUPPORTED)
-CHECK_CXX_COMPILER_FLAG("/arch:AVX" COMPILER_OPT_ARCH_AVX_SUPPORTED)
+# Include the files that defined the iPlug2 components
+include(${CMAKE_CURRENT_LIST_DIR}/IPlug.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/IGraphics.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/Deploy.cmake)
 
-#! iplug_target_add : Helper function to add sources, include directories, etc.
-# 
-# This helper function combines calls to target_include_directories, target_sources,
-# target_compile_definitions, target_compile_options, target_link_libraries,
-# add_dependencies, and target_compile_features into a single function call. 
-# This means you don't have to re-type the target name so many times, and makes it
-# clearer exactly what you're adding to a given target.
-# 
-# \arg:target The name of the target
-# \arg:set_type <PUBLIC | PRIVATE | INTERFACE>
-# \group:INCLUDE List of include directories
-# \group:SOURCE List of source files
-# \group:DEFINE Compiler definitions
-# \group:OPTION Compile options
-# \group:LINK Link libraries (including other targets)
-# \group:DEPEND Add dependencies on other targets
-# \group:FEATURE Add compile features
-function(iplug_target_add target set_type)
-  cmake_parse_arguments("cfg" "" "" "INCLUDE;SOURCE;DEFINE;OPTION;LINK;LINK_DIR;DEPEND;FEATURE;RESOURCE" ${ARGN})
-  #message("CALL iplug_add_interface ${target}")
-  if (cfg_INCLUDE)
-    target_include_directories(${target} ${set_type} ${cfg_INCLUDE})
+# Include plugin format modules to set up targets and availability checks
+# These are included early so that iPlug2::* targets exist when projects link to them
+include(${CMAKE_CURRENT_LIST_DIR}/VST2.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/VST3.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/CLAP.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/AAX.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/APP.cmake)
+
+# Include AUv3 helper functions (macOS only)
+if(APPLE AND NOT IOS)
+  include(${CMAKE_CURRENT_LIST_DIR}/AUv3.cmake)
+endif()
+
+# Include iOS AUv3 helper functions (iOS/visionOS only)
+if(IOS)
+  include(${CMAKE_CURRENT_LIST_DIR}/AUv3iOS.cmake)
+endif()
+
+# Include WAM/Web/Wasm modules for Emscripten builds
+if(CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
+  include(${CMAKE_CURRENT_LIST_DIR}/WAM.cmake)
+  include(${CMAKE_CURRENT_LIST_DIR}/WEB.cmake)
+  include(${CMAKE_CURRENT_LIST_DIR}/WAMDist.cmake)
+  include(${CMAKE_CURRENT_LIST_DIR}/WASMDSP.cmake)
+  include(${CMAKE_CURRENT_LIST_DIR}/WASMUI.cmake)
+  include(${CMAKE_CURRENT_LIST_DIR}/WASMDist.cmake)
+endif()
+
+# Include the plugin helper macro (iplug_add_plugin)
+include(${CMAKE_CURRENT_LIST_DIR}/IPlugPlugin.cmake)
+
+# Set up the iPlug2 package
+set(IPLUG2_FOUND TRUE)
+
+# Define the components of iPlug2
+set(IPLUG2_COMPONENTS IPlug IGraphics)
+
+# Check which components were requested
+foreach(component ${IPLUG2_FIND_COMPONENTS})
+  if(NOT component IN_LIST IPLUG2_COMPONENTS)
+    set(IPLUG2_FOUND FALSE)
+    set(IPLUG2_NOT_FOUND_MESSAGE "Unsupported component: ${component}")
   endif()
-  if (cfg_SOURCE)
-    target_sources(${target} ${set_type} ${cfg_SOURCE})
+endforeach()
+
+# If no components were explicitly requested, assume all are wanted
+if(NOT IPLUG2_FIND_COMPONENTS)
+  set(IPLUG2_FIND_COMPONENTS ${IPLUG2_COMPONENTS})
+endif()
+
+# Verify that requested components are available
+foreach(component ${IPLUG2_FIND_COMPONENTS})
+  if(NOT TARGET iPlug2::${component})
+    set(IPLUG2_${component}_FOUND FALSE)
+    if(IPLUG2_FIND_REQUIRED_${component})
+      set(IPLUG2_FOUND FALSE)
+      list(APPEND IPLUG2_NOT_FOUND_MESSAGE "Required component '${component}' is missing.")
+    endif()
+  else()
+    set(IPLUG2_${component}_FOUND TRUE)
   endif()
-  if (cfg_DEFINE)
-    target_compile_definitions(${target} ${set_type} ${cfg_DEFINE})
+endforeach()
+
+# Report the result of the package search
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(iPlug2
+  REQUIRED_VARS IPLUG2_DIR
+  FAIL_MESSAGE "iPlug2 not found. Please set IPLUG2_DIR to the root directory of iPlug2."
+)
+
+# If found, set up an overall iPlug2 interface target
+if(IPLUG2_FOUND AND NOT TARGET iPlug2::iPlug2)
+  add_library(iPlug2::iPlug2 INTERFACE IMPORTED)
+  target_link_libraries(iPlug2::iPlug2 INTERFACE iPlug2::IPlug)
+endif()
+
+# Helper function to set up a target (app, plug-in etc)
+function(iplug_add_target target visibility)
+  cmake_parse_arguments(PARSE_ARGV 2 CONFIG
+    ""
+    ""
+    "INCLUDE;SOURCE;DEFINE;OPTION;LINK;LINK_DIR;DEPEND;FEATURE;RESOURCE"
+  )
+
+  if(CONFIG_INCLUDE)
+    target_include_directories(${target} ${visibility} ${CONFIG_INCLUDE})
   endif()
-  if (cfg_OPTION)
-    target_compile_options(${target} ${set_type} ${cfg_OPTION})
+  
+  if(CONFIG_SOURCE)
+    target_sources(${target} ${visibility} ${CONFIG_SOURCE})
   endif()
-  if (cfg_LINK)
-    target_link_libraries(${target} ${set_type} ${cfg_LINK})
+  
+  if(CONFIG_DEFINE)
+    target_compile_definitions(${target} ${visibility} ${CONFIG_DEFINE})
   endif()
-  if (cfg_LINK_DIR)
-    target_link_directories(${target} ${set_type} ${cfg_LINK_DIR})
+  
+  if(CONFIG_OPTION)
+    target_compile_options(${target} ${visibility} ${CONFIG_OPTION})
   endif()
-  if (cfg_DEPEND)
-    add_dependencies(${target} ${set_type} ${cfg_DEPEND})
+  
+  if(CONFIG_LINK)
+    target_link_libraries(${target} ${visibility} ${CONFIG_LINK})
   endif()
-  if (cfg_FEATURE)
-    target_compile_features(${target} ${set_type} ${cfg_FEATURE})
+  
+  if(CONFIG_LINK_DIR)
+    target_link_directories(${target} ${visibility} ${CONFIG_LINK_DIR})
   endif()
-  if (cfg_RESOURCE)
-    set_property(TARGET ${target} APPEND PROPERTY RESOURCE ${cfg_RESOURCE})
+  
+  if(CONFIG_DEPEND)
+    add_dependencies(${target} ${CONFIG_DEPEND})
   endif()
-  if (cfg_UNUSED)
-    message("Unused arguments ${cfg_UNUSED}" FATAL_ERROR)
+  
+  if(CONFIG_FEATURE)
+    target_compile_features(${target} ${visibility} ${CONFIG_FEATURE})
+  endif()
+  
+  if(CONFIG_RESOURCE)
+    set_target_properties(${target} PROPERTIES RESOURCE "${CONFIG_RESOURCE}")
+  endif()
+
+  if(CONFIG_UNPARSED_ARGUMENTS)
+    message(WARNING "Unused arguments: ${CONFIG_UNPARSED_ARGUMENTS}")
   endif()
 endfunction()
 
-macro(iplug_ternary VAR val_true val_false)
-  if (${ARGN})
-    set(${VAR} ${val_true})
-  else()
-    set(${VAR} ${val_false})
-  endif()
-endmacro()
-
-macro(iplug_source_tree target)
-  get_target_property(_tmp ${target} INTERFACE_SOURCES)
-  if (NOT "${_tmp}" STREQUAL "_tmp-NOTFOUND")
-    source_group(TREE ${IPLUG2_DIR} PREFIX "IPlug" FILES ${_tmp})
-  endif()
-endmacro()
-
-#! iplug_find_path : An alternative to find_file and find_path that allows a default value.
-# 
-# \arg:VAR Variable name to set
-# \flag:DIR Search for a directory (cannot be used with FILE)
-# \flag:FILE Search for a file (cannot be used with DIR)
-# \flag:REQUIRED If this is set and there is no default cmake will abort with an error
-# \param:DEFAULT_IDX If the path can't be found use the path in PATHS at index DEFAULT_IDX,
-#                    negative values start from the end
-# \param:DEFAULT If the path can't be found use this path instead
-# \param:DOC Documentation string. If this is set the value will be set as a cache variable
-# \group:PATHS List of paths to search for
-function(iplug_find_path VAR)
-  cmake_parse_arguments("arg" "REQUIRED;DIR;FILE" "DEFAULT_IDX;DEFAULT;DOC" "PATHS" ${ARGN})
-  if (NOT arg_DIR AND NOT arg_FILE)
-    message("ERROR: iplug_find_path MUST specify either DIR or FILE as an argument" FATAL_ERROR)
+# Helper function to apply the ObjC prefix header to a target
+# This ensures all ObjC/ObjC++ sources use the namespaced class names.
+# Uses -include flag for all generators (including Xcode) for reliability.
+# Note: We avoid GCC_PRECOMPILE_PREFIX_HEADER=YES because Xcode's shared PCH
+# mechanism can fail in CI environments with parallel builds.
+function(iplug_apply_objc_prefix_header target)
+  if(NOT APPLE)
+    return()
   endif()
 
-  set(out 0)
-  foreach (pt ${arg_PATHS})
-    if (EXISTS ${pt})
-      iplug_ternary(is_dir 1 0 IS_DIRECTORY ${pt})
-      #message("Found path ${pt} and is_dir=${is_dir}")
-
-      if ( (arg_FILE AND NOT ${is_dir}) OR (arg_DIR AND ${is_dir}) )
-        set(out ${pt})
-        break()
-      endif()
-    endif()
-  endforeach()
-
-  # Handle various default options
-  if ((NOT out) AND (arg_DEFAULT))
-    set(out ${arg_DEFAULT})
-  endif()
-  if ((NOT out) AND NOT ("${arg_DEFAULT_IDX}" STREQUAL ""))
-    list(GET arg_PATHS "${arg_DEFAULT_IDX}" out)
-  endif()
-
-  # Determine cache type for the variable
-  iplug_ternary(_cache_type PATH FILEPATH ${arg_DIR})
-  # Handle required
-  if ((NOT out) AND (arg_REQUIRED))
-    set(${VAR} "${VAR}-NOTFOUND" CACHE ${_cache_type} ${arg_DOC}})
-    message(FATAL_ERROR "Path ${VAR} not found!")
-  endif()
-  # Set cache var or var in parent scope
-  if (arg_DOC)
-    set(${VAR} ${out} CACHE ${_cache_type} ${arg_DOC})
-  else()
-    set(${VAR} ${out} PARENT_SCOPE)
-  endif()
-endfunction(iplug_find_path)
-
-#! iplug_target_bundle_resource : Internal function to copy all resources to the output directory
-# 
-# This pulls the list of resources from the target's RESOURCE property. Currently
-# resources will be copied directly into res_dir unless the resource is a font
-# or image, this is to comply with iPlug2's resource finding code.
-#
-# \arg:target The target to apply the changes on
-# \arg:res_dir Directory to copy the resources into
-function(iplug_target_bundle_resources target res_dir)
-  get_property(resources TARGET ${target} PROPERTY RESOURCE)
-  if (CMAKE_GENERATOR STREQUAL "Xcode")
-    # On Xcode we mark each file as non-compiled
-    foreach (res ${resources})
-      get_filename_component(fn "${res}" NAME)
-      set(file_type "file")
-      if (fn MATCHES ".*\\.xib")
-        set(file_type "file.xib")
-      endif()
-      set_property(SOURCE ${res} PROPERTY XCODE_LAST_KNOWN_FILE_TYPE ${file_type})
-    endforeach()
-  else()
-    # Without Xcode we manually copy resources.
-    foreach (res ${resources})
-      
-      get_filename_component(fn "${res}" NAME)
-      # Default is to simply copy the file, some file types may need special
-      # handling in which case they set copy to FALSE.
-      set(copy TRUE)
-
-      set(dst "${res_dir}/${fn}")
-      if (NOT APPLE)
-        if (fn MATCHES ".*\\.ttf")
-          set(dst "${res_dir}/fonts/${fn}")
-        elseif ((fn MATCHES ".*\\.png") OR (fn MATCHES ".*\\.svg"))
-          set(dst "${res_dir}/img/${fn}")
-        endif()
-      else()
-
-        # Apple but no Xcode? Manually compile xib files
-        if (fn MATCHES ".*\\.xib")
-          get_filename_component(tmp "${res}" NAME_WE)
-          set(dst "${res_dir}/${tmp}.nib")
-          add_custom_command(OUTPUT ${dst}
-            COMMAND ${IBTOOL} ARGS "--errors" "--warnings" "--notices" "--compile" "${dst}" "${res}"
-            MAIN_DEPENDENCY "${res}")
-          set(copy FALSE)
-        endif()
-      endif()
-
-      target_sources(${target} PUBLIC "${dst}")
-
-      if (copy)
-        add_custom_command(OUTPUT "${dst}"
-          COMMAND ${CMAKE_COMMAND} ARGS "-E" "copy" "${res}" "${dst}"
-          MAIN_DEPENDENCY "${res}")
-      endif()
-    endforeach()
-  endif()
+  # Force-include the prefix header on ObjC/ObjC++ sources
+  # The Xcode generator doesn't always properly map COMPILE_LANGUAGE:OBJCXX to
+  # OTHER_CPLUSPLUSFLAGS, so we apply to all C-family languages.
+  # The prefix header is guarded by #ifdef __OBJC__ so it's safe for C/C++ files.
+  target_compile_options(${target} PRIVATE
+    "$<$<COMPILE_LANGUAGE:C>:SHELL:-include ${IPLUG_DIR}/IPlugOBJCPrefix.pch>"
+    "$<$<COMPILE_LANGUAGE:CXX>:SHELL:-include ${IPLUG_DIR}/IPlugOBJCPrefix.pch>"
+    "$<$<COMPILE_LANGUAGE:OBJC>:SHELL:-include ${IPLUG_DIR}/IPlugOBJCPrefix.pch>"
+    "$<$<COMPILE_LANGUAGE:OBJCXX>:SHELL:-include ${IPLUG_DIR}/IPlugOBJCPrefix.pch>"
+  )
 endfunction()
 
-############################
-# General iPlug2 Interface #
-############################
-
-set(IPLUG_SRC ${IPLUG2_DIR}/IPlug)
-set(IGRAPHICS_SRC ${IPLUG2_DIR}/IGraphics)
-set(WDL_DIR ${IPLUG2_DIR}/WDL)
-set(IPLUG_DEPS ${IPLUG2_DIR}/Dependencies/IPlug)
-set(IGRAPHICS_DEPS ${IPLUG2_DIR}/Dependencies/IGraphics)
-set(BUILD_DEPS ${IPLUG2_DIR}/Dependencies/Build)
-
-# Core iPlug2 interface. All targets MUST link to this.
-add_library(iPlug2_Core INTERFACE)
-
-# Make sure we define DEBUG for debug builds
-set(_def "NOMINMAX" "$<$<CONFIG:Debug>:DEBUG>")
-set(_opts "")
-set(_lib "")
-set(_inc
-  # iPlug2
-  ${WDL_DIR}
-  ${WDL_DIR}/libpng
-  ${WDL_DIR}/zlib
-  ${IPLUG_SRC}
-  ${IPLUG_SRC}/Extras
-)
-
-set(sdk ${IPLUG_SRC})
-set(_src
-  ${sdk}/IPlugAPIBase.h
-  ${sdk}/IPlugAPIBase.cpp
-  ${sdk}/IPlugConstants.h
-  ${sdk}/IPlugEditorDelegate.h
-  ${sdk}/IPlugLogger.h
-  ${sdk}/IPlugMidi.h
-  ${sdk}/IPlugParameter.h
-  ${sdk}/IPlugParameter.cpp
-  ${sdk}/IPlugPaths.h
-  ${sdk}/IPlugPaths.cpp
-  ${sdk}/IPlugPlatform.h
-  ${sdk}/IPlugPluginBase.h
-  ${sdk}/IPlugPluginBase.cpp
-  ${sdk}/IPlugProcessor.h
-  ${sdk}/IPlugProcessor.cpp
-  ${sdk}/IPlugQueue.h
-  ${sdk}/IPlugStructs.h
-  ${sdk}/IPlugTimer.h
-  ${sdk}/IPlugTimer.cpp
-  ${sdk}/IPlugUtilities.h
-)
-
-# Platform Settings
-if (CMAKE_SYSTEM_NAME MATCHES "Windows")
-  list(APPEND _src ${IGRAPHICS_SRC}/Platforms/IGraphicsWin.cpp)
-  target_link_libraries(iPlug2_Core INTERFACE "Shlwapi.lib" "comctl32.lib" "wininet.lib")
-  
-  # postbuild-win.bat is used by VST2/VST3/AAX on Windows, so we just always configure it on Windows
-  # Note: For visual studio, we COULD use $(TargetPath) for the target, but for all other generators, no.
-  set(plugin_build_dir "${CMAKE_BINARY_DIR}/out")
-  set(create_bundle_script "${IPLUG2_DIR}/Scripts/create_bundle.bat")
-  configure_file("${IPLUG2_DIR}/Scripts/postbuild-win.bat.in" "${CMAKE_BINARY_DIR}/postbuild-win.bat")
-
-elseif (CMAKE_SYSTEM_NAME MATCHES "Linux")
-  list(APPEND _inc
-    ${WDL_DIR}/swell
+# Helper function to configure a target based on its type
+function(iplug_configure_target target target_type project_name)
+  set(SUPPORTED_TYPES
+    APP
+    VST2
+    VST3
+    CLAP
+    AUv2
+    AAX
+    AUv3Framework
+    AUv3Appex
+    # iOS targets
+    IOSApp
+    AUv3iOSFramework
+    AUv3iOSAppex
+    # Web/Emscripten targets
+    WAM
+    WEB
   )
-  list(APPEND _lib "pthread" "rt")
-  list(APPEND _opts "-Wno-multichar")
 
-elseif (CMAKE_SYSTEM_NAME MATCHES "Darwin")
-  list(APPEND _src 
-    ${IPLUG_SRC}/IPlugPaths.mm
-    ${IGRAPHICS_SRC}/Platforms/IGraphicsMac.mm
-    ${IGRAPHICS_SRC}/Platforms/IGraphicsMac_view.mm
-    ${IGRAPHICS_SRC}/Platforms/IGraphicsCoreText.mm
+  if(NOT ${target_type} IN_LIST SUPPORTED_TYPES)
+    message(FATAL_ERROR "Unsupported target type '${target_type}' for target '${target}'")
+  endif()
+
+  set_target_properties(${target} PROPERTIES
+    CXX_STANDARD ${IPLUG2_CXX_STANDARD}
+    CXX_STANDARD_REQUIRED ON
+    CXX_EXTENSIONS OFF
   )
-  list(APPEND _inc ${WDL_DIR}/swell)
-  list(APPEND _lib
-    "-framework CoreFoundation" "-framework CoreData" "-framework Foundation" "-framework CoreServices"
-  )
-  list(APPEND _opts "-Wno-deprecated-declarations"  "-Wno-c++11-narrowing")
-else()
-  message("Unhandled system ${CMAKE_SYSTEM_NAME}" FATAL_ERROR)
-endif()
 
-if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-  list(APPEND _def "_CRT_SECURE_NO_WARNINGS" "_CRT_SECURE_NO_DEPRECATE" "_CRT_NONSTDC_NO_DEPRECATE" "NOMINMAX" "_MBCS")
-  list(APPEND _opts "/wd4996" "/wd4250" "/wd4018" "/wd4267" "/wd4068" "/MT$<$<CONFIG:Debug>:d>")
-endif()
+  # Set unique OBJC_PREFIX per target to avoid namespace conflicts when
+  # a DAW loads multiple plugin formats of the same plugin simultaneously.
+  # The API suffix (_vst3, _au, etc.) is added by IPlugOBJCPrefix.pch based on
+  # the format-specific API defines (VST3_API, AU_API, etc.)
+  if(APPLE)
+    target_compile_definitions(${target} PRIVATE OBJC_PREFIX=v${project_name})
 
-# Set certain compiler flags, specifically errors if there are undefined symbols
-if ((CMAKE_CXX_COMPILER_ID MATCHES "Clang") OR (CMAKE_CXX_COMPILER_ID MATCHES "GNU"))
-  list(APPEND _opts "-Wl,--no-undefined")
-endif()
+    # Prevent Xcode from combining @1x/@2x PNGs into TIFF files
+    # IPlug expects the original PNG filenames at runtime
+    set_target_properties(${target} PROPERTIES
+      XCODE_ATTRIBUTE_COMBINE_HIDPI_IMAGES "NO"
+    )
 
-# Use advanced SIMD instructions when available.
-if (COMPILER_OPT_ARCH_NATIVE_SUPPORTED)
-  list(APPEND _opts "-march=native")
-elseif(COMPILER_OPT_ARCH_AVX_SUPPORTED)
-  list(APPEND _opts "/arch:AVX")
-endif()
+    # Apply the ObjC prefix header (works for both Xcode and non-Xcode generators)
+    iplug_apply_objc_prefix_header(${target})
 
-source_group(TREE ${IPLUG2_DIR} PREFIX "IPlug" FILES ${_src})
-iplug_target_add(iPlug2_Core INTERFACE DEFINE ${_def} INCLUDE ${_inc} SOURCE ${_src} OPTION ${_opts} LINK ${_lib})
+    # Configure WebView sources if present (requires ARC)
+    # This handles targets that link to iPlug2::Extras::IWebViewControl
+    if(DEFINED IPLUG2_WEBVIEW_MAC_SOURCE)
+      iplug_configure_webview_sources(${target})
+    endif()
+  endif()
 
-#############
-# IGraphics #
-#############
+  # Include and configure based on target type
+  include("${IPLUG2_CMAKE_DIR}/${target_type}.cmake")
 
-# We include this first because APP requires LICE.
-include("${IPLUG2_CMAKE_DIR}/IGraphics.cmake")
+  string(TOLOWER ${target_type} lowercase_type)
+  string(REPLACE "_" "-" function_suffix ${lowercase_type})
+  cmake_language(CALL iplug_configure_${function_suffix} ${target} ${project_name})
 
-####################
-# Reaper Extension #
-####################
+  # Auto-deploy main plugin formats (skip AUv3 intermediate targets)
+  set(DEPLOYABLE_TYPES APP VST2 VST3 CLAP AUv2 AAX)
+  if(${target_type} IN_LIST DEPLOYABLE_TYPES)
+    iplug_deploy_target(${target} ${target_type} ${project_name})
+  endif()
 
-add_library(iPlug2_REAPER INTERFACE)
-set(_sdk ${IPLUG2_DIR}/IPlug/ReaperExt)
-iplug_target_add(iPlug2_REAPER INTERFACE
-  INCLUDE "${_sdk}" "${IPLUG_DEPS}/IPlug/Reaper"
-  SOURCE "${_sdk}/ReaperExtBase.cpp"
-  DEFINE "REAPER_PLUGIN"
-  LINK iPlug2_VST2
-)
+  # Debuggable plugin types
+  set(DEBUGGABLE_TYPES "")
+  if(IPLUG2_VST2_SUPPORTED)
+    list(APPEND DEBUGGABLE_TYPES VST2)
+  endif()
+  if(IPLUG2_VST3_SUPPORTED)
+    list(APPEND DEBUGGABLE_TYPES VST3)
+  endif()
+  if(IPLUG2_CLAP_SUPPORTED)
+    list(APPEND DEBUGGABLE_TYPES CLAP)
+  endif()
+  if(IPLUG2_AAX_SUPPORTED)
+    list(APPEND DEBUGGABLE_TYPES AAX)
+  endif()
+  if(APPLE)
+    list(APPEND DEBUGGABLE_TYPES AUv2 AUv3Appex)
+  endif()
 
-###############################
-# Minor Configuration Targets #
-###############################
+  # Set Visual Studio debugger properties for plugin targets (Windows only)
+  if(WIN32 AND IPLUG2_DEBUG_HOST AND ${target_type} IN_LIST DEBUGGABLE_TYPES)
+    set_target_properties(${target} PROPERTIES
+      VS_DEBUGGER_COMMAND "${IPLUG2_DEBUG_HOST}"
+    )
+    if(IPLUG2_DEBUG_HOST_ARGS)
+      set_target_properties(${target} PROPERTIES
+        VS_DEBUGGER_COMMAND_ARGUMENTS "${IPLUG2_DEBUG_HOST_ARGS}"
+      )
+    endif()
+    get_filename_component(_debug_host_dir "${IPLUG2_DEBUG_HOST}" DIRECTORY)
+    if(_debug_host_dir)
+      set_target_properties(${target} PROPERTIES
+        VS_DEBUGGER_WORKING_DIRECTORY "${_debug_host_dir}"
+      )
+    endif()
+  endif()
 
-add_library(iPlug2_Faust INTERFACE)
-iplug_target_add(iPlug2_Faust INTERFACE
-  INCLUDE "${IPLUG2_DIR}/IPlug/Extras/Faust" "${FAUST_INCLUDE_DIR}"
-)
-
-add_library(iPlug2_FaustGen INTERFACE)
-iplug_target_add(iPlug2_FaustGen INTERFACE
-  SOURCE "${IPLUG_SRC}/Extras/Faust/IPlugFaustGen.cpp"
-  LINK iPlug2_Faust)
-iplug_source_tree(iPlug2_FaustGen)
-
-add_library(iPlug2_HIIR INTERFACE)
-iplug_target_add(iPlug2_HIIR INTERFACE
-  INCLUDE ${IPLUG_SRC}/Extras/HIIR
-  SOURCE "${IPLUG_SRC}/Extras/HIIR/PolyphaseIIR2Designer.cpp")
-iplug_source_tree(iPlug2_HIIR)
-
-add_library(iPlug2_OSC INTERFACE)
-iplug_target_add(iPlug2_OSC INTERFACE
-  INCLUDE ${IPLUG_SRC}/Extras/OSC
-  SOURCE ${IPLUG_SRC}/Extras/OSC/IPlugOSC_msg.cpp)
-iplug_source_tree(iPlug2_OSC)
-
-add_library(iPlug2_Synth INTERFACE)
-iplug_target_add(iPlug2_Synth INTERFACE
-  INCLUDE ${IPLUG_SRC}/Extras/Synth
-  SOURCE
-    "${IPLUG_SRC}/Extras/Synth/MidiSynth.cpp"
-    "${IPLUG_SRC}/Extras/Synth/VoiceAllocator.cpp")
-iplug_source_tree(iPlug2_Synth)
-
-
-#! iplug_configure_target : Configure a target for the given output type
-#
-function(iplug_configure_target target target_type)
-  set_property(TARGET ${target} PROPERTY CXX_STANDARD ${IPLUG2_CXX_STANDARD})
-
-  # ALL Configurations
-  if (WIN32)
-    # On Windows ours fonts are included in the RC file, meaning we need to include main.rc
-    # in ALL our builds. Yay for platform-specific bundling!
-    set(_res "${CMAKE_SOURCE_DIR}/resources/main.rc")
-    iplug_target_add(${target} PUBLIC RESOURCE ${_res})
-    source_group("Resources" FILES ${_res})
-    
-  elseif (CMAKE_SYSTEM_NAME MATCHES "Darwin") 
-    # For MacOS we make sure the output name is the same as the app name.
-    # This is basically required for bundles.
-    set_property(TARGET ${target} PROPERTY OUTPUT_NAME "${PLUG_NAME}")
-
-  elseif (OS_LINUX)
-
-    # Fix LICE linking
-    get_target_property(libs ${target} LINK_LIBRARIES)
-    if ("${libs}" MATCHES "iPlug2_LICE")
-      if ("${target_type}" STREQUAL "app")
-        target_link_libraries(${target} PUBLIC iPlug2_LICE_APP)
-      else()
-        target_link_libraries(${target} PUBLIC iPlug2_LICE_Normal)
+  # Set Xcode scheme properties for plugin targets (macOS only)
+  # Generates schemes with "Ask on Launch" behavior (no executable set)
+  # or uses IPLUG2_DEBUG_HOST if provided
+  if(APPLE AND XCODE AND ${target_type} IN_LIST DEBUGGABLE_TYPES)
+    set_target_properties(${target} PROPERTIES
+      XCODE_GENERATE_SCHEME TRUE
+      XCODE_SCHEME_DEBUG_DOCUMENT_VERSIONING NO
+    )
+    if(IPLUG2_DEBUG_HOST)
+      set_target_properties(${target} PROPERTIES
+        XCODE_SCHEME_EXECUTABLE "${IPLUG2_DEBUG_HOST}"
+      )
+      if(IPLUG2_DEBUG_HOST_ARGS)
+        set_target_properties(${target} PROPERTIES
+          XCODE_SCHEME_ARGUMENTS "${IPLUG2_DEBUG_HOST_ARGS}"
+        )
       endif()
     endif()
-
   endif()
-  
-  if ("${target_type}" STREQUAL "aax")
-    if (NOT TARGET iPlug2_AAX)
-      include("${IPLUG2_CMAKE_DIR}/AAX.cmake")
-    endif()
-    iplug_configure_aax(${target})
-  elseif ("${target_type}" STREQUAL "app")
-    if (NOT TARGET iPlug2_APP)
-      include("${IPLUG2_CMAKE_DIR}/APP.cmake")
-    endif()
-    iplug_configure_app(${target})
-  elseif ("${target_type}" STREQUAL "au2")
-    if (NOT TARGET iPlug2_AUv2)
-      include("${IPLUG2_CMAKE_DIR}/AudioUnit.cmake")
-    endif()
-    iplug_configure_au2(${target})
-  elseif ("${target_type}" STREQUAL "au3")
-    if (NOT TARGET iPlug2_AUv3)
-      include("${IPLUG2_CMAKE_DIR}/AudioUnit.cmake")
-    endif()
-    iplug_configure_au3(${target})
-  elseif ("${target_type}" STREQUAL "lv2")
-    if (NOT TARGET iPlug2_LV2)
-      include("${IPLUG2_CMAKE_DIR}/LV2.cmake")
-    endif()
-    iplug_configure_lv2(${target})
-  # elseif ("${target_type}" STREQUAL "reaper")
-  #   iplug_conifgure_reaper(${target})
-  elseif ("${target_type}" STREQUAL "vst2")
-    if (NOT TARGET iPlug2_VST2)
-      include("${IPLUG2_CMAKE_DIR}/VST2.cmake")
-    endif()
-    iplug_configure_vst2(${target})
-  elseif ("${target_type}" STREQUAL "vst3")
-    if (NOT TARGET iPlug2_VST3)
-      include("${IPLUG2_CMAKE_DIR}/VST3.cmake")
-    endif()
-    iplug_configure_vst3(${target})
-  elseif ("${target_type}" STREQUAL "web")
-    if (NOT TARGET iPlug2_WEB)
-      include("${IPLUG2_CMAKE_DIR}/WEB.cmake")
-    endif()
-    iplug_configure_web(${target})
-  elseif ("${target_type}" STREQUAL "wam")
-    if (NOT TARGET iPlug2_WAM)
-      include("${IPLUG2_CMAKE_DIR}/WEB.cmake")
-    endif()
-    iplug_configure_wam(${target})
-  else()
-    message("Unknown target type \'${target_type}\' for target '${target}'" FATAL_ERROR)
+
+  # APP targets are standalone executables - always generate schemes (no debug host needed)
+  if(APPLE AND XCODE AND ${target_type} STREQUAL "APP")
+    set_target_properties(${target} PROPERTIES
+      XCODE_GENERATE_SCHEME TRUE
+      XCODE_SCHEME_DEBUG_DOCUMENT_VERSIONING NO
+    )
   endif()
 endfunction()

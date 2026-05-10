@@ -37,7 +37,9 @@
 #ifndef SWELL_NO_METAL
 #undef min
 #undef max
+#ifdef __SSE__
 #include <simd/simd.h>
+#endif
 #import <QuartzCore/CAMetalLayer.h>
 #import <Metal/Metal.h>
 #include "../assocarray.h"
@@ -474,7 +476,8 @@ static int DelegateMouseMove(NSView *view, NSEvent *theEvent)
     for (NSInteger x = kw ? -1 : 0; x < cnt; x ++)
     {
       NSWindow *wnd = x < 0 ? kw : [windows objectAtIndex:x];
-      if (wnd && [wnd isVisible])
+      if (wnd && [wnd isVisible] && HTTRANSPARENT != SendMessage((HWND)wnd, WM_NCHITTEST, 0,
+            MAKELPARAM((int)floor(screen_p.x+0.5), (int)floor(screen_p.y+0.5))))
       {
         NSRect fr=[wnd frame];
         if (screen_p.x >= fr.origin.x && screen_p.x < fr.origin.x + fr.size.width &&
@@ -693,6 +696,11 @@ static id<MTLDevice> mtl_def_device()
   }
   
   return m_wndproc ? m_wndproc((HWND)self,msg,wParam,lParam) : 0;
+}
+
+- (BOOL) clipsToBounds
+{
+  return YES;
 }
 
 - (BOOL) isEnabled
@@ -918,7 +926,7 @@ static id<MTLDevice> mtl_def_device()
       }
       else
       {
-        NMLISTVIEW nmhdr={{(HWND)sender,(UINT_PTR)[sender tag],LVN_ITEMCHANGED},(int)[sender selectedRow],0};
+        NMLISTVIEW nmhdr={{(HWND)sender,(UINT_PTR)[sender tag],LVN_ITEMCHANGED},(int)[sender selectedRow],0,LVIS_SELECTED,0};
         if (m_wndproc&&!m_hashaddestroy) m_wndproc((HWND)self,WM_NOTIFY,(int)[sender tag],(LPARAM)&nmhdr);
       }
       swell_ignore_listview_changes--;
@@ -1101,14 +1109,11 @@ static id<MTLDevice> mtl_def_device()
     m_paintctx_used=1;
     ps->hdc = m_paintctx_hdc;
     ps->fErase=false;
-    NSRECT_TO_RECT(&ps->rcPaint,m_paintctx_rect);
 
-    // should NC_CALCSIZE to convert, but this will be good enough to fix this small scrollbar overdraw bug
-    RECT r;
+    RECT r,r2;
+    NSRECT_TO_RECT(&r2,m_paintctx_rect);
     GetClientRect((HWND)self,&r);
-    if (ps->rcPaint.right > r.right) ps->rcPaint.right = r.right;
-    if (ps->rcPaint.bottom > r.bottom) ps->rcPaint.bottom = r.bottom;
-    
+    IntersectRect(&ps->rcPaint, &r2, &r);
   }
 }
 
@@ -4408,7 +4413,7 @@ int SWELL_EnableMetal(HWND hwnd, int mode)
 }
 
 
-void swell_updateAllMetalDirty() // run from a timer, or called by UpdateWindow()
+void swell_updateAllMetalDirty(HWND hForce) // run from a timer, or called by UpdateWindow()
 {
 #ifndef SWELL_NO_METAL
   if (s_mtl_in_update || !s_mtl_dirty_list.GetSize()) return;
@@ -4433,7 +4438,10 @@ void swell_updateAllMetalDirty() // run from a timer, or called by UpdateWindow(
       NSUInteger (*send_msg)(id, SEL) = (NSUInteger (*)(id, SEL))objc_msgSend;
       lw_occluded = w && !(send_msg(w, @selector(occlusionState))&2);
     }
-    if (lw_occluded) continue;
+    if (lw_occluded)
+    {
+      if ((HWND)slf != hForce) continue;
+    }
 
     const RECT tr = slf->m_metal_in_needref_rect;
     s_mtl_dirty_list.Delete(x);

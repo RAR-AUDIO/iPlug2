@@ -11,9 +11,21 @@
 #include <cstring>
 #include <cstdio>
 #include <cstdint>
-#include <emscripten/key_codes.h>
+#include <string>
+#include <vector>
 
 #include "IGraphicsWeb.h"
+
+// Helper to create WebGL context for Shadow DOM (CSS selectors don't work)
+EM_JS(int, createWebGLContextForShadowDOM, (), {
+  var canvas = Module.canvas;
+  if (!canvas) return 0;
+  var attrs = { stencil: true, depth: true, antialias: true, alpha: true };
+  var ctx = canvas.getContext("webgl", attrs) || canvas.getContext("experimental-webgl", attrs);
+  if (!ctx) return 0;
+  return GL.registerContext(ctx, attrs);
+});
+
 
 BEGIN_IPLUG_NAMESPACE
 BEGIN_IGRAPHICS_NAMESPACE
@@ -31,7 +43,8 @@ using namespace iplug;
 using namespace igraphics;
 using namespace emscripten;
 
-extern IGraphicsWeb* gGraphics;
+extern std::vector<IGraphicsWeb*> gGraphicsInstances;
+extern void UnregisterGraphicsInstance(IGraphicsWeb* pGraphics);
 double gPrevMouseDownTime = 0.;
 bool gFirstClick = false;
 
@@ -113,209 +126,21 @@ private:
 
 #pragma mark - Utilities and Callbacks
 
-// Key combos
-
-static int domVKToWinVK(int dom_vk_code)
-{
-  switch(dom_vk_code)
-  {
-//    case DOM_VK_CANCEL:               return 0;  // TODO
-    case DOM_VK_HELP:                 return kVK_HELP;
-    case DOM_VK_BACK_SPACE:           return kVK_BACK;
-    case DOM_VK_TAB:                  return kVK_TAB;
-    case DOM_VK_CLEAR:                return kVK_CLEAR;
-    case DOM_VK_RETURN:               return kVK_RETURN;
-    case DOM_VK_ENTER:                return kVK_RETURN;
-    case DOM_VK_SHIFT:                return kVK_SHIFT;
-    case DOM_VK_CONTROL:              return kVK_CONTROL;
-    case DOM_VK_ALT:                  return kVK_MENU;
-    case DOM_VK_PAUSE:                return kVK_PAUSE;
-    case DOM_VK_CAPS_LOCK:            return kVK_CAPITAL;
-    case DOM_VK_ESCAPE:               return kVK_ESCAPE;
-//    case DOM_VK_CONVERT:              return 0;  // TODO
-//    case DOM_VK_NONCONVERT:           return 0;  // TODO
-//    case DOM_VK_ACCEPT:               return 0;  // TODO
-//    case DOM_VK_MODECHANGE:           return 0;  // TODO
-    case DOM_VK_SPACE:                return kVK_SPACE;
-    case DOM_VK_PAGE_UP:              return kVK_PRIOR;
-    case DOM_VK_PAGE_DOWN:            return kVK_NEXT;
-    case DOM_VK_END:                  return kVK_END;
-    case DOM_VK_HOME:                 return kVK_HOME;
-    case DOM_VK_LEFT:                 return kVK_LEFT;
-    case DOM_VK_UP:                   return kVK_UP;
-    case DOM_VK_RIGHT:                return kVK_RIGHT;
-    case DOM_VK_DOWN:                 return kVK_DOWN;
-//    case DOM_VK_SELECT:               return 0;  // TODO
-//    case DOM_VK_PRINT:                return 0;  // TODO
-//    case DOM_VK_EXECUTE:              return 0;  // TODO
-//    case DOM_VK_PRINTSCREEN:          return 0;  // TODO
-    case DOM_VK_INSERT:               return kVK_INSERT;
-    case DOM_VK_DELETE:               return kVK_DELETE;
-    case DOM_VK_0:                    return kVK_0;
-    case DOM_VK_1:                    return kVK_1;
-    case DOM_VK_2:                    return kVK_2;
-    case DOM_VK_3:                    return kVK_3;
-    case DOM_VK_4:                    return kVK_4;
-    case DOM_VK_5:                    return kVK_5;
-    case DOM_VK_6:                    return kVK_6;
-    case DOM_VK_7:                    return kVK_7;
-    case DOM_VK_8:                    return kVK_8;
-    case DOM_VK_9:                    return kVK_9;
-//    case DOM_VK_COLON:                return 0;  // TODO
-//    case DOM_VK_SEMICOLON:            return 0;  // TODO
-//    case DOM_VK_LESS_THAN:            return 0;  // TODO
-//    case DOM_VK_EQUALS:               return 0;  // TODO
-//    case DOM_VK_GREATER_THAN:         return 0;  // TODO
-//    case DOM_VK_QUESTION_MARK:        return 0;  // TODO
-//    case DOM_VK_AT:                   return 0;  // TODO
-    case DOM_VK_A:                    return kVK_A;
-    case DOM_VK_B:                    return kVK_B;
-    case DOM_VK_C:                    return kVK_C;
-    case DOM_VK_D:                    return kVK_D;
-    case DOM_VK_E:                    return kVK_E;
-    case DOM_VK_F:                    return kVK_F;
-    case DOM_VK_G:                    return kVK_G;
-    case DOM_VK_H:                    return kVK_H;
-    case DOM_VK_I:                    return kVK_I;
-    case DOM_VK_J:                    return kVK_J;
-    case DOM_VK_K:                    return kVK_K;
-    case DOM_VK_L:                    return kVK_L;
-    case DOM_VK_M:                    return kVK_M;
-    case DOM_VK_N:                    return kVK_N;
-    case DOM_VK_O:                    return kVK_O;
-    case DOM_VK_P:                    return kVK_P;
-    case DOM_VK_Q:                    return kVK_Q;
-    case DOM_VK_R:                    return kVK_R;
-    case DOM_VK_S:                    return kVK_S;
-    case DOM_VK_T:                    return kVK_T;
-    case DOM_VK_U:                    return kVK_U;
-    case DOM_VK_V:                    return kVK_V;
-    case DOM_VK_W:                    return kVK_W;
-    case DOM_VK_X:                    return kVK_X;
-    case DOM_VK_Y:                    return kVK_Y;
-    case DOM_VK_Z:                    return kVK_Z;
-//    case DOM_VK_WIN:                  return 0;  // TODO
-//    case DOM_VK_CONTEXT_MENU:         return 0;  // TODO
-//    case DOM_VK_SLEEP:                return 0;  // TODO
-    case DOM_VK_NUMPAD0:              return kVK_NUMPAD0;
-    case DOM_VK_NUMPAD1:              return kVK_NUMPAD1;
-    case DOM_VK_NUMPAD2:              return kVK_NUMPAD2;
-    case DOM_VK_NUMPAD3:              return kVK_NUMPAD3;
-    case DOM_VK_NUMPAD4:              return kVK_NUMPAD4;
-    case DOM_VK_NUMPAD5:              return kVK_NUMPAD5;
-    case DOM_VK_NUMPAD6:              return kVK_NUMPAD6;
-    case DOM_VK_NUMPAD7:              return kVK_NUMPAD7;
-    case DOM_VK_NUMPAD8:              return kVK_NUMPAD8;
-    case DOM_VK_NUMPAD9:              return kVK_NUMPAD9;
-    case DOM_VK_MULTIPLY:             return kVK_MULTIPLY;
-    case DOM_VK_ADD:                  return kVK_ADD;
-    case DOM_VK_SEPARATOR:            return kVK_SEPARATOR;
-    case DOM_VK_SUBTRACT:             return kVK_SUBTRACT;
-    case DOM_VK_DECIMAL:              return kVK_DECIMAL;
-    case DOM_VK_DIVIDE:               return kVK_DIVIDE;
-    case DOM_VK_F1:                   return kVK_F1;
-    case DOM_VK_F2:                   return kVK_F2;
-    case DOM_VK_F3:                   return kVK_F3;
-    case DOM_VK_F4:                   return kVK_F4;
-    case DOM_VK_F5:                   return kVK_F5;
-    case DOM_VK_F6:                   return kVK_F6;
-    case DOM_VK_F7:                   return kVK_F7;
-    case DOM_VK_F8:                   return kVK_F8;
-    case DOM_VK_F9:                   return kVK_F9;
-    case DOM_VK_F10:                  return kVK_F10;
-    case DOM_VK_F11:                  return kVK_F11;
-    case DOM_VK_F12:                  return kVK_F12;
-    case DOM_VK_F13:                  return kVK_F13;
-    case DOM_VK_F14:                  return kVK_F14;
-    case DOM_VK_F15:                  return kVK_F15;
-    case DOM_VK_F16:                  return kVK_F16;
-    case DOM_VK_F17:                  return kVK_F17;
-    case DOM_VK_F18:                  return kVK_F18;
-    case DOM_VK_F19:                  return kVK_F19;
-    case DOM_VK_F20:                  return kVK_F20;
-    case DOM_VK_F21:                  return kVK_F21;
-    case DOM_VK_F22:                  return kVK_F22;
-    case DOM_VK_F23:                  return kVK_F23;
-    case DOM_VK_F24:                  return kVK_F24;
-    case DOM_VK_NUM_LOCK:             return kVK_NUMLOCK;
-    case DOM_VK_SCROLL_LOCK:          return kVK_SCROLL;
-//    case DOM_VK_WIN_OEM_FJ_JISHO:     return 0;  // TODO
-//    case DOM_VK_WIN_OEM_FJ_MASSHOU:   return 0;  // TODO
-//    case DOM_VK_WIN_OEM_FJ_TOUROKU:   return 0;  // TODO
-//    case DOM_VK_WIN_OEM_FJ_LOYA:      return 0;  // TODO
-//    case DOM_VK_WIN_OEM_FJ_ROYA:      return 0;  // TODO
-//    case DOM_VK_CIRCUMFLEX:           return 0;  // TODO
-//    case DOM_VK_EXCLAMATION:          return 0;  // TODO
-//    case DOM_VK_HASH:                 return 0;  // TODO
-//    case DOM_VK_DOLLAR:               return 0;  // TODO
-//    case DOM_VK_PERCENT:              return 0;  // TODO
-//    case DOM_VK_AMPERSAND:            return 0;  // TODO
-//    case DOM_VK_UNDERSCORE:           return 0;  // TODO
-//    case DOM_VK_OPEN_PAREN:           return 0;  // TODO
-//    case DOM_VK_CLOSE_PAREN:          return 0;  // TODO
-//    case DOM_VK_ASTERISK:             return 0;  // TODO
-//    case DOM_VK_PLUS:                 return 0;  // TODO
-//    case DOM_VK_PIPE:                 return 0;  // TODO
-//    case DOM_VK_HYPHEN_MINUS:         return 0;  // TODO
-//    case DOM_VK_OPEN_CURLY_BRACKET:   return 0;  // TODO
-//    case DOM_VK_CLOSE_CURLY_BRACKET:  return 0;  // TODO
-//    case DOM_VK_TILDE:                return 0;  // TODO
-//    case DOM_VK_VOLUME_MUTE:          return 0;  // TODO
-//    case DOM_VK_VOLUME_DOWN:          return 0;  // TODO
-//    case DOM_VK_VOLUME_UP:            return 0;  // TODO
-//    case DOM_VK_COMMA:                return 0;  // TODO
-//    case DOM_VK_PERIOD:               return 0;  // TODO
-//    case DOM_VK_SLASH:                return 0;  // TODO
-//    case DOM_VK_BACK_QUOTE:           return 0;  // TODO
-//    case DOM_VK_OPEN_BRACKET:         return 0;  // TODO
-//    case DOM_VK_BACK_SLASH:           return 0;  // TODO
-//    case DOM_VK_CLOSE_BRACKET:        return 0;  // TODO
-//    case DOM_VK_QUOTE:                return 0;  // TODO
-//    case DOM_VK_META:                 return 0;  // TODO
-//    case DOM_VK_ALTGR:                return 0;  // TODO
-//    case DOM_VK_WIN_ICO_HELP:         return 0;  // TODO
-//    case DOM_VK_WIN_ICO_00:           return 0;  // TODO
-//    case DOM_VK_WIN_ICO_CLEAR:        return 0;  // TODO
-//    case DOM_VK_WIN_OEM_RESET:        return 0;  // TODO
-//    case DOM_VK_WIN_OEM_JUMP:         return 0;  // TODO
-//    case DOM_VK_WIN_OEM_PA1:          return 0;  // TODO
-//    case DOM_VK_WIN_OEM_PA2:          return 0;  // TODO
-//    case DOM_VK_WIN_OEM_PA3:          return 0;  // TODO
-//    case DOM_VK_WIN_OEM_WSCTRL:       return 0;  // TODO
-//    case DOM_VK_WIN_OEM_CUSEL:        return 0;  // TODO
-//    case DOM_VK_WIN_OEM_ATTN:         return 0;  // TODO
-//    case DOM_VK_WIN_OEM_FINISH:       return 0;  // TODO
-//    case DOM_VK_WIN_OEM_COPY:         return 0;  // TODO
-//    case DOM_VK_WIN_OEM_AUTO:         return 0;  // TODO
-//    case DOM_VK_WIN_OEM_ENLW:         return 0;  // TODO
-//    case DOM_VK_WIN_OEM_BACKTAB:      return 0;  // TODO
-//    case DOM_VK_ATTN:                 return 0;  // TODO
-//    case DOM_VK_CRSEL:                return 0;  // TODO
-//    case DOM_VK_EXSEL:                return 0;  // TODO
-//    case DOM_VK_EREOF:                return 0;  // TODO
-//    case DOM_VK_PLAY:                 return 0;  // TODO
-//    case DOM_VK_ZOOM:                 return 0;  // TODO
-//    case DOM_VK_PA1:                  return 0;  // TODO
-//    case DOM_VK_WIN_OEM_CLEAR:        return 0;  // TODO
-    default:                          return kVK_NONE;
-  }
-}
-
 static EM_BOOL key_callback(int eventType, const EmscriptenKeyboardEvent* pEvent, void* pUserData)
 {
   IGraphicsWeb* pGraphicsWeb = (IGraphicsWeb*) pUserData;
 
-  int VK = domVKToWinVK(pEvent->keyCode);
+  int VK = DOMKeyToVirtualKey(pEvent->keyCode);
   WDL_String keyUTF8;
 
   // filter utf8 for non ascii keys
-  if((VK >= kVK_0 && VK <= kVK_Z) || VK == kVK_NONE)
+  if ((VK >= kVK_0 && VK <= kVK_Z) || VK == kVK_NONE)
     keyUTF8.Set(pEvent->key);
   else
     keyUTF8.Set("");
 
   IKeyPress keyPress {keyUTF8.Get(),
-                      domVKToWinVK(pEvent->keyCode),
+                      DOMKeyToVirtualKey(pEvent->keyCode),
                       static_cast<bool>(pEvent->shiftKey),
                       static_cast<bool>(pEvent->ctrlKey || pEvent->metaKey),
                       static_cast<bool>(pEvent->altKey)};
@@ -342,7 +167,7 @@ static EM_BOOL outside_mouse_callback(int eventType, const EmscriptenMouseEvent*
   IGraphicsWeb* pGraphics = (IGraphicsWeb*) pUserData;
 
   IMouseInfo info;
-  val rect = GetCanvas().call<val>("getBoundingClientRect");
+  val rect = pGraphics->GetCanvas().call<val>("getBoundingClientRect");
   info.x = (pEvent->targetX - rect["left"].as<double>()) / pGraphics->GetDrawScale();
   info.y = (pEvent->targetY - rect["top"].as<double>()) / pGraphics->GetDrawScale();
   info.dX = pEvent->movementX;
@@ -545,7 +370,7 @@ static EM_BOOL text_entry_keydown(int eventType, const EmscriptenKeyboardEvent* 
 {
   IGraphicsWeb* pGraphicsWeb = (IGraphicsWeb*) pUserData;
   
-  IKeyPress keyPress {pEvent->key, domVKToWinVK(pEvent->keyCode),
+  IKeyPress keyPress {pEvent->key, DOMKeyToVirtualKey(pEvent->keyCode),
     static_cast<bool>(pEvent->shiftKey),
     static_cast<bool>(pEvent->ctrlKey),
     static_cast<bool>(pEvent->altKey)};
@@ -601,30 +426,136 @@ EMSCRIPTEN_BINDINGS(events) {
 
 #pragma mark -
 
-IGraphicsWeb::IGraphicsWeb(IGEditorDelegate& dlg, int w, int h, int fps, float scale)
+IGraphicsWeb::IGraphicsWeb(IGEditorDelegate& dlg, int w, int h, int fps, float scale, val canvas)
 : IGRAPHICS_DRAW_CLASS(dlg, w, h, fps, scale)
 {
   val keys = val::global("Object").call<val>("keys", GetPreloadedImages());
-  
+
   DBGMSG("Preloaded %i images\n", keys["length"].as<int>());
-  
-  emscripten_set_mousedown_callback("#canvas", this, 1, mouse_callback);
-  emscripten_set_mouseup_callback("#canvas", this, 1, mouse_callback);
-  emscripten_set_mousemove_callback("#canvas", this, 1, mouse_callback);
-  emscripten_set_mouseenter_callback("#canvas", this, 1, mouse_callback);
-  emscripten_set_mouseleave_callback("#canvas", this, 1, mouse_callback);
-  emscripten_set_wheel_callback("#canvas", this, 1, wheel_callback);
+
+  // Initialize canvas - use provided element, Module.canvas, or fall back to getElementById
+  if (canvas.isUndefined() || canvas.isNull())
+  {
+    // Try Module.canvas first (set by web component or HTML template)
+    val moduleCanvas = val::global("Module")["canvas"];
+    if (!moduleCanvas.isUndefined() && !moduleCanvas.isNull())
+    {
+      mCanvas = moduleCanvas;
+    }
+    else
+    {
+      // Fall back to getElementById for legacy templates
+      mCanvas = val::global("document").call<val>("getElementById", std::string("canvas"));
+    }
+  }
+  else
+  {
+    mCanvas = canvas;
+  }
+
+  // Detect Shadow DOM by checking the canvas's root node
+  mRootNode = mCanvas.call<val>("getRootNode");
+  std::string rootNodeType = mRootNode["constructor"]["name"].as<std::string>();
+  mInShadowDOM = (rootNodeType == "ShadowRoot");
+
+  // Use the canvas's existing id if it has one (legacy templates rely on
+  // querying their <canvas id="canvas"> from JS); otherwise synthesize a
+  // per-instance id so multiple instances on a page don't collide.
+  std::string existingId = mCanvas["id"].as<std::string>();
+  if (existingId.empty())
+  {
+    char idBuf[64];
+    snprintf(idBuf, sizeof(idBuf), "iplug-canvas-%p", static_cast<void*>(this));
+    existingId = idBuf;
+    mCanvas.set("id", existingId);
+  }
+  mCanvasSelector = std::string("#") + existingId;
+
+  DBGMSG("IGraphicsWeb: Shadow DOM = %s, selector = %s\n", mInShadowDOM ? "true" : "false", mCanvasSelector.c_str());
+
+  RegisterCanvasEvents();
+}
+
+void IGraphicsWeb::RegisterCanvasEvents()
+{
+  // Window-level events always work
   emscripten_set_keydown_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, this, 1, key_callback);
   emscripten_set_keyup_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, this, 1, key_callback);
-  emscripten_set_touchstart_callback("#canvas", this, 1, touch_callback);
-  emscripten_set_touchend_callback("#canvas", this, 1, touch_callback);
-  emscripten_set_touchmove_callback("#canvas", this, 1, touch_callback);
-  emscripten_set_touchcancel_callback("#canvas", this, 1, touch_callback);
   emscripten_set_resize_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, this, 1, uievent_callback);
+
+  if (mInShadowDOM)
+  {
+    // Shadow DOM: emscripten's CSS selector-based callbacks don't work
+    // Set up events via JavaScript on the canvas element directly
+    EM_ASM({
+      var pGraphics = $0;
+      var canvas = Module.canvas;
+      if (!canvas) return;
+
+      // Store reference for cleanup
+      canvas._iplugGraphics = pGraphics;
+
+      canvas.addEventListener('mousedown', function(e) {
+        Module._iGraphicsMouseCallback(pGraphics, 0, e.offsetX, e.offsetY, e.movementX, e.movementY, e.buttons, e.button, e.shiftKey, e.ctrlKey, e.altKey);
+      });
+      canvas.addEventListener('mouseup', function(e) {
+        Module._iGraphicsMouseCallback(pGraphics, 1, e.offsetX, e.offsetY, e.movementX, e.movementY, e.buttons, e.button, e.shiftKey, e.ctrlKey, e.altKey);
+      });
+      canvas.addEventListener('mousemove', function(e) {
+        Module._iGraphicsMouseCallback(pGraphics, 2, e.offsetX, e.offsetY, e.movementX, e.movementY, e.buttons, e.button, e.shiftKey, e.ctrlKey, e.altKey);
+      });
+      canvas.addEventListener('mouseenter', function(e) {
+        Module._iGraphicsMouseCallback(pGraphics, 3, e.offsetX, e.offsetY, e.movementX, e.movementY, e.buttons, e.button, e.shiftKey, e.ctrlKey, e.altKey);
+      });
+      canvas.addEventListener('mouseleave', function(e) {
+        Module._iGraphicsMouseCallback(pGraphics, 4, e.offsetX, e.offsetY, e.movementX, e.movementY, e.buttons, e.button, e.shiftKey, e.ctrlKey, e.altKey);
+      });
+      canvas.addEventListener('wheel', function(e) {
+        Module._iGraphicsWheelCallback(pGraphics, e.offsetX, e.offsetY, e.deltaY, e.shiftKey, e.ctrlKey, e.altKey);
+        e.preventDefault();
+      }, { passive: false });
+      // TODO: Touch events for Shadow DOM
+    }, this);
+  }
+  else
+  {
+    // Regular DOM: use emscripten's callback system
+    const char* target = mCanvasSelector.c_str();
+    emscripten_set_mousedown_callback(target, this, 1, mouse_callback);
+    emscripten_set_mouseup_callback(target, this, 1, mouse_callback);
+    emscripten_set_mousemove_callback(target, this, 1, mouse_callback);
+    emscripten_set_mouseenter_callback(target, this, 1, mouse_callback);
+    emscripten_set_mouseleave_callback(target, this, 1, mouse_callback);
+    emscripten_set_wheel_callback(target, this, 1, wheel_callback);
+    emscripten_set_touchstart_callback(target, this, 1, touch_callback);
+    emscripten_set_touchend_callback(target, this, 1, touch_callback);
+    emscripten_set_touchmove_callback(target, this, 1, touch_callback);
+    emscripten_set_touchcancel_callback(target, this, 1, touch_callback);
+  }
+}
+
+void IGraphicsWeb::UnregisterCanvasEvents()
+{
+  const char* target = mCanvasSelector.c_str();
+
+  emscripten_set_mousedown_callback(target, this, 1, nullptr);
+  emscripten_set_mouseup_callback(target, this, 1, nullptr);
+  emscripten_set_mousemove_callback(target, this, 1, nullptr);
+  emscripten_set_mouseenter_callback(target, this, 1, nullptr);
+  emscripten_set_mouseleave_callback(target, this, 1, nullptr);
+  emscripten_set_wheel_callback(target, this, 1, nullptr);
+  emscripten_set_keydown_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, this, 1, nullptr);
+  emscripten_set_keyup_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, this, 1, nullptr);
+  emscripten_set_touchstart_callback(target, this, 1, nullptr);
+  emscripten_set_touchend_callback(target, this, 1, nullptr);
+  emscripten_set_touchmove_callback(target, this, 1, nullptr);
+  emscripten_set_touchcancel_callback(target, this, 1, nullptr);
 }
 
 IGraphicsWeb::~IGraphicsWeb()
 {
+  UnregisterCanvasEvents();
+  UnregisterGraphicsInstance(this);
 }
 
 void* IGraphicsWeb::OpenWindow(void* pHandle)
@@ -635,8 +566,20 @@ void* IGraphicsWeb::OpenWindow(void* pHandle)
   attr.stencil = true;
   attr.depth = true;
 //  attr.explicitSwapControl = 1;
-  
-  EMSCRIPTEN_WEBGL_CONTEXT_HANDLE ctx = emscripten_webgl_create_context("#canvas", &attr);
+
+  EMSCRIPTEN_WEBGL_CONTEXT_HANDLE ctx;
+
+  if (mInShadowDOM)
+  {
+    // Shadow DOM: create context via JS since CSS selectors don't work
+    ctx = createWebGLContextForShadowDOM();
+  }
+  else
+  {
+    // Regular DOM: use standard emscripten API
+    ctx = emscripten_webgl_create_context(mCanvasSelector.c_str(), &attr);
+  }
+
   emscripten_webgl_make_context_current(ctx);
 #endif
   
@@ -654,16 +597,16 @@ void IGraphicsWeb::HideMouseCursor(bool hide, bool lock)
 {
   if (mCursorHidden == hide)
     return;
-    
+
   if (hide)
   {
 #ifdef IGRAPHICS_WEB_POINTERLOCK
     if (lock)
-      emscripten_request_pointerlock("#canvas", EM_FALSE);
+      emscripten_request_pointerlock(mCanvasSelector.c_str(), EM_FALSE);
     else
 #endif
-      val::global("document")["body"]["style"].set("cursor", "none");
-    
+      mCanvas["style"].set("cursor", "none");
+
     mCursorHidden = true;
     mCursorLock = lock;
   }
@@ -675,7 +618,7 @@ void IGraphicsWeb::HideMouseCursor(bool hide, bool lock)
     else
 #endif
     OnSetCursor();
-      
+
     mCursorHidden = false;
     mCursorLock = false;
   }
@@ -684,7 +627,7 @@ void IGraphicsWeb::HideMouseCursor(bool hide, bool lock)
 ECursor IGraphicsWeb::SetMouseCursor(ECursor cursorType)
 {
   std::string cursor("pointer");
-  
+
   switch (cursorType)
   {
     case ECursor::ARROW:            cursor = "default";         break;
@@ -702,8 +645,8 @@ ECursor IGraphicsWeb::SetMouseCursor(ECursor cursorType)
     case ECursor::APPSTARTING:      cursor = "progress";        break;
     case ECursor::HELP:             cursor = "help";            break;
   }
-  
-  val::global("document")["body"]["style"].set("cursor", cursor);
+
+  mCanvas["style"].set("cursor", cursor);
   return IGraphics::SetMouseCursor(cursorType);
 }
 
@@ -716,22 +659,25 @@ void IGraphicsWeb::GetMouseLocation(float& x, float&y) const
 //static
 void IGraphicsWeb::OnMainLoopTimer()
 {
-  IRECTList rects;
   int screenScale = (int) std::ceil(std::max(emscripten_get_device_pixel_ratio(), 1.));
-  
-  // Don't draw if there are no graphics or if assets are still loading
-  if (!gGraphics || !gGraphics->AssetsLoaded())
-    return;
-  
-  if (screenScale != gGraphics->GetScreenScale())
-  {
-    gGraphics->SetScreenScale(screenScale);
-  }
 
-  if (gGraphics->IsDirty(rects))
+  // Iterate over all registered graphics instances
+  for (IGraphicsWeb* pGraphics : gGraphicsInstances)
   {
-    gGraphics->SetAllControlsClean();
-    gGraphics->Draw(rects);
+    if (pGraphics == nullptr)
+      continue;
+
+    if (screenScale != pGraphics->GetScreenScale())
+    {
+      pGraphics->SetScreenScale(screenScale);
+    }
+
+    IRECTList rects;
+    if (pGraphics->IsDirty(rects))
+    {
+      pGraphics->SetAllControlsClean();
+      pGraphics->Draw(rects);
+    }
   }
 }
 
@@ -812,7 +758,7 @@ bool IGraphicsWeb::PromptForColor(IColor& color, const char* str, IColorPickerHa
 void IGraphicsWeb::CreatePlatformTextEntry(int paramIdx, const IText& text, const IRECT& bounds, int length, const char* str)
 {
   val input = val::global("document").call<val>("createElement", std::string("input"));
-  val rect = GetCanvas().call<val>("getBoundingClientRect");
+  val rect = mCanvas.call<val>("getBoundingClientRect");
 
   auto setDim = [&input](const char *dimName, double pixels)
   {
@@ -860,7 +806,16 @@ void IGraphicsWeb::CreatePlatformTextEntry(int paramIdx, const IText& text, cons
     input.set("type", val("text"));
   }
 
-  val::global("document")["body"].call<void>("appendChild", input);
+  // Append to shadow root or document.body based on mode
+  if (mInShadowDOM)
+  {
+    mRootNode.call<void>("appendChild", input);
+  }
+  else
+  {
+    val::global("document")["body"].call<void>("appendChild", input);
+  }
+
   input.call<void>("focus");
   emscripten_set_focusout_callback("textEntry", this, 1, complete_text_entry);
   emscripten_set_keydown_callback("textEntry", this, 1, text_entry_keydown);
@@ -880,15 +835,43 @@ bool IGraphicsWeb::OpenURL(const char* url, const char* msgWindowTitle, const ch
 
 void IGraphicsWeb::DrawResize()
 {
-  val canvas = GetCanvas();
-  
-  canvas["style"].set("width", val(Width() * GetDrawScale()));
-  canvas["style"].set("height", val(Height() * GetDrawScale()));
-  
-  canvas.set("width", Width() * GetBackingPixelScale());
-  canvas.set("height", Height() * GetBackingPixelScale());
-  
+  // CSS style.width/height need "px" suffix
+  std::string widthPx = std::to_string(static_cast<int>(Width() * GetDrawScale())) + "px";
+  std::string heightPx = std::to_string(static_cast<int>(Height() * GetDrawScale())) + "px";
+  mCanvas["style"].set("width", val(widthPx));
+  mCanvas["style"].set("height", val(heightPx));
+
+  // Canvas element width/height attributes are integers (no px).
+  // Assigning these clears the WebGL drawing buffer even when the value
+  // is unchanged, so guard against redundant writes — otherwise every
+  // ResizeObserver tick during a drag causes a visible flash.
+  const int newBufW = Width() * GetBackingPixelScale();
+  const int newBufH = Height() * GetBackingPixelScale();
+  const int curBufW = mCanvas["width"].as<int>();
+  const int curBufH = mCanvas["height"].as<int>();
+  if (newBufW != curBufW || newBufH != curBufH)
+  {
+    mCanvas.set("width", newBufW);
+    mCanvas.set("height", newBufH);
+  }
+
   IGRAPHICS_DRAW_CLASS::DrawResize();
+}
+
+void IGraphicsWeb::PostResize()
+{
+  // Called at the end of IGraphics::Resize(), after OnResize +
+  // SetAllControlsDirty + DrawResize + (optional) LayoutUI have all
+  // run. At this point control layout is final, so it's safe to
+  // repaint synchronously. Without this, the canvas is stuck in a
+  // cleared state (canvas.width/height assignment wiped the default
+  // framebuffer; NanoVG's DrawResize rebuilt an empty FBO) until the
+  // next main-loop RAF tick, which the browser may composite past —
+  // producing a one-frame blank flash on every size change.
+  IRECTList rects;
+  rects.Add(GetBounds());
+  SetAllControlsClean();
+  Draw(rects);
 }
 
 PlatformFontPtr IGraphicsWeb::LoadPlatformFont(const char* fontID, const char* fileNameOrResID)
@@ -914,9 +897,64 @@ PlatformFontPtr IGraphicsWeb::LoadPlatformFont(const char* fontID, void* pData, 
   return PlatformFontPtr(new MemoryFont(fontID, "", pData, dataSize));
 }
 
-#if defined IGRAPHICS_CANVAS
-#include "IGraphicsCanvas.cpp"
-#elif defined IGRAPHICS_NANOVG
+// Shadow DOM event callback implementations (called from JavaScript)
+extern "C" {
+
+EMSCRIPTEN_KEEPALIVE
+void iGraphicsMouseCallback(void* pGraphics, int eventType, double x, double y, double dx, double dy, int buttons, int button, int shift, int ctrl, int alt)
+{
+  IGraphicsWeb* pG = static_cast<IGraphicsWeb*>(pGraphics);
+  float scale = pG->GetDrawScale();
+
+  IMouseInfo info;
+  info.x = x / scale;
+  info.y = y / scale;
+  info.dX = dx;
+  info.dY = dy;
+  info.ms = {(buttons & 1) != 0, (buttons & 2) != 0, static_cast<bool>(shift), static_cast<bool>(ctrl), static_cast<bool>(alt)};
+  std::vector<IMouseInfo> list{info};
+
+  switch (eventType)
+  {
+    case 0: // mousedown
+      pG->OnMouseDown(list);
+      break;
+    case 1: // mouseup
+      list[0].ms.L = button == 0;
+      list[0].ms.R = button == 2;
+      pG->OnMouseUp(list);
+      break;
+    case 2: // mousemove
+      if (buttons == 0)
+        pG->OnMouseOver(info.x, info.y, info.ms);
+      else if (!pG->IsInPlatformTextEntry())
+        pG->OnMouseDrag(list);
+      break;
+    case 3: // mouseenter
+      pG->OnSetCursor();
+      pG->OnMouseOver(info.x, info.y, info.ms);
+      break;
+    case 4: // mouseleave
+      pG->OnMouseOut();
+      break;
+  }
+
+  pG->mPrevX = info.x;
+  pG->mPrevY = info.y;
+}
+
+EMSCRIPTEN_KEEPALIVE
+void iGraphicsWheelCallback(void* pGraphics, double x, double y, double deltaY, int shift, int ctrl, int alt)
+{
+  IGraphicsWeb* pG = static_cast<IGraphicsWeb*>(pGraphics);
+  float scale = pG->GetDrawScale();
+  IMouseMod mod(false, false, static_cast<bool>(shift), static_cast<bool>(ctrl), static_cast<bool>(alt));
+  pG->OnMouseWheel(x / scale, y / scale, mod, deltaY);
+}
+
+} // extern "C"
+
+#if defined IGRAPHICS_NANOVG
 #include "IGraphicsNanoVG.cpp"
 
 #ifdef IGRAPHICS_FREETYPE

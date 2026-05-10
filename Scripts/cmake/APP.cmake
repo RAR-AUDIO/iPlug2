@@ -1,156 +1,186 @@
-cmake_minimum_required(VERSION 3.11)
+#  ==============================================================================
+#  
+#  This file is part of the iPlug 2 library. Copyright (C) the iPlug 2 developers. 
+#
+#  See LICENSE.txt for  more info.
+#
+#  ==============================================================================
 
-add_library(iPlug2_APP INTERFACE)
-set(sdk ${IPLUG2_DIR}/IPlug/APP)
-set(_src
-  ${sdk}/IPlugAPP.cpp 
-  ${sdk}/IPlugAPP_dialog.cpp 
-  ${sdk}/IPlugAPP_host.cpp 
-  ${sdk}/IPlugAPP_main.cpp
-  ${IPLUG_DEPS}/RTAudio/RtAudio.cpp
-  ${IPLUG_DEPS}/RTMidi/RtMidi.cpp
-)
-set(_inc
-  ${sdk} 
-  ${IPLUG_DEPS}/RTAudio
-  ${IPLUG_DEPS}/RTAudio/include
-  ${IPLUG_DEPS}/RTMidi
-  ${IPLUG_DEPS}/RTMidi/include
-)
-set(_def "APP_API" "IPLUG_EDITOR=1" "IPLUG_DSP=1" )
+# APP target configuration for iPlug2
 
-# Link Windows sound libraies if on Windows
-if (WIN32)
-  iplug_target_add(iPlug2_APP INTERFACE
-    DEFINE "__WINDOWS_DS__" "__WINDOWS_MM__" "__WINDOWS_ASIO__"
-    SOURCE
-      ${IPLUG_DEPS}/RTAudio/include/asio.cpp
-      ${IPLUG_DEPS}/RTAudio/include/asiodrivers.cpp
-      ${IPLUG_DEPS}/RTAudio/include/asiolist.cpp
-      ${IPLUG_DEPS}/RTAudio/include/iasiothiscallresolver.cpp
-      ${IPLUG_DEPS}/RTMidi/rtmidi_c.cpp
-    LINK dsound.lib winmm.lib
+include(${CMAKE_CURRENT_LIST_DIR}/IPlug.cmake)
+
+if(NOT TARGET iPlug2::APP)
+  add_library(iPlug2::APP INTERFACE IMPORTED)
+
+  set(SWELL_DIR ${WDL_DIR}/swell)
+
+  # RTAudio and RTMidi directories
+  set(RTAUDIO_DIR ${IPLUG_DEPS_DIR}/RTAudio)
+  set(RTMIDI_DIR ${IPLUG_DEPS_DIR}/RTMidi)
+  
+  set(IPLUG2_APP_SRC
+    ${IPLUG2_DIR}/IPlug/APP/IPlugAPP.cpp
+    ${IPLUG2_DIR}/IPlug/APP/IPlugAPP_dialog.cpp
+    ${IPLUG2_DIR}/IPlug/APP/IPlugAPP_host.cpp
+    ${IPLUG2_DIR}/IPlug/APP/IPlugAPP_main.cpp
+    ${RTAUDIO_DIR}/RtAudio.cpp
+    ${RTMIDI_DIR}/RtMidi.cpp
+    CACHE INTERNAL "APP source files"
   )
 
-elseif (CMAKE_SYSTEM_NAME MATCHES "Darwin")
-  # Some source files here combine C++ and Objective-C, so we tell clang how to compile them
-  set_property(SOURCE ${_src} PROPERTY LANGUAGE "OBJCXX")
-  iplug_target_add(iPlug2_APP INTERFACE
-    DEFINE "__MACOSX_CORE__" "SWELL_COMPILED"
-    LINK "-framework AppKit" "-framework CoreMIDI" "-framework CoreAudio"
-    SOURCE 
-      "${WDL_DIR}/swell/swell-appstub.mm"
-      "${WDL_DIR}/swell/swellappmain.mm"
-      "${WDL_DIR}/swell/swell-ini.cpp"
-      "${WDL_DIR}/swell/swell-dlg.mm"
-      "${WDL_DIR}/swell/swell-kb.mm"
-      "${WDL_DIR}/swell/swell-miscdlg.mm"
-      "${WDL_DIR}/swell/swell-menu.mm"
-      "${WDL_DIR}/swell/swell-wnd.mm"
-      "${WDL_DIR}/swell/swell.cpp"
-      "${WDL_DIR}/swell/swell-misc.mm"
-      "${WDL_DIR}/swell/swell-gdi.mm"
+  target_sources(iPlug2::APP INTERFACE ${IPLUG2_APP_SRC})
+  
+  target_include_directories(iPlug2::APP INTERFACE 
+    ${IPLUG2_DIR}/IPlug/APP
+    ${RTAUDIO_DIR}
+    ${RTAUDIO_DIR}/include
+    ${RTMIDI_DIR}
   )
-
-elseif (CMAKE_SYSTEM_NAME MATCHES "Linux")
-  pkg_check_modules(Glib_20 REQUIRED IMPORTED_TARGET "glib-2.0")
-  pkg_check_modules(Gtk_30 REQUIRED IMPORTED_TARGET "gtk+-3.0")
-  pkg_check_modules(Gdk_30 REQUIRED IMPORTED_TARGET "gdk-3.0")
-  pkg_check_modules(Alsa IMPORTED_TARGET "alsa")
-  pkg_check_modules(Jack IMPORTED_TARGET "jack")
-  pkg_check_modules(PulseAudio IMPORTED_TARGET "libpulse")
-  pkg_check_modules(PulseAudioSimple IMPORTED_TARGET "libpulse-simple")
-
-  set(IPLUG_APP_ALSA 1 CACHE BOOL "Use ALSA on Linux")
-  set(IPLUG_APP_JACK 1 CACHE BOOL "Use JACK on Linux")
-  set(IPLUG_APP_PULSE 1 CACHE BOOL "Use Pulse Audio on Linux")
-
-  # Build and link Swell properly on Linux. This uses GTK+ 3.0 and X11
-  set(swell_src
-    swell.h
-    swell.cpp
-    swell-appstub-generic.cpp
-    swell-dlg-generic.cpp
-    swell-gdi-generic.cpp
-    swell-gdi-lice.cpp
-    swell-ini.cpp
-    swell-kb-generic.cpp
-    swell-menu-generic.cpp
-    swell-miscdlg-generic.cpp
-    swell-misc-generic.cpp
-    swell-wnd-generic.cpp
-    swell-generic-gdk.cpp
+  
+  target_compile_definitions(iPlug2::APP INTERFACE 
+    APP_API 
+    IPLUG_EDITOR=1 
+    IPLUG_DSP=1
   )
-  list(TRANSFORM swell_src PREPEND "${WDL_DIR}/swell/")
+  
+  if(WIN32)
+    target_sources(iPlug2::APP INTERFACE
+      ${RTAUDIO_DIR}/include/asio.cpp
+      ${RTAUDIO_DIR}/include/asiodrivers.cpp
+      ${RTAUDIO_DIR}/include/asiolist.cpp
+      ${RTAUDIO_DIR}/include/iasiothiscallresolver.cpp
+    )
+    target_compile_definitions(iPlug2::APP INTERFACE 
+      __WINDOWS_DS__ 
+      __WINDOWS_MM__ 
+      __WINDOWS_ASIO__
+    )
+    target_link_libraries(iPlug2::APP INTERFACE 
+      dsound.lib 
+      winmm.lib
+    )
+  elseif(APPLE)
+    # Note: OBJCXX language is set on actual target sources in iplug_configure_app()
+    # because set_source_files_properties on INTERFACE library sources doesn't propagate
+    target_include_directories(iPlug2::APP INTERFACE ${SWELL_DIR})
 
-  iplug_target_add(iPlug2_APP INTERFACE
-    DEFINE "SWELL_COMPILED" "SWELL_SUPPORT_GTK" "SWELL_TARGET_GDK=3" SWELL_LICE_GDI SWELL_FREETYPE "_FILE_OFFSET_BITS=64" WDL_ALLOW_UNSIGNED_DEFAULT_CHAR
-    INCLUDE 
-      "${WDL_DIR}/swell/"
-      "${WDL_DIR}/lice/"
-    LINK 
-      LICE_Core LICE_PNG LICE_ZLIB PkgConfig::Gtk_30 PkgConfig::Gdk_30 PkgConfig::Glib_20 "X11" "Xi"
-    SOURCE
-      ${swell_src}
-      ${CMAKE_SOURCE_DIR}/resources/main.rc_mac_dlg
-      ${CMAKE_SOURCE_DIR}/resources/main.rc_mac_menu
-  )
+    set(IPLUG2_SWELL_SRC
+      "${SWELL_DIR}/swell-appstub.mm"
+      "${SWELL_DIR}/swellappmain.mm"
+      "${SWELL_DIR}/swell-ini.cpp"
+      "${SWELL_DIR}/swell-dlg.mm"
+      "${SWELL_DIR}/swell-kb.mm"
+      "${SWELL_DIR}/swell-miscdlg.mm"
+      "${SWELL_DIR}/swell-menu.mm"
+      "${SWELL_DIR}/swell-wnd.mm"
+      "${SWELL_DIR}/swell.cpp"
+      "${SWELL_DIR}/swell-misc.mm"
+      "${SWELL_DIR}/swell-gdi.mm"
+      CACHE INTERNAL "SWELL source files for APP"
+    )
 
-  # RtAudio
-  if (IPLUG_APP_ALSA)
-    iplug_target_add(iPlug2_APP INTERFACE
-      DEFINE "__LINUX_ALSA__" LINK PkgConfig::Alsa)
-  endif()
-  if (IPLUG_APP_JACK)
-    iplug_target_add(iPlug2_APP INTERFACE
-      DEFINE "__UNIX_JACK__" LINK PkgConfig::Jack)
-  endif()
-  if (IPLUG_APP_PULSE)
-    iplug_target_add(iPlug2_APP INTERFACE
-      DEFINE "__LINUX_PULSE__" LINK PkgConfig::PulseAudio PkgConfig::PulseAudioSimple)
+    target_sources(iPlug2::APP INTERFACE ${IPLUG2_SWELL_SRC})
+
+    # Note: swell warning suppression is set on actual target sources in iplug_configure_app()
+    # because set_source_files_properties on INTERFACE library sources doesn't propagate
+
+    target_compile_definitions(iPlug2::APP INTERFACE 
+      __MACOSX_CORE__
+      SWELL_COMPILED
+    )
+    target_link_libraries(iPlug2::APP INTERFACE
+      "-framework AppKit"
+      "-framework Carbon"
+      "-framework CoreMIDI"
+      "-framework CoreAudio"
+    )
+  elseif(UNIX AND NOT APPLE AND NOT EMSCRIPTEN)
+    message("Error - Linux not yet supported")
   endif()
   
-else()
-  message(FATAL_ERROR "APP not supported on platform ${CMAKE_SYSTEM_NAME}")
+  target_link_libraries(iPlug2::APP INTERFACE iPlug2::IPlug)
 endif()
 
-iplug_target_add(iPlug2_APP INTERFACE INCLUDE ${_inc} DEFINE ${_def} SOURCE ${_src} LINK iPlug2_Core)
-iplug_source_tree(iPlug2_APP)
+function(iplug_configure_app target project_name)
+  target_link_libraries(${target} PUBLIC iPlug2::APP)
 
-macro(iplug_configure_app target)
-  iplug_target_add(${target} PUBLIC LINK iPlug2_APP)
-
-  if (WIN32)
-    set_target_properties(${target} PROPERTIES
-      OUTPUT_NAME "${PLUG_NAME}"
-      RUNTIME_OUTPUT_DIRECTORY "${PLUG_NAME}-app"
+  # On Apple platforms, set language properties on the actual target sources
+  # (set_source_files_properties on INTERFACE library sources doesn't propagate)
+  if(APPLE)
+    set_source_files_properties(${IPLUG2_APP_SRC}
+      TARGET_DIRECTORY ${target}
+      PROPERTIES LANGUAGE OBJCXX
     )
-    add_custom_command(TARGET ${target} POST_BUILD
-      COMMAND "${CMAKE_BINARY_DIR}/postbuild-win.bat"
-      ARGS "\"$<TARGET_FILE:${target}>\"" "\".exe\""
+    # swell sources need Cocoa imported before swell-internal.h.
+    # Force-include the prefix pch which imports Cocoa (with #ifdef __OBJC__ guard)
+    set_source_files_properties(${IPLUG2_SWELL_SRC}
+      TARGET_DIRECTORY ${target}
+      PROPERTIES
+      LANGUAGE OBJCXX
+      COMPILE_FLAGS "-Wno-deprecated-declarations -include ${IPLUG_DIR}/IPlugOBJCPrefix.pch"
     )
-    
-  elseif (CMAKE_SYSTEM_NAME MATCHES "Darwin")
-    set(res_dir "${CMAKE_BINARY_DIR}/${PLUG_NAME}.app/Contents/Resources")
-    # Set the Info.plist file and add required resources
-    set(_res 
-      "${CMAKE_SOURCE_DIR}/resources/${PLUG_NAME}.icns"
-      "${CMAKE_SOURCE_DIR}/resources/${PLUG_NAME}-macOS-MainMenu.xib")
-    source_group("Resources" FILES ${_res})
-    iplug_target_add(${target} PUBLIC SOURCE ${_res} RESOURCE ${_res})
-    set_target_properties(${target} PROPERTIES 
-      MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/resources/${PLUG_NAME}-macOS-Info.plist")
-
-  elseif (CMAKE_SYSTEM_NAME MATCHES "Linux")
-    set(res_dir "${CMAKE_BINARY_DIR}/${PLUG_NAME}-app/resources")
-    set_target_properties(${target} PROPERTIES
-      OUTPUT_NAME "${PLUG_NAME}"
-      RUNTIME_OUTPUT_DIRECTORY "${PLUG_NAME}-app"
-    )
-    
   endif()
 
-  if (res_dir)
-    iplug_target_bundle_resources(${target} "${res_dir}")
+  if(WIN32)
+    set(APP_OUTPUT_DIR "${CMAKE_BINARY_DIR}/out")
+    set_target_properties(${target} PROPERTIES
+      OUTPUT_NAME "${project_name}"
+      RUNTIME_OUTPUT_DIRECTORY "${APP_OUTPUT_DIR}"
+      RUNTIME_OUTPUT_DIRECTORY_DEBUG "${APP_OUTPUT_DIR}"
+      RUNTIME_OUTPUT_DIRECTORY_RELEASE "${APP_OUTPUT_DIR}"
+      RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${APP_OUTPUT_DIR}"
+      RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL "${APP_OUTPUT_DIR}"
+      WIN32_EXECUTABLE TRUE  # Use WinMain entry point
+    )
+  elseif(APPLE)
+    set_target_properties(${target} PROPERTIES
+      MACOSX_BUNDLE TRUE
+      MACOSX_BUNDLE_INFO_PLIST ${PLUG_RESOURCES_DIR}/${project_name}-macOS-Info.plist
+      RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/out"
+      OUTPUT_NAME "${project_name}"
+      # Skip code signing during build - sign manually later if needed
+      XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED "NO"
+    )
+
+    # Compile XIB to NIB and add to bundle Resources
+    set(MAIN_MENU_XIB ${PLUG_RESOURCES_DIR}/${project_name}-macOS-MainMenu.xib)
+    if(EXISTS ${MAIN_MENU_XIB})
+      set(MAIN_MENU_NIB ${CMAKE_CURRENT_BINARY_DIR}/${project_name}-macOS-MainMenu.nib)
+      add_custom_command(
+        OUTPUT ${MAIN_MENU_NIB}
+        COMMAND ibtool --compile ${MAIN_MENU_NIB} ${MAIN_MENU_XIB}
+        DEPENDS ${MAIN_MENU_XIB}
+        COMMENT "Compiling ${project_name}-macOS-MainMenu.xib"
+      )
+      target_sources(${target} PRIVATE ${MAIN_MENU_NIB})
+      set_source_files_properties(${MAIN_MENU_NIB} PROPERTIES
+        MACOSX_PACKAGE_LOCATION Resources
+      )
+    endif()
+
+    # Add icon to bundle Resources
+    set(APP_ICON ${PLUG_RESOURCES_DIR}/${project_name}.icns)
+    if(EXISTS ${APP_ICON})
+      target_sources(${target} PRIVATE ${APP_ICON})
+      set_source_files_properties(${APP_ICON} PROPERTIES
+        MACOSX_PACKAGE_LOCATION Resources
+      )
+    endif()
+
+    # Create PkgInfo for non-Xcode generators (Xcode creates it automatically).
+    # Stage the 8-byte content in a pre-written source file, then use
+    # `cmake -E copy` — each arg gets its own argv slot so paths with spaces
+    # survive. Avoids the `-D"path with spaces"` quoting trap that hits
+    # Ninja because it passes the backslash-escaped form into sub-cmake.
+    if(NOT XCODE)
+      set(APP_PKGINFO_SRC "${CMAKE_CURRENT_BINARY_DIR}/PkgInfo_${target}")
+      file(WRITE "${APP_PKGINFO_SRC}" "APPL????")
+      add_custom_command(TARGET ${target} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_BUNDLE_DIR:${target}>/Contents"
+        COMMAND ${CMAKE_COMMAND} -E copy "${APP_PKGINFO_SRC}" "$<TARGET_BUNDLE_DIR:${target}>/Contents/PkgInfo"
+        COMMENT "Creating PkgInfo for ${project_name}.app"
+      )
+    endif()
   endif()
-endmacro()
+endfunction()

@@ -211,7 +211,7 @@ SWELL_API_DEFINE(int, GetWindowTextLength,(HWND))
 #endif
 
 
-SWELL_API_DEFINE(void, CheckDlgButton,(HWND hwnd, int idx, int check))
+SWELL_API_DEFINE(BOOL, CheckDlgButton,(HWND hwnd, int idx, int check))
 SWELL_API_DEFINE(int, IsDlgButtonChecked,(HWND hwnd, int idx))
 SWELL_API_DEFINE(void, EnableWindow,(HWND hwnd, int enable))
 SWELL_API_DEFINE(void, SetFocus,(HWND hwnd))
@@ -1079,6 +1079,7 @@ SWELL_API_DEFINE(int,AddFontResourceEx,(LPCTSTR str, DWORD fl, void *pdv))
 
 #ifdef SWELL_TARGET_OSX
 SWELL_API_DEFINE(void,SWELL_DisableAppNap,(int disable))
+SWELL_API_DEFINE(void,SWELL_DisableAppNapEx,(int disable, int flag)) // flag=0 for legacy, &1=control ssaver, &2=disable ssaver too
 SWELL_API_DEFINE(int,SWELL_GetOSXVersion,())
 #endif
 

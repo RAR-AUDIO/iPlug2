@@ -1,64 +1,29 @@
-cmake_minimum_required(VERSION 3.11 FATAL_ERROR)
-cmake_policy(SET CMP0091 NEW)
+cmake_minimum_required(VERSION 3.14)
+project(IPlugEffect VERSION 1.0.0)
 
-#########
-# This is a build file for iPlug2 on Linux.
-# It may work on Windows and MacOS, but that isn't the initial goal.
-#
-# To setup the build (change CMAKE_BUILD_TYPE as desired):
-#   cmake -S . -B build-linux -DCMAKE_BUILD_TYPE=Debug
-# To build the VST2 version:
-#   cmake --build build-linux --target IPlugInstrument-vst2
-# To build the VST3 version:
-#   cmake --build build-linux --target IPlugInstrument-vst3
-
-project(IPlugEffect VERSION 1.0.0 LANGUAGES C CXX)
-
-set(IPLUG2_DIR ${CMAKE_SOURCE_DIR}/../..)
-include(${IPLUG2_DIR}/iPlug2.cmake)
-find_package(iPlug2 REQUIRED)
-
-set(dir "${CMAKE_SOURCE_DIR}")
-set(SRC_FILES
-  "${dir}/config.h"
-  "${dir}/IPlugEffect.h"
-  "${dir}/IPlugEffect.cpp"
-)
-source_group(TREE ${dir} FILES ${SRC_FILES})
-
-set(RES_FILES
-  "${dir}/resources/fonts/Roboto-Regular.ttf"
-)
-
-# While not required, creating a base interface for includes and settings seems like a good idea.
-add_library(_base INTERFACE)
-# iplug_target_add() is a shorthand function for adding sources and include dirs,
-# linking libraries, adding resources, setting compile options, etc.
-iplug_target_add(_base INTERFACE
-  INCLUDE ${dir} ${dir}/resources
-  LINK iPlug2_Synth iPlug2_NANOVG iPlug2_GL2)
-
-# For whatever reason setting CXX_STANDARD doesn't seem to work properly, so set it explicitly.
-if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-  target_compile_options(_base INTERFACE "$<$<COMPILE_LANGUAGE:CXX>:/std:c++14>")
-else()
-  target_compile_options(_base INTERFACE "$<$<COMPILE_LANGUAGE:CXX>:-std=c++14>")
+# Discover IPLUG2_DIR if not already set (for independent builds)
+if(NOT DEFINED IPLUG2_DIR)
+  set(IPLUG2_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../.." CACHE PATH "iPlug2 root directory")
 endif()
 
-# For typing convenience the target name is put into a variable.
-set(tgt ${CMAKE_PROJECT_NAME}-app)
-add_executable(${tgt} WIN32 MACOSX_BUNDLE ${SRC_FILES})
-iplug_target_add(${tgt} PUBLIC LINK iPlug2_APP _base RESOURCE ${RES_FILES})
-# You MUST call iplug_configure_target(<target_name> <app|vst2|vst3|...>) for things to build correctly.
-iplug_configure_target(${tgt} app)
+# Include iPlug2 CMake configuration
+include(${IPLUG2_DIR}/iPlug2.cmake)
 
-set(tgt ${CMAKE_PROJECT_NAME}-vst2)
-add_library(${tgt} MODULE ${SRC_FILES})
-iplug_target_add(${tgt} PUBLIC LINK iPlug2_VST2 _base RESOURCE ${RES_FILES})
-iplug_configure_target(${tgt} vst2)
+# IGraphics backend/renderer can be set via command line:
+#   cmake -DIGRAPHICS_BACKEND=SKIA -DIGRAPHICS_RENDERER=GL3 ..
+# Defaults: NANOVG/METAL on macOS, NANOVG/GL2 on Windows
+# See iPlug2/Scripts/cmake/IGraphics.cmake for all options
 
-set(tgt ${CMAKE_PROJECT_NAME}-vst3)
-add_library(${tgt} MODULE ${SRC_FILES})
-iplug_target_add(${tgt} PUBLIC LINK iPlug2_VST3 _base RESOURCE ${RES_FILES})
-iplug_configure_target(${tgt} vst3)
+find_package(iPlug2 REQUIRED)
 
+# Build all formats except AUv3 (AUv3 is opt-in)
+# To include AUv3: FORMATS ALL_AUV3
+# To select specific formats: FORMATS APP VST3 AU
+iplug_add_plugin(${PROJECT_NAME}
+  SOURCES
+    IPlugEffect.cpp
+    IPlugEffect.h
+    resources/resource.h
+  RESOURCES
+    resources/fonts/Roboto-Regular.ttf
+)

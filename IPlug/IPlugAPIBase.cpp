@@ -96,8 +96,8 @@ bool IPlugAPIBase::CompareState(const uint8_t* pIncomingState, int startPos) con
 }
 
 bool IPlugAPIBase::EditorResizeFromUI(int viewWidth, int viewHeight, bool needsPlatformResize)
-{
-  if (needsPlatformResize && !GetHostResizeEnabled())
+{  
+  if (needsPlatformResize)
     return EditorResize(viewWidth, viewHeight);
   else
     return true;
@@ -148,29 +148,27 @@ void IPlugAPIBase::SendParameterValueFromAPI(int paramIdx, double value, bool no
 
 void IPlugAPIBase::OnTimer(Timer& t)
 {
-  if(HasUI())
-  {
 // VST3 ********************************************************************************
 #if defined VST3P_API || defined VST3_API
-    while (mMidiMsgsFromProcessor.ElementsAvailable())
-    {
-      IMidiMsg msg;
-      mMidiMsgsFromProcessor.Pop(msg);
+  while (mMidiMsgsFromProcessor.ElementsAvailable())
+  {
+    IMidiMsg msg;
+    mMidiMsgsFromProcessor.Pop(msg);
 #ifdef VST3P_API // distributed
-      TransmitMidiMsgFromProcessor(msg);
+    TransmitMidiMsgFromProcessor(msg);
 #else
-      SendMidiMsgFromDelegate(msg);
+    SendMidiMsgFromDelegate(msg);
 #endif
-    }
+  }
 
-    while (mSysExDataFromProcessor.ElementsAvailable())
-    {
-      SysExData msg;
-      mSysExDataFromProcessor.Pop(msg);
+  while (mSysExDataFromProcessor.ElementsAvailable())
+  {
+    SysExData msg;
+    mSysExDataFromProcessor.Pop(msg);
 #ifdef VST3P_API // distributed
-      TransmitSysExDataFromProcessor(msg);
+    TransmitSysExDataFromProcessor(msg);
 #else
-      SendSysexMsgFromDelegate({msg.mOffset, msg.mData, msg.mSize});
+    SendSysexMsgFromDelegate({msg.mOffset, msg.mData, msg.mSize});
 #endif
     }
 // !VST3 ******************************************************************************
@@ -196,7 +194,6 @@ void IPlugAPIBase::OnTimer(Timer& t)
       SendSysexMsgFromDelegate({msg.mOffset, msg.mData, msg.mSize});
     }
 #endif
-  }
   
   // On VST2 Linux we call OnIdle from the VST2 API
 #if !(defined(OS_LINUX) && defined(VST2_API))

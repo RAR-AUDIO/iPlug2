@@ -39,6 +39,9 @@
 #define SWELL_INTERNAL_HTREEITEM_IMPL
 #include "swell-internal.h"
 
+#define SWELL_LISTTREEVIEW_MAX_LEFT_PAD 4.0
+#define SWELL_TREEVIEW_EXPAND_RIGHTEDGE 14.0
+
 static bool SWELL_NeedModernListViewHacks()
 {
 #ifdef __LP64__
@@ -344,6 +347,8 @@ STANDARD_CONTROL_NEEDSDISPLAY_IMPL("SysTreeView32")
 {
   if ((self = [super init]))
   {
+    [self setRowHeight:18];
+    [self setIntercellSpacing:NSMakeSize(3, 2)];
     m_fakerightmouse=false;
     m_items=new WDL_PtrList<HTREEITEM__>;
     m_fgColor=0;
@@ -625,7 +630,32 @@ STANDARD_CONTROL_NEEDSDISPLAY_IMPL("SysTreeView32")
 }
 
 
+- (NSRect)rectOfColumn:(NSInteger)column
+{
+  NSRect r = [super rectOfColumn:column];
+  if (column == 0 && r.origin.x > SWELL_LISTTREEVIEW_MAX_LEFT_PAD)
+  {
+    r.size.width += r.origin.x;
+    r.origin.x = SWELL_LISTTREEVIEW_MAX_LEFT_PAD;
+    r.size.width -= r.origin.x;
+  }
+  if (r.size.width>0) r.size.width += SWELL_TREEVIEW_EXPAND_RIGHTEDGE;
+  return r;
+}
 
+- (NSRect)rectOfRow:(NSInteger) row
+{
+  NSRect rect = [super rectOfRow:row];
+  if (rect.size.width>0) rect.size.width += SWELL_TREEVIEW_EXPAND_RIGHTEDGE;
+  return rect;
+}
+
+-(void)setFrame:(NSRect)r
+{
+  [super setFrame:r];
+  NSArray *list = [self tableColumns];
+  if ([list count]) [[list objectAtIndex:0] setWidth:[[self superview] bounds].size.width];
+}
 
 @end
 
@@ -666,6 +696,8 @@ STANDARD_CONTROL_NEEDSDISPLAY_IMPL( m_lbMode ? "SysListView32_LB" : "SysListView
 {
   if ((self = [super init]))
   {
+    [self setRowHeight:18];
+    [self setIntercellSpacing:NSMakeSize(3, 2)];
     m_subitem_images = false;
     m_selColors=0;
     m_fgColor = 0;
@@ -1210,6 +1242,27 @@ STANDARD_CONTROL_NEEDSDISPLAY_IMPL( m_lbMode ? "SysListView32_LB" : "SysListView
   // ignore commands
 }
 
+- (NSRect)rectOfColumn:(NSInteger)column
+{
+  NSRect r = [super rectOfColumn:column];
+  if (column == 0 && r.origin.x > SWELL_LISTTREEVIEW_MAX_LEFT_PAD)
+  {
+    r.size.width += r.origin.x;
+    r.origin.x = SWELL_LISTTREEVIEW_MAX_LEFT_PAD;
+    r.size.width -= r.origin.x;
+  }
+  return r;
+}
+
+-(void)setFrame:(NSRect)r
+{
+  [super setFrame:r];
+  if ((m_lbMode || !(style & LVS_REPORT)) && m_cols && m_cols->GetSize()==1)
+  {
+    NSTableColumn *col = m_cols->Get(0);
+    if (col) [col setWidth:[[self superview] bounds].size.width];
+  }
+}
 @end
 
 @implementation SWELL_ImageButtonCell
@@ -1603,6 +1656,15 @@ LONG_PTR GetWindowLong(HWND hwnd, int idx)
         }
       }
       else ret |= BS_AUTOCHECKBOX; 
+    }
+    if ([pid isKindOfClass:[NSTextField class]])
+    {
+      NSCell *cell = [pid cell];
+      if (cell) switch ([cell alignment])
+      {
+        case NSTextAlignmentRight: ret |= SS_RIGHT; break;
+        case NSTextAlignmentCenter: ret |= SS_CENTER; break;
+      }
     }
     
     if ([pid isKindOfClass:[NSView class]])
@@ -2245,7 +2307,7 @@ void GetClientRect(HWND hwnd, RECT *r)
 void SetWindowPos(HWND hwnd, HWND hwndAfter, int x, int y, int cx, int cy, int flags)
 {
   if (WDL_NOT_NORMALLY(!hwnd)) return;
- 
+  WDL_ASSERT((flags & SWP_NOSIZE) || cx>=0);
   SWELL_BEGIN_TRY
   NSWindow *nswnd; // content views = move window
   if (hwnd && [(id)hwnd isKindOfClass:[NSView class]] && (nswnd=[(NSView *)hwnd window]) && [nswnd contentView]==(id)hwnd)
@@ -2627,7 +2689,7 @@ HWND GetForegroundWindow()
 //    if (ret == [window contentView]) return (HWND) window;
     return (HWND) ret;
   }
-  return (HWND)window;
+  return (HWND)[window contentView];
   SWELL_END_TRY(;)
   return NULL;
 }
@@ -2650,6 +2712,7 @@ HWND GetFocus()
 
     return (HWND) ret;
   }
+  return (HWND) [window contentView];
   SWELL_END_TRY(;)
   return 0;
 }
@@ -2721,6 +2784,7 @@ BOOL SetDlgItemText(HWND hwnd, int idx, const char *text)
   else if ([obj isKindOfClass:[NSBox class]])
   {
     [(NSBox *)obj setTitle:lbl];
+    [obj setNeedsDisplay:YES];
   }
   else
   {
@@ -2802,12 +2866,16 @@ BOOL GetDlgItemText(HWND hwnd, int idx, char *text, int textlen)
   return FALSE;
 }
 
-void CheckDlgButton(HWND hwnd, int idx, int check)
+BOOL CheckDlgButton(HWND hwnd, int idx, int check)
 {
   NSView *pvw=(NSView *)GetDlgItem(hwnd,idx);
-  if (WDL_NOT_NORMALLY(!pvw)) return;
+  if (WDL_NOT_NORMALLY(!pvw)) return FALSE;
   if ([pvw isKindOfClass:[NSButton class]]) 
+  {
     [(NSButton*)pvw setState:(check&BST_INDETERMINATE)?NSMixedState:((check&BST_CHECKED)?NSOnState:NSOffState)];
+    return TRUE;
+  }
+  return FALSE;
 }
 
 
@@ -3398,8 +3466,10 @@ static NSRect MakeCoords(int x, int y, int w, int h, bool wantauto, bool ignorev
   return ret;
 }
 
-static const double minwidfontadjust=1.81;
-#define TRANSFORMFONTSIZE (m_transform.size.width<1?8:m_transform.size.width<2?10:12)
+#define SWELL_DO_CONTROL_FONT(button) \
+  if (m_transform.size.width < 1.81) \
+    [button setFont:[NSFont systemFontOfSize:(m_transform.size.width<1?8:m_transform.size.width<2?10:12)]];
+
 /// these are for swell-dlggen.h
 HWND SWELL_MakeButton(int def, const char *label, int idx, int x, int y, int w, int h, int flags)
 {  
@@ -3414,10 +3484,7 @@ HWND SWELL_MakeButton(int def, const char *label, int idx, int x, int y, int w, 
     [cell release];
   }
   
-  if (m_transform.size.width < minwidfontadjust)
-  {
-    [button setFont:[NSFont systemFontOfSize:TRANSFORMFONTSIZE]];
-  }
+  SWELL_DO_CONTROL_FONT(button);
   
   [button setTag:idx];
 
@@ -3573,6 +3640,7 @@ STANDARD_CONTROL_NEEDSDISPLAY_IMPL([self isSelectable] ? "Edit" : "Static")
     m_disable_menu = false;
     m_ctlcolor_set = false;
     m_last_dark_mode = false;
+    m_need_alphachg = false;
     m_userdata = 0;
   }
   return self;
@@ -3609,8 +3677,7 @@ STANDARD_CONTROL_NEEDSDISPLAY_IMPL([self isSelectable] ? "Edit" : "Static")
   }
   else if (![self isBordered] && ![self drawsBackground]) // looks like a static text control
   {
-    const float alpha = ([self isEnabled] ? 1.0f : 0.5f);
-    [self setTextColor:[[self textColor] colorWithAlphaComponent:alpha]];
+    m_need_alphachg = true;
   }
   else
   {
@@ -3627,6 +3694,12 @@ STANDARD_CONTROL_NEEDSDISPLAY_IMPL([self isSelectable] ? "Edit" : "Static")
   {
     const bool m = SWELL_osx_is_dark_mode(0);
     if (m != m_last_dark_mode) [self initColors:m];
+  }
+  if (m_need_alphachg)
+  {
+    m_need_alphachg = false;
+    const float alpha = ([self isEnabled] ? 1.0f : 0.5f);
+    [self setTextColor:[[self textColor] colorWithAlphaComponent:alpha]];
   }
   [super drawRect:r];
 }
@@ -3664,8 +3737,7 @@ HWND SWELL_MakeEditField(int idx, int x, int y, int w, int h, int flags)
     SWELL_TextView *obj=[[SWELL_TextView alloc] init];
     [obj setAutomaticQuoteSubstitutionEnabled:NO];
     [obj setEditable:(flags & ES_READONLY)?NO:YES];
-    if (m_transform.size.width < minwidfontadjust)
-      [obj setFont:[NSFont systemFontOfSize:TRANSFORMFONTSIZE]];
+    SWELL_DO_CONTROL_FONT(obj);
     [obj setTag:idx];
     [obj setDelegate:ACTIONTARGET];
     [obj setRichText:NO];
@@ -3722,8 +3794,7 @@ HWND SWELL_MakeEditField(int idx, int x, int y, int w, int h, int flags)
   else obj=[[SWELL_TextField alloc] init];
   [obj setEditable:(flags & ES_READONLY)?NO:YES];
   if (flags & ES_READONLY) [obj setSelectable:YES];
-  if (m_transform.size.width < minwidfontadjust)
-    [obj setFont:[NSFont systemFontOfSize:TRANSFORMFONTSIZE]];
+  SWELL_DO_CONTROL_FONT(obj);
   
   if ([obj isKindOfClass:[SWELL_TextField class]])
     [(SWELL_TextField *)obj initColors:SWELL_osx_is_dark_mode(0)];
@@ -3758,8 +3829,7 @@ HWND SWELL_MakeLabel( int align, const char *label, int idx, int x, int y, int w
   [obj setBordered:NO];
   [obj setBezeled:NO];
   [obj setDrawsBackground:NO];
-  if (m_transform.size.width < minwidfontadjust)
-    [obj setFont:[NSFont systemFontOfSize:TRANSFORMFONTSIZE]];
+  SWELL_DO_CONTROL_FONT(obj);
 
   if (flags & SS_NOTIFY)
   {
@@ -3957,7 +4027,7 @@ HWND SWELL_MakeControl(const char *cname, int idx, const char *classname, int st
     [obj2 setFrame:tr];
     [obj2 setDocumentView:obj];
     [obj2 setHasVerticalScroller:YES];
-    if (!isLB) [obj2 setHasHorizontalScroller:YES];
+    if (!isLB && (style & LVS_REPORT)) [obj2 setHasHorizontalScroller:YES];
     [obj2 setAutohidesScrollers:YES];
     [obj2 setDrawsBackground:NO];
     [obj release];
@@ -4073,8 +4143,7 @@ HWND SWELL_MakeControl(const char *cname, int idx, const char *classname, int st
     [obj setBordered:NO];
     [obj setBezeled:NO];
     [obj setDrawsBackground:NO];
-    if (m_transform.size.width < minwidfontadjust)
-      [obj setFont:[NSFont systemFontOfSize:TRANSFORMFONTSIZE]];
+    SWELL_DO_CONTROL_FONT(obj);
 
     if (cname && *cname)
     {
@@ -4179,8 +4248,7 @@ HWND SWELL_MakeControl(const char *cname, int idx, const char *classname, int st
       [button swellSetRadioFlags:4096];
     }
     
-    if (m_transform.size.width < minwidfontadjust)
-      [button setFont:[NSFont systemFontOfSize:TRANSFORMFONTSIZE]];
+    SWELL_DO_CONTROL_FONT(button);
     [button setFrame:fr];
     NSString *labelstr=(NSString *)SWELL_CStringToCFString_FilterPrefix(cname);
     [button setTitle:labelstr];
@@ -4228,7 +4296,12 @@ HWND SWELL_MakeCombo(int idx, int x, int y, int w, int h, int flags)
     [obj setTag:idx];
     [obj setFont:[NSFont systemFontOfSize:10.0f]];
     NSRect rc=MakeCoords(x,y,w,(g_swell_osx_style&1) ? 24 : 18,true,true);
-    if (g_swell_osx_style&1) rc.origin.y -= 2;
+    if (g_swell_osx_style&1)
+    {
+      rc.origin.y -= 2;
+      rc.origin.x -= 3;
+      rc.size.width += 3;
+    }
         
     [obj setSwellStyle:flags];
     [obj setFrame:rc];
@@ -4656,12 +4729,14 @@ int ListView_InsertItem(HWND h, const LVITEM *item)
   nr->add_col((item->mask & LVIF_TEXT) ? item->pszText : "");
   if (item->mask & LVIF_PARAM) nr->m_param = item->lParam;
   tv->m_items->Insert(a,nr);
-  
 
-  
   if ((item->mask&LVIF_STATE) && (item->stateMask & (0xff<<16)))
   {
     nr->set_img_idx(0,(item->state>>16)&0xff);
+  }
+  if ((item->mask&LVIF_IMAGE) && item->iImage >= 0)
+  {
+    nr->set_img_idx(0, item->iImage+1);
   }
   
   [tv reloadData];
@@ -5593,7 +5668,9 @@ BOOL InvalidateRect(HWND hwnd, const RECT *r, int eraseBk)
       {
         if (![hc isHiddenOrHasHiddenAncestor]) 
         {
-          swell_addMetalDirty(hc,r);
+          NSRect sz = [hc bounds];
+          if (sz.size.width != 0.0 && sz.size.height != 0.0)
+            swell_addMetalDirty(hc,r);
         }
         return TRUE;
       }
@@ -5662,10 +5739,10 @@ HDC BeginPaint(HWND hwnd, PAINTSTRUCT *ps)
   if (WDL_NOT_NORMALLY(!ps)) return 0;
   memset(ps,0,sizeof(PAINTSTRUCT));
   if (WDL_NOT_NORMALLY(!hwnd)) return 0;
-  id turd = (id)hwnd;
-  if (![turd respondsToSelector:@selector(getSwellPaintInfo:)]) return 0;
+  SWELL_hwndChild *h = (SWELL_hwndChild *)hwnd;
+  if (![h respondsToSelector:@selector(getSwellPaintInfo:)]) return 0;
 
-  [(SWELL_hwndChild*)turd getSwellPaintInfo:(PAINTSTRUCT *)ps];
+  [h getSwellPaintInfo:(PAINTSTRUCT *)ps];
   return ps->hdc;
 }
 

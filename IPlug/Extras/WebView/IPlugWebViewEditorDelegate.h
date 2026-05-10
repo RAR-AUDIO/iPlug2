@@ -36,9 +36,15 @@
 #include <functional>
 #include <filesystem>
 
+/**
+ * @file
+ * @copydoc WebViewEditorDelegate
+ */
+
 BEGIN_IPLUG_NAMESPACE
 
-/** This Editor Delegate allows using a platform native web view as the UI for an iPlug plugin */
+/** An editor delegate base class that uses a platform native webview for the UI
+* @ingroup EditorDelegates */
 class WebViewEditorDelegate : public IEditorDelegate
                             , public IWebView
 {
@@ -106,6 +112,11 @@ public:
     EvaluateJavaScript(str.Get());
   }
   
+  bool OnKeyDown(const IKeyPress& key) override;
+  bool OnKeyUp(const IKeyPress& key) override;
+
+  // IWebView
+
   void SendJSONFromDelegate(const nlohmann::json& jsonMessage)
   {
     SendArbitraryMsgFromDelegate(-1, static_cast<int>(jsonMessage.dump().size()), jsonMessage.dump().c_str());
@@ -159,6 +170,11 @@ public:
                        json["dataByte1"].get<uint8_t>(),
                        json["dataByte2"].get<uint8_t>()};
       SendMidiMsgFromUI(msg);
+    }
+    else if(json["msg"] == "SKPFUI")
+    {
+      IKeyPress keyPress = ConvertToIKeyPress(json["keyCode"].get<uint32_t>(), json["utf8"].get<std::string>().c_str(), json["S"].get<bool>(), json["C"].get<bool>(), json["A"].get<bool>());
+      json["isUp"].get<bool>() ? OnKeyUp(keyPress) : OnKeyDown(keyPress); // return value not used
     }
   }
 
@@ -224,9 +240,14 @@ public:
 protected:
   int mMaxJSStringLength = kDefaultMaxJSStringLength;
   std::function<void()> mEditorInitFunc = nullptr;
-  void* mHelperView = nullptr;
+  void* mView = nullptr;
   
 private:
+  IKeyPress ConvertToIKeyPress(uint32_t keyCode, const char* utf8, bool shift, bool ctrl, bool alt)
+  {
+    return IKeyPress(utf8, DOMKeyToVirtualKey(keyCode), shift,ctrl, alt);
+  }
+
   static int GetBase64Length(int dataSize)
   {
     return static_cast<int>(4. * std::ceil((static_cast<double>(dataSize) / 3.)));

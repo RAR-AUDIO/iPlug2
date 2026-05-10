@@ -63,14 +63,14 @@ public:
   {
     TRACE
     
-    if (pSize)
+    if (pSize && mOwner.GetHostResizeEnabled())
     {
       rect = *pSize;
-      mOwner.OnParentWindowResize(rect.getWidth() / mScaleFactor, 
-                                  rect.getHeight() / mScaleFactor);
+      mOwner.OnParentWindowResize(rect.getWidth(), rect.getHeight());
+      return Steinberg::kResultTrue;
     }
-    
-    return Steinberg::kResultTrue;
+
+    return Steinberg::kResultFalse;
   }
   
   Steinberg::tresult PLUGIN_API getSize(Steinberg::ViewRect* pSize) override
@@ -79,7 +79,7 @@ public:
     
     if (mOwner.HasUI())
     {
-      *pSize = Steinberg::ViewRect(0, 0, mOwner.GetEditorWidth() * mScaleFactor, mOwner.GetEditorHeight() * mScaleFactor);
+      *pSize = Steinberg::ViewRect(0, 0, mOwner.GetEditorWidth(), mOwner.GetEditorHeight());
       
       return Steinberg::kResultTrue;
     }
@@ -101,13 +101,13 @@ public:
   
   Steinberg::tresult PLUGIN_API checkSizeConstraint(Steinberg::ViewRect* pRect) override
   {
-    int w = pRect->getWidth() / mScaleFactor;
-    int h = pRect->getHeight() / mScaleFactor;
+    int w = pRect->getWidth();
+    int h = pRect->getHeight();
     
-    if (!mOwner.ConstrainEditorResize(w, h))
+    if(!mOwner.ConstrainEditorResize(w, h))
     {
-      pRect->right = pRect->left + (w * mScaleFactor);
-      pRect->bottom = pRect->top + (h * mScaleFactor);
+      pRect->right = pRect->left + w;
+      pRect->bottom = pRect->top + h;
     }
     
     return Steinberg::kResultTrue;
@@ -150,8 +150,10 @@ public:
 
   Steinberg::tresult PLUGIN_API setContentScaleFactor(ScaleFactor factor) override
   {
+#ifdef OS_WIN
     mOwner.SetScreenScale(factor);
-    mScaleFactor = factor;
+#endif
+
     return Steinberg::kResultOk;
   }
 
@@ -361,10 +363,9 @@ public:
   {
     TRACE
     
-    Steinberg::ViewRect newSize = Steinberg::ViewRect(0, 0, w * mScaleFactor, h * mScaleFactor);
+    Steinberg::ViewRect newSize = Steinberg::ViewRect(0, 0, w, h);
     plugFrame->resizeView(this, &newSize);
   }
 
   T& mOwner;
-  float mScaleFactor = 1.f;
 };

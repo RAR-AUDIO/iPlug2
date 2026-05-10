@@ -4,7 +4,7 @@
 #include "IWebViewControl.h"
 
 IPlugOSCEditor::IPlugOSCEditor(const InstanceInfo& info)
-: Plugin(info, MakeConfig(kNumParams, kNumPresets))
+: iplug::Plugin(info, MakeConfig(kNumParams, kNumPresets))
 , OSCReceiver(8000)
 , OSCSender("127.0.0.1", 8000)
 {
@@ -67,8 +67,11 @@ IPlugOSCEditor::IPlugOSCEditor(const InstanceInfo& info)
 
     pGraphics->AttachControl(new IWebViewControl(bottomRow, true, [](IWebViewControl* pControl){
       pControl->LoadHTML("...");
-      }, nullptr, showDevTools), kCtrlTagWebView)->Hide(true);
-    
+    }, [](IWebViewControl* pControl, const char* jsonMsg){
+      // You can handle key up/down events on the WebView here (or any other messages that you send from the UI)
+      DBGMSG("Received message %s\n", jsonMsg);
+    }, showDevTools), kCtrlTagWebView)->Hide(true);
+        
     pGraphics->AttachControl(new IVButtonControl(bottomRow.GetFromTop(20).GetFromLeft(200).GetVShifted(-20),
     [](IControl* pControl){
       SplashClickActionFunc(pControl);
