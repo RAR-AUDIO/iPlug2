@@ -2050,44 +2050,17 @@ void IGraphicsWin::StopVBlankThread()
   }
 }
 
-// Nasty kernel level definitions for wait for vblank.  Including the
-// proper include file requires "d3dkmthk.h" from the driver development
-// kit.  Instead we define the minimum needed to call the three methods we need.
-// and use LoadLibrary/GetProcAddress to accomplish the same thing.
+// Note: D3DKMT types are now provided by d3dkmthk.h in newer Windows SDKs.
+// Originally iPlug2 defined these locally to avoid a WDK dependency, but
+// the modern Windows 10 SDK includes them in <d3dkmthk.h>.
 // See https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/d3dkmthk/
-//
-// Heres another link (rant) with a lot of good information about vsync on firefox
-// https://www.vsynctester.com/firefoxisbroken.html
-// https://bugs.chromium.org/p/chromium/issues/detail?id=467617
+#include <d3dkmthk.h>
 
-// structs to use
-typedef UINT32 D3DKMT_HANDLE;
-typedef UINT D3DDDI_VIDEO_PRESENT_SOURCE_ID;
-
-typedef struct _D3DKMT_OPENADAPTERFROMHDC
-{
-  HDC                            hDc;
-  D3DKMT_HANDLE                  hAdapter;
-  LUID                           AdapterLuid;
-  D3DDDI_VIDEO_PRESENT_SOURCE_ID VidPnSourceId;
-} D3DKMT_OPENADAPTERFROMHDC;
-
-typedef struct _D3DKMT_CLOSEADAPTER
-{
-  D3DKMT_HANDLE hAdapter;
-} D3DKMT_CLOSEADAPTER;
-
-typedef struct _D3DKMT_WAITFORVERTICALBLANKEVENT
-{
-  D3DKMT_HANDLE                  hAdapter;
-  D3DKMT_HANDLE                  hDevice;
-  D3DDDI_VIDEO_PRESENT_SOURCE_ID VidPnSourceId;
-} D3DKMT_WAITFORVERTICALBLANKEVENT;
-
-// entry points
-typedef NTSTATUS(WINAPI* D3DKMTOpenAdapterFromHdc)(D3DKMT_OPENADAPTERFROMHDC* Arg1);
-typedef NTSTATUS(WINAPI* D3DKMTCloseAdapter)(const D3DKMT_CLOSEADAPTER* Arg1);
-typedef NTSTATUS(WINAPI* D3DKMTWaitForVerticalBlankEvent)(const D3DKMT_WAITFORVERTICALBLANKEVENT* Arg1);
+// entry points (renamed with PFN prefix to avoid colliding with the actual
+// exported function names declared by d3dkmthk.h)
+typedef NTSTATUS(WINAPI* PFND3DKMTOpenAdapterFromHdc)(D3DKMT_OPENADAPTERFROMHDC* Arg1);
+typedef NTSTATUS(WINAPI* PFND3DKMTCloseAdapter)(const D3DKMT_CLOSEADAPTER* Arg1);
+typedef NTSTATUS(WINAPI* PFND3DKMTWaitForVerticalBlankEvent)(const D3DKMT_WAITFORVERTICALBLANKEVENT* Arg1);
 
 DWORD IGraphicsWin::OnVBlankRun()
 {
@@ -2104,16 +2077,16 @@ DWORD IGraphicsWin::OnVBlankRun()
   //
   // TODO: handle low power modes
 
-  D3DKMTOpenAdapterFromHdc pOpen = nullptr;
-  D3DKMTCloseAdapter pClose = nullptr;
-  D3DKMTWaitForVerticalBlankEvent pWait = nullptr;
+  PFND3DKMTOpenAdapterFromHdc pOpen = nullptr;
+  PFND3DKMTCloseAdapter pClose = nullptr;
+  PFND3DKMTWaitForVerticalBlankEvent pWait = nullptr;
   HINSTANCE hInst = LoadLibraryW(L"gdi32.dll");
 
   if (hInst != nullptr)
   {
-    pOpen  = (D3DKMTOpenAdapterFromHdc) GetProcAddress((HMODULE) hInst, "D3DKMTOpenAdapterFromHdc");
-    pClose = (D3DKMTCloseAdapter) GetProcAddress((HMODULE) hInst, "D3DKMTCloseAdapter");
-    pWait  = (D3DKMTWaitForVerticalBlankEvent) GetProcAddress((HMODULE) hInst, "D3DKMTWaitForVerticalBlankEvent");
+    pOpen  = (PFND3DKMTOpenAdapterFromHdc) GetProcAddress((HMODULE) hInst, "D3DKMTOpenAdapterFromHdc");
+    pClose = (PFND3DKMTCloseAdapter) GetProcAddress((HMODULE) hInst, "D3DKMTCloseAdapter");
+    pWait  = (PFND3DKMTWaitForVerticalBlankEvent) GetProcAddress((HMODULE) hInst, "D3DKMTWaitForVerticalBlankEvent");
   }
 
   // if we don't get bindings to the methods we will fallback

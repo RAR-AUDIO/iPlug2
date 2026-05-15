@@ -78,7 +78,7 @@ void IGEditorDelegate::SetScreenScale(float scale)
   if (GetUI())
     mGraphics->SetScreenScale(scale);
 }
-
+#ifdef OS_LINUX
 void IGEditorDelegate::SetIntegration(void* pMainLoop)
 {
   mMainLoop = pMainLoop;
@@ -86,6 +86,7 @@ void IGEditorDelegate::SetIntegration(void* pMainLoop)
   if(mGraphics)
     mGraphics->SetIntegration(pMainLoop);
 }
+#endif
 
 void IGEditorDelegate::SendControlValueFromDelegate(int ctrlTag, double normalizedValue)
 {

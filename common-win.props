@@ -39,8 +39,8 @@
     <VST2_X64_HOST_PATH Condition="'$(VST2_X64_HOST_PATH)'==''">$(ProgramW6432)\REAPER (x64)\reaper.exe</VST2_X64_HOST_PATH>
     <VST3_ARM64EC_HOST_PATH Condition="'$(VST3_ARM64EC_HOST_PATH)'==''">$(ProgramW6432)\REAPER (arm64)\reaper.exe</VST3_ARM64EC_HOST_PATH>
     <VST3_X64_HOST_PATH Condition="'$(VST3_X64_HOST_PATH)'==''">$(ProgramW6432)\REAPER (x64)\reaper.exe</VST3_X64_HOST_PATH>
-    <VST3_ARM64EC_PATH Condition="'$(VST3_ARM64EC_PATH)'==''">$(LOCALAPPDATA)\Programs\Common\VST3</VST3_ARM64EC_PATH>
-    <VST3_X64_PATH Condition="'$(VST3_X64_PATH)'==''">$(LOCALAPPDATA)\Programs\Common\VST3</VST3_X64_PATH>
+    <VST3_ARM64EC_PATH Condition="'$(VST3_ARM64EC_PATH)'==''">$(CommonProgramFiles)\VST3</VST3_ARM64EC_PATH>
+    <VST3_X64_PATH Condition="'$(VST3_X64_PATH)'==''">$(CommonProgramFiles)\VST3</VST3_X64_PATH>
     <VST2_ARM64EC_PATH Condition="'$(VST2_ARM64EC_PATH)'==''">$(ProgramFiles)\VstPlugins</VST2_ARM64EC_PATH>
     <VST2_X64_PATH Condition="'$(VST2_X64_PATH)'==''">$(ProgramW6432)\VstPlugins</VST2_X64_PATH>
     <AAX_ARM64EC_PATH Condition="'$(AAX_ARM64EC_PATH)'==''">$(CommonProgramFiles)\Avid\Audio\Plug-Ins</AAX_ARM64EC_PATH>

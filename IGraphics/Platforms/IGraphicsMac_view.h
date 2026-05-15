@@ -32,18 +32,18 @@ inline NSRect ToNSRect(IGraphics* pGraphics, const IRECT& bounds)
   const float y = floor(bounds.T * scale);
   const float x2 = ceil(bounds.R * scale);
   const float y2 = ceil(bounds.B * scale);
-    
+
   return NSMakeRect(x, y, x2 - x, y2 - y);
 }
 
 inline IRECT ToIRECT(IGraphics* pGraphics, const NSRect* pNSRect)
 {
-  const float scale = 1.f/pGraphics->GetDrawScale();
+  const float scale = 1.f / pGraphics->GetDrawScale();
   const float x = pNSRect->origin.x;
   const float y = pNSRect->origin.y;
   const float w = pNSRect->size.width;
   const float h = pNSRect->size.height;
-  
+
   return IRECT(x * scale, y * scale, (x + w) * scale, (y + h) * scale);
 }
 
@@ -54,7 +54,7 @@ inline NSColor* ToNSColor(const IColor& c)
 
 inline IColor FromNSColor(const NSColor* c)
 {
-  return IColor(c.alphaComponent * 255., c.redComponent* 255., c.greenComponent * 255., c.blueComponent * 255.);
+  return IColor(c.alphaComponent * 255., c.redComponent * 255., c.greenComponent * 255., c.blueComponent * 255.);
 }
 
 inline int GetMouseOver(IGraphicsMac* pGraphics)
@@ -63,54 +63,121 @@ inline int GetMouseOver(IGraphicsMac* pGraphics)
 }
 
 END_IGRAPHICS_NAMESPACE
+
 END_IPLUG_NAMESPACE
 
 // based on code by Scott Gruby http://blog.gruby.com/2008/03/30/filtering-nstextfield-take-2/
-@interface IGRAPHICS_FORMATTER : NSFormatter
+@
+interface IGRAPHICS_FORMATTER : NSFormatter
 {
   NSCharacterSet* filterCharacterSet;
   int maxLength;
   int maxValue;
 }
 
-- (void) setAcceptableCharacterSet: (NSCharacterSet*) pCharacterSet;
-- (void) setMaximumLength:(int) inLength;
-- (void) setMaximumValue:(int) inValue;
+-
+(
 
-@end
 
-@interface IGRAPHICS_TEXTFIELDCELL : NSTextFieldCell
+
+void
+)
+setAcceptableCharacterSet
+  : (NSCharacterSet *)
+
+pCharacterSet;
+-
+(
+
+
+
+void
+)
+setMaximumLength
+  : (int)
+
+inLength;
+-
+(
+
+
+
+void
+)
+setMaximumValue
+  : (int)
+
+inValue;
+
+@
+end
+
+@ interface IGRAPHICS_TEXTFIELDCELL : NSTextFieldCell
 {
   BOOL mIsEditingOrSelecting;
 }
 
-@end
+@ end
 
 using namespace iplug;
 using namespace igraphics;
 
-@interface IGRAPHICS_MENU : NSMenu
+@
+interface IGRAPHICS_MENU : NSMenu
 {
   IPopupMenu* mIPopupMenu;
 }
-- (id) initWithIPopupMenuAndReceiver: (IPopupMenu*) pMenu : (NSView*) pView;
-- (IPopupMenu*) iPopupMenu;
-@end
+
+-
+(id) initWithIPopupMenuAndReceiver: (IPopupMenu *)
+
+pMenu
+  : (NSView *)
+
+pView;
+-
+(IPopupMenu*)
+iPopupMenu;
+@
+end
 
 // Dummy view class used to receive Menu Events inline
-@interface IGRAPHICS_MENU_RCVR : NSView
+@ interface IGRAPHICS_MENU_RCVR : NSView
 {
   NSMenuItem* nsMenuItem;
 }
-- (void) onMenuSelection:(id)sender;
-- (NSMenuItem*) menuItem;
-@end
 
-@interface IGRAPHICS_TEXTFIELD : NSTextField
+-
+(
+
+
+
+void
+)
+onMenuSelection
+  : (id)
+
+sender;
+-
+(NSMenuItem*)
+menuItem;
+@
+end
+
+@ interface IGRAPHICS_TEXTFIELD : NSTextField
 {
 }
-- (bool) becomeFirstResponder;
-@end
+
+-
+(
+
+
+
+bool
+)
+becomeFirstResponder;
+@
+end
 
 #if defined IGRAPHICS_GL2 || defined IGRAPHICS_GL3
 #define VIEW_BASE NSOpenGLView
@@ -118,12 +185,12 @@ using namespace igraphics;
 #define VIEW_BASE NSView
 #endif
 
-@interface IGRAPHICS_VIEW : VIEW_BASE <NSTextFieldDelegate, NSDraggingSource/*, WKScriptMessageHandler*/>
+@ interface IGRAPHICS_VIEW : VIEW_BASE<NSTextFieldDelegate, NSDraggingSource/*, WKScriptMessageHandler*/>
 {
   CVDisplayLinkRef mDisplayLink;
   dispatch_source_t mDisplaySource;
   NSTimer* mTimer;
-  
+
   NSTrackingArea* mTrackingArea;
   IGRAPHICS_TEXTFIELD* mTextFieldView;
   NSCursor* mMoveCursor;
@@ -132,67 +199,407 @@ using namespace igraphics;
   IRECTList mDirtyRects;
   IColorPickerHandlerFunc mColorPickerFunc;
 
-#if defined IGRAPHICS_GLES2 || defined IGRAPHICS_GLES3
+  #if defined IGRAPHICS_GLES2 || defined IGRAPHICS_GLES3
   EGLDisplay mEGLDisplay;
   EGLSurface mEGLSurface;
   EGLContext mEGLContext;
-#endif
-  
-@public
+  #endif
+
+  @
   IGraphicsMac* mGraphics; // OBJC instance variables have to be pointers
 }
-- (id) initWithIGraphics: (IGraphicsMac*) pGraphics;
-- (BOOL) isOpaque;
-- (BOOL) acceptsFirstResponder;
-- (BOOL) acceptsFirstMouse: (NSEvent*) pEvent;
-- (void) viewDidMoveToWindow;
-- (void) viewDidChangeBackingProperties: (NSNotification*) pNotification;
-- (void) drawRect: (NSRect) bounds;
-- (void) render;
-- (void) killTimer;
-- (void) onTimer: (NSTimer*) pTimer;
-- (void) viewDidChangeEffectiveAppearance;
+
+-
+(id) initWithIGraphics: (IGraphicsMac *)
+pGraphics;
+-
+(BOOL) isOpaque;
+-
+(BOOL) acceptsFirstResponder;
+-
+(BOOL) acceptsFirstMouse: (NSEvent *)
+pEvent;
+-
+(
+
+
+
+void
+)
+viewDidMoveToWindow;
+-
+(
+
+
+
+void
+)
+viewDidChangeBackingProperties
+  : (NSNotification *)
+
+pNotification;
+-
+(
+
+
+
+void
+)
+drawRect
+  : (NSRect)
+
+bounds;
+-
+(
+
+
+
+void
+)
+render;
+-
+(
+
+
+
+void
+)
+killTimer;
+-
+(
+
+
+
+void
+)
+onTimer
+  : (NSTimer *)
+
+pTimer;
+-
+(
+
+
+
+void
+)
+viewDidChangeEffectiveAppearance;
 //mouse
-- (void) getMouseXY: (NSEvent*) pEvent : (float&) x : (float&) y;
-- (IMouseInfo) getMouseLeft: (NSEvent*) pEvent;
-- (IMouseInfo) getMouseRight: (NSEvent*) pEvent;
-- (void) updateTrackingAreas;
-- (void) mouseEntered:(NSEvent*) pEvent;
-- (void) mouseExited:(NSEvent*) pEvent;
-- (void) mouseDown: (NSEvent*) pEvent;
-- (void) mouseUp: (NSEvent*) pEvent;
-- (void) mouseDragged: (NSEvent*) pEvent;
-- (void) rightMouseDown: (NSEvent*) pEvent;
-- (void) rightMouseUp: (NSEvent*) pEvent;
-- (void) rightMouseDragged: (NSEvent*) pEvent;
-- (void) mouseMoved: (NSEvent*) pEvent;
-- (void) scrollWheel: (NSEvent*) pEvent;
-- (void) keyDown: (NSEvent*) pEvent;
-- (void) keyUp: (NSEvent*) pEvent;
+-
+(
+
+
+
+void
+)
+getMouseXY
+  : (NSEvent *)
+
+pEvent
+  : (float&)
+
+x
+  : (float&)
+
+y;
+-
+(IMouseInfo) getMouseLeft: (NSEvent *)
+pEvent;
+-
+(IMouseInfo) getMouseRight: (NSEvent *)
+pEvent;
+-
+(
+
+
+
+void
+)
+updateTrackingAreas;
+-
+(
+
+
+
+void
+)
+mouseEntered
+  : (NSEvent *)
+
+pEvent;
+-
+(
+
+
+
+void
+)
+mouseExited
+  : (NSEvent *)
+
+pEvent;
+-
+(
+
+
+
+void
+)
+mouseDown
+  : (NSEvent *)
+
+pEvent;
+-
+(
+
+
+
+void
+)
+mouseUp
+  : (NSEvent *)
+
+pEvent;
+-
+(
+
+
+
+void
+)
+mouseDragged
+  : (NSEvent *)
+
+pEvent;
+-
+(
+
+
+
+void
+)
+rightMouseDown
+  : (NSEvent *)
+
+pEvent;
+-
+(
+
+
+
+void
+)
+rightMouseUp
+  : (NSEvent *)
+
+pEvent;
+-
+(
+
+
+
+void
+)
+rightMouseDragged
+  : (NSEvent *)
+
+pEvent;
+-
+(
+
+
+
+void
+)
+mouseMoved
+  : (NSEvent *)
+
+pEvent;
+-
+(
+
+
+
+void
+)
+scrollWheel
+  : (NSEvent *)
+
+pEvent;
+-
+(
+
+
+
+void
+)
+keyDown
+  : (NSEvent *)
+
+pEvent;
+-
+(
+
+
+
+void
+)
+keyUp
+  : (NSEvent *)
+
+pEvent;
 //text entry
-- (void) removeFromSuperview;
-- (void) controlTextDidEndEditing: (NSNotification*) pNotification;
-- (void) createTextEntry: (int) paramIdx : (const IText&) text : (const char*) str : (int) length : (NSRect) areaRect;
-- (void) endUserInput;
+-
+(
+
+
+
+void
+)
+removeFromSuperview;
+-
+(
+
+
+
+void
+)
+controlTextDidEndEditing
+  : (NSNotification *)
+
+pNotification;
+-
+(
+
+
+
+void
+)
+createTextEntry
+  : (int)
+
+paramIdx
+  : (const IText &)
+
+text
+  : (const char*)
+
+str
+  : (int)
+
+length
+  : (NSRect)
+
+areaRect;
+-
+(
+
+
+
+void
+)
+endUserInput;
 //pop-up menu
-- (IPopupMenu*) createPopupMenu: (IPopupMenu&) menu : (NSRect) bounds;
+-
+(IPopupMenu*)
+
+createPopupMenu
+  : (IPopupMenu &)
+
+menu
+  : (NSRect)
+
+bounds;
 //color picker
-- (BOOL) promptForColor: (IColor&) color : (IColorPickerHandlerFunc) func;
-- (void) onColorPicked: (NSColorPanel*) pColorPanel;
+-
+(BOOL) promptForColor: (IColor &)
+
+color
+  : (IColorPickerHandlerFunc)
+
+func;
+-
+(
+
+
+
+void
+)
+onColorPicked
+  : (NSColorPanel *)
+
+pColorPanel;
 
 //tooltip
-- (NSString*) view: (NSView*) pView stringForToolTip: (NSToolTipTag) tag point: (NSPoint) point userData: (void*) pData;
-- (void) registerToolTip: (IRECT&) bounds;
+-
+(NSString*)
+
+view
+  : (NSView *)
+
+pView stringForToolTip: (NSToolTipTag)
+tag point: (NSPoint)
+point userData: (void*)
+pData;
+-
+(
+
+
+
+void
+)
+registerToolTip
+  : (IRECT &)
+
+bounds;
 //drag-and-drop
-- (NSDragOperation) draggingEntered: (id <NSDraggingInfo>) sender;
-- (BOOL) performDragOperation: (id<NSDraggingInfo>) sender;
-- (NSDragOperation)draggingSession:(NSDraggingSession*) session sourceOperationMaskForDraggingContext:(NSDraggingContext)context;
+-
+(NSDragOperation) draggingEntered: (id < NSDraggingInfo >)
+sender;
+-
+(BOOL) performDragOperation: (id < NSDraggingInfo >)
+sender;
+-
+(NSDragOperation)draggingSession: (NSDraggingSession *)
+session sourceOperationMaskForDraggingContext: (NSDraggingContext)
+context;
 
-- (void) setMouseCursor: (ECursor) cursorType;
+-
+(
 
-- (void) swapBuffers;
-- (void) activateGLContext;
-- (void) deactivateGLContext;
+
+
+void
+)
+setMouseCursor
+  : (ECursor)
+
+cursorType;
+
+-
+(
+
+
+
+void
+)
+swapBuffers;
+-
+(
+
+
+
+void
+)
+activateGLContext;
+-
+(
+
+
+
+void
+)
+deactivateGLContext;
 
 #if defined IGRAPHICS_GLES2 || defined IGRAPHICS_GLES3
 - (EGLDisplay) getEGLDisplay;
@@ -200,5 +607,6 @@ using namespace igraphics;
 - (EGLContext) getEGLContext;
 #endif
 
-@end
+@
+end
 

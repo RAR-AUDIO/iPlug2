@@ -319,10 +319,11 @@ if(NOT TARGET iPlug2::IGraphics::Skia)
   )
 
   if(WIN32)
-    set(SKIA_LIB_PATH ${SKIA_PATH}/out/Release-x64)
     target_link_libraries(iPlug2::IGraphics::Skia INTERFACE
-      ${SKIA_LIB_PATH}/skia.lib
-      ${SKIA_LIB_PATH}/svg.lib
+      $<$<CONFIG:Debug>:${SKIA_PATH}/out/Debug-x64/skia.lib>
+      $<$<NOT:$<CONFIG:Debug>>:${SKIA_PATH}/out/Release-x64/skia.lib>
+      $<$<CONFIG:Debug>:${SKIA_PATH}/out/Debug-x64/svg.lib>
+      $<$<NOT:$<CONFIG:Debug>>:${SKIA_PATH}/out/Release-x64/svg.lib>
     )
   elseif(APPLE)
     set(SKIA_LIB_PATH ${DEPS_DIR}/Build/mac/lib)
