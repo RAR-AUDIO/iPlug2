@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="CMakeProjectFlavorService">
+    <option name="flavorId" value="CMakePlainProjectFlavor" />
+  </component>
+  <component name="CMakeSettings">
+    <configurations />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="059f0a42-00dc-4e2d-af55-f55d62b7968c" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/../Dependencies/IPlug/VST3_SDK" beforeDir="false" afterPath="$PROJECT_DIR$/../Dependencies/IPlug/VST3_SDK" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Dependencies/IPlug/VST3_SDK/doc" beforeDir="false" afterPath="$PROJECT_DIR$/../Dependencies/IPlug/VST3_SDK/doc" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Dependencies/IPlug/VST3_SDK/doc/vstgui/html/editVST3.png" beforeDir="false" afterPath="$PROJECT_DIR$/../Dependencies/IPlug/VST3_SDK/doc/vstgui/html/editVST3.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Dependencies/IPlug/VST3_SDK/doc/vstgui/html/newuicompname.png" beforeDir="false" afterPath="$PROJECT_DIR$/../Dependencies/IPlug/VST3_SDK/doc/vstgui/html/newuicompname.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/IGraphicsEditorDelegate.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/IGraphicsEditorDelegate.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../IPlug/Extras/RARClasses" beforeDir="false" afterPath="$PROJECT_DIR$/../IPlug/Extras/RARClasses" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../IPlug/Extras/RARClasses/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../IPlug/Extras/RARClasses/CMakeLists.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../IPlug/Extras/RARClasses/DSP/SinOsc.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../IPlug/Extras/RARClasses/DSP/SinOsc.hpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../IPlug/Extras/RARClasses/Utils/RAR_Helpers.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/../IPlug/Extras/RARClasses/Utils/RAR_Helpers.hpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../IPlug/Extras/RARClasses/extern/signal-smith" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../IPlug/Extras/RARClasses/extern/valley_rack_free/Common/DSP/AllpassFilter.hpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../IPlug/Extras/RARClasses/extern/valley_rack_free/Common/DSP/DADSR.hpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../IPlug/Extras/RARClasses/extern/valley_rack_free/Common/DSP/DLFO.hpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../IPlug/Extras/RARClasses/extern/valley_rack_free/Common/DSP/DOsc.hpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../IPlug/Extras/RARClasses/extern/valley_rack_free/Common/DSP/InterpDelay.hpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../IPlug/Extras/RARClasses/extern/valley_rack_free/Common/DSP/InterpDelay2.hpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../IPlug/Extras/RARClasses/extern/valley_rack_free/Common/DSP/LFO.hpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../IPlug/Extras/RARClasses/extern/valley_rack_free/Common/DSP/LinearEnvelope.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../IPlug/Extras/RARClasses/extern/valley_rack_free/Common/DSP/LinearEnvelope.hpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../IPlug/Extras/RARClasses/extern/valley_rack_free/Common/DSP/MultiTapAllpassFilter.hpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../IPlug/Extras/RARClasses/extern/valley_rack_free/Common/DSP/MultiTapInterpDelay.hpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../IPlug/Extras/RARClasses/extern/valley_rack_free/Common/DSP/Noise.hpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../IPlug/Extras/RARClasses/extern/valley_rack_free/Common/DSP/NonLinear.hpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../IPlug/Extras/RARClasses/extern/valley_rack_free/Common/DSP/OTAFilter.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../IPlug/Extras/RARClasses/extern/valley_rack_free/Common/DSP/OTAFilter.hpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../IPlug/Extras/RARClasses/extern/valley_rack_free/Common/DSP/OnePoleFilters.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../IPlug/Extras/RARClasses/extern/valley_rack_free/Common/DSP/OnePoleFilters.hpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../IPlug/Extras/RARClasses/extern/valley_rack_free/Common/FreqLUT.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../IPlug/Extras/RARClasses/extern/valley_rack_free/Common/FreqLUT.hpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../IPlug/Extras/RARClasses/extern/valley_rack_free/Common/Metronome.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../IPlug/Extras/RARClasses/extern/valley_rack_free/Common/Metronome.hpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../IPlug/Extras/RARClasses/extern/valley_rack_free/Common/Oneshot.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../IPlug/Extras/RARClasses/extern/valley_rack_free/Common/Oneshot.hpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../IPlug/Extras/RARClasses/extern/valley_rack_free/Common/Utilities.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../IPlug/Extras/RARClasses/extern/valley_rack_free/Common/Utilities.hpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../IPlug/Extras/RARClasses/extern/valley_rack_free/Plateau/Dattorro.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../IPlug/Extras/RARClasses/extern/valley_rack_free/Plateau/Dattorro.hpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../IPlug/Extras/RARClasses/extern/valley_rack_free/Plateau/DattorroV2.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../IPlug/Extras/RARClasses/extern/valley_rack_free/Plateau/DattorroV2.hpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../IPlug/Extras/RARClasses/extern/valley_rack_free/Plateau/Plateau.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../IPlug/Extras/RARClasses/extern/valley_rack_free/Plateau/Plateau.hpp" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/Controls/Test/TestFlexBoxControl.h" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/IGraphics.h" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/IGraphics_include_in_plug_hdr.h" root0="SKIP_HIGHLIGHTING" />
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 0,
+  "fromUser": false
+}]]></component>
+  <component name="ProjectId" id="3DbVrrVYCc3bA1DzbS0yeLg7ygf" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.cidr.known.project.marker": "true",
+    "RunOnceActivity.readMode.enableVisualFormatting": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "cidr.known.project.marker": "true",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
+    "git-widget-placeholder": "develop",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "preferences.pluginManager",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="059f0a42-00dc-4e2d-af55-f55d62b7968c" name="Changes" comment="" />
+      <created>1778034545706</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1778034545706</updated>
+      <workItem from="1778034549813" duration="204000" />
+      <workItem from="1778550960567" duration="400000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="UnityProjectConfiguration" hasMinimizedUI="false" />
+  <component name="VcsManagerConfiguration">
+    <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <breakpoint enabled="true" type="DotNet_Exception_Breakpoints">
+          <properties exception="System.OperationCanceledException" breakIfHandledByOtherCode="false" displayValue="System.OperationCanceledException" />
+          <option name="timeStamp" value="1" />
+        </breakpoint>
+        <breakpoint enabled="true" type="DotNet_Exception_Breakpoints">
+          <properties exception="System.Threading.Tasks.TaskCanceledException" breakIfHandledByOtherCode="false" displayValue="System.Threading.Tasks.TaskCanceledException" />
+          <option name="timeStamp" value="2" />
+        </breakpoint>
+        <breakpoint enabled="true" type="DotNet_Exception_Breakpoints">
+          <properties exception="System.Threading.ThreadAbortException" breakIfHandledByOtherCode="false" displayValue="System.Threading.ThreadAbortException" />
+          <option name="timeStamp" value="3" />
+        </breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+</project>

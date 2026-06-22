@@ -160,15 +160,17 @@ public:
         
         if (r.R < mMouseDownRECT.L +mGridSize) r.R = mMouseDownRECT.L+mGridSize;
         if (r.B < mMouseDownRECT.T +mGridSize) r.B = mMouseDownRECT.T+mGridSize;
-          
+
         GetUI()->SetControlSize(pControl, r.W(), r.H());
+        LogControlGeometry(pControl);
       }
       else
       {
         const float x1 = SnapToGrid(mMouseDownRECT.L + (x - mouseDownX));
         const float y1 = SnapToGrid(mMouseDownRECT.T + (y - mouseDownY));
-          
+
         GetUI()->SetControlPosition(pControl, x1, y1);
+        LogControlGeometry(pControl);
       }
     }
     else
@@ -282,7 +284,25 @@ public:
     
     for (int i = 0; i< mSelectedControls.GetSize(); i++)
     {
-      g.DrawDottedRect(COLOR_WHITE, mSelectedControls.Get(i)->GetRECT());
+      IControl* pControl = mSelectedControls.Get(i);
+      IRECT cr = pControl->GetRECT();
+      g.DrawDottedRect(COLOR_WHITE, cr);
+
+      WDL_String str;
+      str.SetFormatted(64, "%0.0f,%0.0f %0.0fx%0.0f", cr.L, cr.T, cr.W(), cr.H());
+
+      const float lw = 120.f, lh = 14.f;
+      IRECT bounds = g.GetBounds();
+      // Prefer above the control; flip below if it would clip off the top edge
+      float lt = (cr.T - lh >= bounds.T) ? cr.T - lh : cr.B;
+      float ll = cr.L;
+      // Keep the label fully inside the window horizontally
+      if (ll + lw > bounds.R) ll = bounds.R - lw;
+      if (ll < bounds.L) ll = bounds.L;
+      IRECT label = IRECT(ll, lt, ll + lw, lt + lh);
+
+      g.FillRect(IColor(180, 0, 0, 0), label);
+      g.DrawText(IText(12.f, COLOR_WHITE, nullptr, EAlign::Near), str.Get(), label);
     }
     
     if (!mDragRegion.Empty())
@@ -311,6 +331,14 @@ public:
       return (float) std::round(input / (float) mGridSize) * mGridSize;
     else
       return input;
+  }
+
+  // Prints the live-edited control's bounds as an IRECT::MakeXYWH(...) call to the debug console
+  void LogControlGeometry(IControl* pControl)
+  {
+    IRECT r = pControl->GetRECT();
+    DBGMSG("LiveEdit control %d: IRECT::MakeXYWH(%0.1f, %0.1f, %0.1f, %0.1f)\n",
+           mClickedOnControl, r.L, r.T, r.W(), r.H());
   }
 
 private:
