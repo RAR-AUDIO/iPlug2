@@ -522,7 +522,8 @@ public:
     BlackmanHarris,
     Hamming,
     Flattop,
-    Rectangular
+    Rectangular,
+    Dome  // sine window: w(n) = sin(π·n/(N-1)); good sidelobe rejection, 3 dB overlap
   };
   
   enum class EOutputType {
@@ -675,6 +676,9 @@ private:
         break;
       case EWindowType::Rectangular:
         std::fill(mWindow.begin(), mWindow.end(), 1.0f);
+        break;
+      case EWindowType::Dome:
+        for (auto i = 0; i < mFFTSize; i++) { mWindow[i] = std::sin(PI * i / M); }
         break;
       default:
         break;
