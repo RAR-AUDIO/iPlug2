@@ -393,6 +393,14 @@ public:
       return input;
   }
 
+  // Prints the live-edited control's bounds as an IRECT::MakeXYWH(...) call to the debug console
+  void LogControlGeometry(IControl* pControl)
+  {
+    IRECT r = pControl->GetRECT();
+    DBGMSG("LiveEdit control %d: IRECT::MakeXYWH(%0.1f, %0.1f, %0.1f, %0.1f)\n",
+           mClickedOnControl, r.L, r.T, r.W(), r.H());
+  }
+
   static void AppendJsonString(std::string& out, const char* str)
   {
     out.push_back('"');
